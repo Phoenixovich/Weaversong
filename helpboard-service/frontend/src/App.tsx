@@ -1,5 +1,6 @@
 import { Routes, Route } from "react-router-dom";
 import Navbar from "./components/Navbar";
+import LoginCallback from "./pages/LoginCallback";
 import UsersPage from "./pages/UsersPage";
 import RequestsPage from "./pages/RequestsPage";
 import ResponsesPage from "./pages/ResponsesPage";
@@ -11,7 +12,8 @@ export default function App() {
       <Navbar />
       <Routes>
         <Route path="/" element={<h2>Welcome to NeighborHelpboard</h2>} />
-        <Route path="/users" element={<UsersPage />} />
+  <Route path="/login" element={<LoginCallback />} />
+  <Route path="/users" element={<UsersPage />} />
         <Route path="/requests" element={<RequestsPage />} />
         <Route path="/responses" element={<ResponsesPage />} />
         <Route path="/profile" element={<ProfilePage />} />

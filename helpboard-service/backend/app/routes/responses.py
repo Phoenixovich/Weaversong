@@ -1,8 +1,8 @@
 from fastapi import APIRouter, HTTPException
 from bson import ObjectId
 from datetime import datetime
-from models.helpboard_response import HelpboardResponse
-from database import helpboard_responses 
+from app.models.helpboard_response import HelpboardResponse
+from app.database import helpboard_responses 
 
 router = APIRouter()
 
