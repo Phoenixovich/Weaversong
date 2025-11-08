@@ -1,2 +1,8 @@
 .venv
-.env
+
+helpboard-service/.env
+auth-service/.env
+
+__pycache__/
+**/__pycache__/
+*.py[cod]
