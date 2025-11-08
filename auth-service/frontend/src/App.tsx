@@ -1,6 +1,6 @@
 import React from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { Routes, Route, Navigate } from 'react-router-dom';
+import { useAuth } from './contexts/AuthContext';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { Navbar } from './components/Navbar';
 import { Login } from './pages/Login';
@@ -8,6 +8,10 @@ import { Signup } from './pages/Signup';
 import { Dashboard } from './pages/Dashboard';
 import { ClarifAI } from './pages/ClarifAI';
 import { PublicDataHub } from './pages/PublicDataHub';
+import UsersPage from './pages/UsersPage';
+import RequestsPage from './pages/RequestsPage';
+import ResponsesPage from './pages/ResponsesPage';
+import LoginCallback from './pages/LoginCallback';
 
 const AppRoutes: React.FC = () => {
   const { isAuthenticated } = useAuth();
@@ -43,24 +47,38 @@ const AppRoutes: React.FC = () => {
           }
         />
         <Route path="/" element={<Navigate to="/dashboard" replace />} />
+        <Route
+          path="/helpboard/users"
+          element={
+            <ProtectedRoute>
+              <UsersPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/helpboard/requests"
+          element={
+            <ProtectedRoute>
+              <RequestsPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/helpboard/responses"
+          element={
+            <ProtectedRoute>
+              <ResponsesPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route path="/helpboard/login" element={<LoginCallback />} />
       </Routes>
     </>
   );
 };
 
 function App() {
-  return (
-    <AuthProvider>
-      <BrowserRouter
-        future={{
-          v7_startTransition: true,
-          v7_relativeSplatPath: true,
-        }}
-      >
-        <AppRoutes />
-      </BrowserRouter>
-    </AuthProvider>
-  );
+  return <AppRoutes />;
 }
 
 export default App;

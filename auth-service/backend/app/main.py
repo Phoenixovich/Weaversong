@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.config import settings
 from app.database import connect_to_mongo, close_mongo_connection
 from app.routers import auth, clarify, reminders, public_data
+from app.routers import helpboard_requests, helpboard_responses, helpboard_users
 
 app = FastAPI(title="Unified Service", version="1.0.0")
 
@@ -20,6 +21,10 @@ app.include_router(auth.router)
 app.include_router(clarify.router)
 app.include_router(reminders.router)
 app.include_router(public_data.router)
+# Helpboard feature routers
+app.include_router(helpboard_requests.router)
+app.include_router(helpboard_responses.router)
+app.include_router(helpboard_users.router)
 
 
 @app.on_event("startup")

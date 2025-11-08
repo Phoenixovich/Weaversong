@@ -32,6 +32,9 @@ export const Navbar: React.FC = () => {
               <Link to="/public-data" className={isActive('/public-data')}>
                 Public Data
               </Link>
+                    <Link to="/helpboard/users" className={isActive('/helpboard/users')}>
+                      Helpboard
+                    </Link>
             </div>
 
         <div className="navbar-user">
