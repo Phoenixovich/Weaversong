@@ -91,6 +91,7 @@ The app will be available at `http://localhost:3000`
 ## Project Structure
 
 ```
+<<<<<<< HEAD
 .
 ├── backend/
 │   ├── main.py                 # FastAPI application entry point
@@ -125,10 +126,58 @@ The app will be available at `http://localhost:3000`
         │   └── api.ts          # Backend API client
         └── types/              # TypeScript type definitions
             └── index.ts
+=======
+Weaversong/
+├── auth-service/
+│   ├── backend/          # FastAPI backend
+│   └── frontend/         # React frontend
+└── README.md
+```
+
+## Getting Started
+
+### Prerequisites
+- Python 3.12+
+- Node.js 18+
+- MongoDB connection string
+- Google Gemini API key
+
+### Backend Setup
+```bash
+cd auth-service/backend
+pip install -r requirements.txt
+# Create .env file with required variables
+uvicorn app.main:app --reload --port 8000
+```
+
+### Frontend Setup
+```bash
+cd auth-service/frontend
+npm install
+npm run dev
+```
+
+## Environment Variables
+
+### Backend (.env)
+```
+MONGODB_URI=your_mongodb_connection_string
+MONGODB_DB=CommunityHelp
+JWT_SECRET=your_jwt_secret
+JWT_EXPIRES_MIN=30
+CORS_ORIGIN=http://localhost:5173
+GEMINI_API_KEY=your_gemini_api_key
+```
+
+### Frontend (.env)
+```
+VITE_API_URL=http://localhost:8000
+>>>>>>> 7ce85900c84b148bbd05a1ce02335fe54f08f55c
 ```
 
 ## API Endpoints
 
+<<<<<<< HEAD
 ### Alerts
 
 - `GET /api/alerts` - Get all alerts (with optional filtering by neighborhood and category)
@@ -183,3 +232,30 @@ Use `backend/test_data.json` as a reference for alert structure. Import into Mon
 ## License
 
 [Add your license here]
+=======
+### Authentication
+- `POST /auth/signup` - Register new user
+- `POST /auth/login` - Login and get access token
+- `POST /auth/refresh` - Refresh access token
+- `GET /auth/me` - Get current user info
+
+### ClarifAI
+- `POST /clarify/simplify` - Simplify medical documents
+- `POST /clarify/legal` - Simplify legal documents
+
+### Public Data
+- `GET /public-data/datasets` - List/search datasets
+- `GET /public-data/datasets/{id}` - Get dataset details
+- `GET /public-data/datasets/{id}/aggregated` - Get AI analysis of dataset
+- `POST /public-data/explain-alert` - Explain RO-ALERT messages
+- `POST /public-data/explain-social-aid` - Answer social aid questions
+
+### Reminders
+- `POST /reminders` - Create reminder
+- `GET /reminders` - Get user reminders
+- `DELETE /reminders/{id}` - Delete reminder
+
+## License
+
+MIT
+>>>>>>> 7ce85900c84b148bbd05a1ce02335fe54f08f55c
