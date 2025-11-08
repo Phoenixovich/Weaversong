@@ -14,12 +14,24 @@ export const PublicDataHub: React.FC = () => {
 
   // Datastore state
   const [resourceId, setResourceId] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState<string>('All');
+  const [resourceSearchQuery, setResourceSearchQuery] = useState('');
   const [predefinedResources, setPredefinedResources] = useState<Array<{
     id: string;
     name: string;
     description: string;
     dataset_title: string;
+    dataset_id?: string;
+    resource_name?: string;
+    format?: string;
+    year?: string;
+    organization?: string;
   }>>([]);
+  const [categoryCounts, setCategoryCounts] = useState<Record<string, number>>({});
+  const [resourcesTotal, setResourcesTotal] = useState(0);
+  const [resourcesLimit, setResourcesLimit] = useState(100);
+  const [resourcesOffset, setResourcesOffset] = useState(0);
+  const [loadingResources, setLoadingResources] = useState(false);
   const [queryMode, setQueryMode] = useState<'filter' | 'sql' | 'text'>('filter');
   const [filterField, setFilterField] = useState('');
   const [filterValue, setFilterValue] = useState('');
@@ -35,10 +47,21 @@ export const PublicDataHub: React.FC = () => {
     fields: Array<{ id: string; type: string }>;
     total_records: number;
   } | null>(null);
+  const [visualizationAnalysis, setVisualizationAnalysis] = useState<{
+    visualizable_fields: string[];
+    recommended_limit: number;
+    field_recommendations?: Record<string, {
+      chart_type: string;
+      data_type: string;
+      reason: string;
+    }>;
+  } | null>(null);
+  const [analyzing, setAnalyzing] = useState(false);
   const [limit, setLimit] = useState(100);
   const [offset, setOffset] = useState(0);
-  const [chartType, setChartType] = useState<'bar' | 'line' | 'pie' | 'table'>('table');
+  const [chartType, setChartType] = useState<'bar' | 'line' | 'pie' | 'table'>('bar');
   const [chartField, setChartField] = useState('');
+  const [autoVisualize, setAutoVisualize] = useState(true);
 
   // Social Aid state
   const [socialAidQuestion, setSocialAidQuestion] = useState('');
@@ -57,20 +80,28 @@ export const PublicDataHub: React.FC = () => {
   } | null>(null);
   const [explorerLoading, setExplorerLoading] = useState(false);
 
-  const loadPredefinedResources = async () => {
+  const loadPredefinedResources = async (category?: string, search?: string, limit: number = 100, offset: number = 0) => {
+    setLoadingResources(true);
     try {
-      const response = await publicDataAPI.getPredefinedResources();
+      const response = await publicDataAPI.getPredefinedResources(category, search, limit, offset);
       setPredefinedResources(response.resources);
+      setCategoryCounts(response.categories || {});
+      setResourcesTotal(response.total || 0);
+      setResourcesLimit(response.limit || 100);
+      setResourcesOffset(response.offset || 0);
     } catch (err: any) {
       console.error('Error loading predefined resources:', err);
+      setError(err.response?.data?.detail || 'Failed to load resources');
+    } finally {
+      setLoadingResources(false);
     }
   };
 
   useEffect(() => {
     if (activeTab === 'datastore') {
-      loadPredefinedResources();
+      loadPredefinedResources(selectedCategory === 'All' ? undefined : selectedCategory, resourceSearchQuery || undefined, resourcesLimit, resourcesOffset);
     }
-  }, [activeTab]);
+  }, [activeTab, selectedCategory, resourceSearchQuery, resourcesLimit, resourcesOffset]);
 
   const handleLoadResourceInfo = async () => {
     if (!resourceId.trim()) {
@@ -82,6 +113,7 @@ export const PublicDataHub: React.FC = () => {
     setError('');
     setResourceInfo(null);
     setDatastoreResults(null);
+    setVisualizationAnalysis(null); // Reset analysis when loading new resource
 
     try {
       const info = await publicDataAPI.getDatastoreResource(resourceId);
@@ -97,6 +129,49 @@ export const PublicDataHub: React.FC = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleAnalyzeResource = async () => {
+    if (!resourceId.trim()) {
+      setError('Please enter a resource ID');
+      return;
+    }
+
+    setAnalyzing(true);
+    setError('');
+    setVisualizationAnalysis(null);
+
+    try {
+      const analysis = await publicDataAPI.analyzeDatastoreResource(resourceId, model);
+      setVisualizationAnalysis(analysis);
+      // Update SQL query with recommended limit
+      setSqlQuery(`SELECT * FROM "${resourceId}" LIMIT ${analysis.recommended_limit}`);
+      setLimit(analysis.recommended_limit);
+    } catch (err: any) {
+      setError(err.response?.data?.detail || 'Failed to analyze resource');
+      console.error('Error:', err);
+    } finally {
+      setAnalyzing(false);
+    }
+  };
+
+  const handleVisualizeRecommended = () => {
+    if (!visualizationAnalysis || !visualizationAnalysis.visualizable_fields.length) {
+      setError('Please analyze the resource first');
+      return;
+    }
+
+    // Auto-select first visualizable field
+    if (visualizationAnalysis.visualizable_fields.length > 0) {
+      setChartField(visualizationAnalysis.visualizable_fields[0]);
+      // Set chart type based on recommendation if available
+      const firstField = visualizationAnalysis.visualizable_fields[0];
+      const recommendation = visualizationAnalysis.field_recommendations?.[firstField];
+      if (recommendation?.chart_type) {
+        setChartType(recommendation.chart_type as 'bar' | 'line' | 'pie');
+      }
+    }
+    setAutoVisualize(true); // Enable auto visualization
   };
 
   const handleSearchDatastore = async () => {
@@ -132,14 +207,15 @@ export const PublicDataHub: React.FC = () => {
   };
 
   // Generate chart data from results
-  const getChartData = () => {
-    if (!datastoreResults || !chartField || !datastoreResults.records.length) return [];
+  const getChartData = (fieldName?: string) => {
+    const field = fieldName || chartField;
+    if (!datastoreResults || !field || !datastoreResults.records.length) return [];
 
     // Count occurrences or sum values by field
     const fieldData: Record<string, number> = {};
     
     datastoreResults.records.forEach((record) => {
-      const value = record[chartField];
+      const value = record[field];
       if (value !== null && value !== undefined) {
         const key = String(value);
         fieldData[key] = (fieldData[key] || 0) + 1;
@@ -147,10 +223,52 @@ export const PublicDataHub: React.FC = () => {
     });
 
     return Object.entries(fieldData)
-      .map(([name, value]) => ({ name: name.length > 20 ? name.substring(0, 20) + '...' : name, value }))
+      .map(([name, value]) => ({ name: name.length > 30 ? name.substring(0, 30) + '...' : name, value }))
       .sort((a, b) => b.value - a.value)
       .slice(0, 20); // Top 20 items
   };
+
+  // Get numeric fields that can be visualized
+  const getVisualizableFields = () => {
+    if (!datastoreResults || !datastoreResults.fields || !datastoreResults.records.length) return [];
+    
+    // Find fields that have numeric or categorical data
+    const visualizableFields: Array<{ id: string; type: string; sampleValues: any[] }> = [];
+    
+    datastoreResults.fields.forEach((field) => {
+      const sampleValues = datastoreResults.records
+        .slice(0, 10)
+        .map(r => r[field.id])
+        .filter(v => v !== null && v !== undefined);
+      
+      if (sampleValues.length > 0) {
+        visualizableFields.push({
+          id: field.id,
+          type: field.type,
+          sampleValues
+        });
+      }
+    });
+    
+    return visualizableFields;
+  };
+
+  // Auto-select first visualizable field when results load
+  useEffect(() => {
+    if (datastoreResults && datastoreResults.fields && datastoreResults.fields.length > 0 && autoVisualize) {
+      const visualizableFields = getVisualizableFields();
+      if (visualizableFields.length > 0) {
+        // Auto-select first field if none selected
+        if (!chartField) {
+          setChartField(visualizableFields[0].id);
+        }
+        // Default to bar chart if table is selected
+        if (chartType === 'table') {
+          setChartType('bar');
+        }
+      }
+    }
+  }, [datastoreResults, autoVisualize]);
 
   const handleExplainSocialAid = async () => {
     if (!socialAidQuestion.trim()) {
@@ -322,35 +440,118 @@ export const PublicDataHub: React.FC = () => {
                 <label htmlFor="resource-id" style={styles.label}>
                   Resource ID:
                 </label>
+                
+                {/* Category and Search Filters */}
+                <div style={styles.filterRow}>
+                  <div style={styles.filterField}>
+                    <label style={styles.label}>Category:</label>
+                    <select
+                      value={selectedCategory}
+                      onChange={(e) => {
+                        setSelectedCategory(e.target.value);
+                        setResourcesOffset(0); // Reset to first page
+                      }}
+                      style={styles.selectField}
+                    >
+                      <option value="All">All Categories ({resourcesTotal || 0})</option>
+                      {Object.entries(categoryCounts)
+                        .sort((a, b) => b[1] - a[1])
+                        .map(([cat, count]) => (
+                          <option key={cat} value={cat}>
+                            {cat} ({count})
+                          </option>
+                        ))}
+                    </select>
+                  </div>
+                  <div style={styles.filterField}>
+                    <label style={styles.label}>Search:</label>
+                    <input
+                      type="text"
+                      value={resourceSearchQuery}
+                      onChange={(e) => {
+                        setResourceSearchQuery(e.target.value);
+                        setResourcesOffset(0); // Reset to first page
+                      }}
+                      placeholder="Search by name, title, description..."
+                      style={styles.inputField}
+                    />
+                  </div>
+                </div>
+
+                {/* Resource Selection */}
+                <div style={styles.resourceSelection}>
+                  <label style={styles.label}>Select Resource:</label>
+                  {loadingResources ? (
+                    <p style={styles.loadingText}>Loading resources...</p>
+                  ) : (
+                    <>
+                      <select
+                        value={resourceId}
+                        onChange={async (e) => {
+                          const selectedId = e.target.value;
+                          setResourceId(selectedId);
+                          if (selectedId) {
+                            await handleLoadResourceInfo();
+                          }
+                        }}
+                        style={styles.resourceIdSelect}
+                      >
+                        <option value="">Select a resource from the list below...</option>
+                        {predefinedResources.map((resource) => (
+                          <option key={resource.id} value={resource.id}>
+                            {resource.name} {resource.format ? `(${resource.format})` : ''} {resource.year ? `[${resource.year}]` : ''}
+                          </option>
+                        ))}
+                      </select>
+                      
+                      {/* Pagination */}
+                      {resourcesTotal > 0 && (
+                        <div style={styles.paginationControls}>
+                          <button
+                            onClick={() => {
+                              const newOffset = Math.max(0, resourcesOffset - resourcesLimit);
+                              setResourcesOffset(newOffset);
+                            }}
+                            disabled={resourcesOffset === 0}
+                            style={{
+                              ...styles.paginationButton,
+                              ...(resourcesOffset === 0 ? styles.paginationButtonDisabled : {}),
+                            }}
+                          >
+                            ← Previous
+                          </button>
+                          <span style={styles.paginationInfo}>
+                            Showing {resourcesOffset + 1}-{Math.min(resourcesOffset + resourcesLimit, resourcesTotal)} of {resourcesTotal.toLocaleString()}
+                          </span>
+                          <button
+                            onClick={() => {
+                              const newOffset = resourcesOffset + resourcesLimit;
+                              if (newOffset < resourcesTotal) {
+                                setResourcesOffset(newOffset);
+                              }
+                            }}
+                            disabled={resourcesOffset + resourcesLimit >= resourcesTotal}
+                            style={{
+                              ...styles.paginationButton,
+                              ...(resourcesOffset + resourcesLimit >= resourcesTotal ? styles.paginationButtonDisabled : {}),
+                            }}
+                          >
+                            Next →
+                          </button>
+                        </div>
+                      )}
+                    </>
+                  )}
+                </div>
+
+                {/* Manual Resource ID Input */}
                 <div style={styles.resourceIdRow}>
-                  <select
-                    value={resourceId}
-                    onChange={async (e) => {
-                      const selectedId = e.target.value;
-                      setResourceId(selectedId);
-                      if (selectedId) {
-                        await handleLoadResourceInfo();
-                      }
-                    }}
-                    style={styles.resourceIdSelect}
-                  >
-                    <option value="">Select a predefined resource...</option>
-                    {predefinedResources.length > 0 ? (
-                      predefinedResources.map((resource) => (
-                        <option key={resource.id} value={resource.id}>
-                          {resource.name}
-                        </option>
-                      ))
-                    ) : (
-                      <option value="" disabled>Loading resources...</option>
-                    )}
-                  </select>
                   <input
                     id="resource-id"
                     type="text"
                     value={resourceId}
                     onChange={(e) => setResourceId(e.target.value)}
-                    placeholder="Or enter custom resource ID..."
+                    placeholder="Or enter custom resource ID manually..."
                     style={styles.resourceIdInputField}
                   />
                   <button
@@ -372,6 +573,44 @@ export const PublicDataHub: React.FC = () => {
                   <h3 style={styles.resourceInfoTitle}>Resource Information</h3>
                   <p><strong>Total Records:</strong> {resourceInfo.total_records.toLocaleString()}</p>
                   <p><strong>Fields ({resourceInfo.fields.length}):</strong> {resourceInfo.fields.map(f => f.id).join(', ')}</p>
+                  
+                  {/* Analysis Section */}
+                  <div style={styles.analysisSection}>
+                    <button
+                      onClick={handleAnalyzeResource}
+                      disabled={analyzing}
+                      style={{
+                        ...styles.analyzeButton,
+                        ...(analyzing ? styles.buttonDisabled : {}),
+                      }}
+                    >
+                      {analyzing ? '🔄 Analyzing...' : '🤖 Analyze with Gemini'}
+                    </button>
+                    
+                    {visualizationAnalysis && (
+                      <div style={styles.analysisResults}>
+                        <h4 style={styles.analysisTitle}>📊 Analysis Results</h4>
+                        <p><strong>Recommended Limit:</strong> {visualizationAnalysis.recommended_limit} records</p>
+                        <p><strong>Visualizable Fields:</strong> {visualizationAnalysis.visualizable_fields.join(', ')}</p>
+                        {visualizationAnalysis.field_recommendations && Object.keys(visualizationAnalysis.field_recommendations).length > 0 && (
+                          <div style={styles.recommendationsList}>
+                            {Object.entries(visualizationAnalysis.field_recommendations).map(([field, rec]) => (
+                              <div key={field} style={styles.recommendationItem}>
+                                <strong>{field}:</strong> {rec.chart_type} chart ({rec.data_type}) - {rec.reason}
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                        <button
+                          onClick={handleVisualizeRecommended}
+                          style={styles.visualizeButton}
+                        >
+                          📈 Visualize Recommended Fields
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                  
                   <p style={styles.infoHint}>
                     ✅ This resource is available in the datastore and can be queried.
                   </p>
@@ -546,10 +785,10 @@ export const PublicDataHub: React.FC = () => {
                       onChange={(e) => setChartType(e.target.value as 'bar' | 'line' | 'pie' | 'table')}
                       style={styles.selectField}
                     >
-                      <option value="table">Table</option>
                       <option value="bar">Bar Chart</option>
                       <option value="line">Line Chart</option>
                       <option value="pie">Pie Chart</option>
+                      <option value="table">Table</option>
                     </select>
                   </div>
                   {chartType !== 'table' && (
@@ -569,11 +808,96 @@ export const PublicDataHub: React.FC = () => {
                       </select>
                     </div>
                   )}
+                  <div style={styles.autoVisualizeToggle}>
+                    <label style={styles.checkboxLabel}>
+                      <input
+                        type="checkbox"
+                        checked={autoVisualize}
+                        onChange={(e) => setAutoVisualize(e.target.checked)}
+                      />
+                      Auto Visualize
+                    </label>
+                  </div>
                 </div>
 
-                {/* Charts */}
-                {chartType !== 'table' && chartField && (
+                {/* Auto Visualizations - Show charts for recommended or all fields */}
+                {autoVisualize && chartType !== 'table' && datastoreResults.fields && datastoreResults.fields.length > 0 && (
+                  <div style={styles.autoChartsContainer}>
+                    <h3 style={styles.autoChartsTitle}>
+                      📊 Automatic Visualizations
+                      {visualizationAnalysis && (
+                        <span style={styles.analysisBadge}> (Using Gemini Recommendations)</span>
+                      )}
+                    </h3>
+                    <div style={styles.chartsGrid}>
+                      {(visualizationAnalysis?.visualizable_fields || datastoreResults.fields.slice(0, 6).map(f => f.id)).map((fieldId) => {
+                        const field = datastoreResults.fields?.find(f => f.id === fieldId);
+                        if (!field) return null;
+                        
+                        const chartData = getChartData(fieldId);
+                        if (chartData.length === 0 || chartData.length === 1) return null; // Skip if only 1 value
+                        
+                        // Use recommended chart type if available
+                        const recommendation = visualizationAnalysis?.field_recommendations?.[fieldId];
+                        const recommendedChartType = recommendation?.chart_type || chartType;
+                        
+                        return (
+                          <div key={fieldId} style={styles.chartCard}>
+                            <h4 style={styles.chartCardTitle}>{fieldId}</h4>
+                            {recommendedChartType === 'bar' && (
+                              <ResponsiveContainer width="100%" height={300}>
+                                <BarChart data={chartData}>
+                                  <CartesianGrid strokeDasharray="3 3" />
+                                  <XAxis dataKey="name" angle={-45} textAnchor="end" height={80} fontSize={10} />
+                                  <YAxis fontSize={10} />
+                                  <Tooltip />
+                                  <Bar dataKey="value" fill="#7b1fa2" />
+                                </BarChart>
+                              </ResponsiveContainer>
+                            )}
+                            {recommendedChartType === 'line' && (
+                              <ResponsiveContainer width="100%" height={300}>
+                                <LineChart data={chartData}>
+                                  <CartesianGrid strokeDasharray="3 3" />
+                                  <XAxis dataKey="name" angle={-45} textAnchor="end" height={80} fontSize={10} />
+                                  <YAxis fontSize={10} />
+                                  <Tooltip />
+                                  <Line type="monotone" dataKey="value" stroke="#7b1fa2" strokeWidth={2} />
+                                </LineChart>
+                              </ResponsiveContainer>
+                            )}
+                            {recommendedChartType === 'pie' && (
+                              <ResponsiveContainer width="100%" height={300}>
+                                <PieChart>
+                                  <Pie
+                                    data={chartData}
+                                    cx="50%"
+                                    cy="50%"
+                                    labelLine={false}
+                                    label={({ name, percent }) => `${name.substring(0, 15)}: ${(percent * 100).toFixed(0)}%`}
+                                    outerRadius={80}
+                                    fill="#8884d8"
+                                    dataKey="value"
+                                  >
+                                    {chartData.map((entry, index) => (
+                                      <Cell key={`cell-${index}`} fill={`hsl(${index * 360 / chartData.length}, 70%, 50%)`} />
+                                    ))}
+                                  </Pie>
+                                  <Tooltip />
+                                </PieChart>
+                              </ResponsiveContainer>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                {/* Single Chart View */}
+                {chartType !== 'table' && chartField && !autoVisualize && (
                   <div style={styles.chartContainer}>
+                    <h3 style={styles.chartTitle}>Chart: {chartField}</h3>
                     {chartType === 'bar' && (
                       <ResponsiveContainer width="100%" height={400}>
                         <BarChart data={getChartData()}>
@@ -1061,14 +1385,17 @@ const styles: { [key: string]: React.CSSProperties } = {
   resourceIdInput: {
     marginBottom: '1.5rem',
   },
+  resourceSelection: {
+    marginBottom: '1rem',
+  },
   resourceIdRow: {
     display: 'flex',
     gap: '1rem',
     alignItems: 'flex-end',
-    marginBottom: '0.5rem',
+    marginTop: '1rem',
   },
   resourceIdSelect: {
-    flex: 1,
+    width: '100%',
     padding: '0.75rem',
     border: '1px solid #ddd',
     borderRadius: '4px',
@@ -1076,6 +1403,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     fontFamily: 'inherit',
     backgroundColor: 'white',
     cursor: 'pointer',
+    marginBottom: '0.5rem',
   },
   resourceIdInputField: {
     flex: 1,
@@ -1084,6 +1412,37 @@ const styles: { [key: string]: React.CSSProperties } = {
     borderRadius: '4px',
     fontSize: '1rem',
     fontFamily: 'inherit',
+  },
+  paginationControls: {
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: '1rem',
+    marginTop: '0.5rem',
+    padding: '0.5rem',
+  },
+  paginationButton: {
+    padding: '0.5rem 1rem',
+    backgroundColor: '#7b1fa2',
+    color: 'white',
+    border: 'none',
+    borderRadius: '4px',
+    cursor: 'pointer',
+    fontSize: '0.9rem',
+  },
+  paginationButtonDisabled: {
+    backgroundColor: '#ccc',
+    cursor: 'not-allowed',
+  },
+  paginationInfo: {
+    fontSize: '0.9rem',
+    color: '#666',
+  },
+  loadingText: {
+    color: '#666',
+    fontStyle: 'italic',
+    padding: '1rem',
+    textAlign: 'center',
   },
   resourceInfoBox: {
     marginTop: '1.5rem',
@@ -1192,6 +1551,120 @@ const styles: { [key: string]: React.CSSProperties } = {
     backgroundColor: '#f8f9fa',
     borderRadius: '4px',
   },
+  chartTitle: {
+    margin: '0 0 1rem 0',
+    color: '#333',
+    fontSize: '1.2rem',
+    fontWeight: '600',
+  },
+  autoChartsContainer: {
+    marginTop: '1.5rem',
+    padding: '1.5rem',
+    backgroundColor: '#f8f9fa',
+    borderRadius: '8px',
+    border: '2px solid #7b1fa2',
+  },
+  autoChartsTitle: {
+    margin: '0 0 1.5rem 0',
+    color: '#333',
+    fontSize: '1.3rem',
+    fontWeight: '600',
+  },
+  chartsGrid: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))',
+    gap: '1.5rem',
+  },
+  chartCard: {
+    backgroundColor: 'white',
+    padding: '1rem',
+    borderRadius: '8px',
+    boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
+    border: '1px solid #e9ecef',
+  },
+  chartCardTitle: {
+    margin: '0 0 0.75rem 0',
+    color: '#333',
+    fontSize: '1rem',
+    fontWeight: '600',
+    textAlign: 'center',
+  },
+  autoVisualizeToggle: {
+    display: 'flex',
+    alignItems: 'center',
+  },
+  checkboxLabel: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '0.5rem',
+    cursor: 'pointer',
+    fontSize: '0.9rem',
+    color: '#333',
+  },
+  analysisSection: {
+    marginTop: '1rem',
+    padding: '1rem',
+    backgroundColor: '#f8f9fa',
+    borderRadius: '4px',
+    border: '1px solid #dee2e6',
+  },
+  analyzeButton: {
+    padding: '0.75rem 1.5rem',
+    backgroundColor: '#7b1fa2',
+    color: 'white',
+    border: 'none',
+    borderRadius: '4px',
+    fontSize: '1rem',
+    fontWeight: '600',
+    cursor: 'pointer',
+    marginBottom: '1rem',
+  },
+  buttonDisabled: {
+    backgroundColor: '#ccc',
+    cursor: 'not-allowed',
+  },
+  analysisResults: {
+    marginTop: '1rem',
+    padding: '1rem',
+    backgroundColor: '#e8f5e9',
+    borderRadius: '4px',
+    border: '1px solid #4caf50',
+  },
+  analysisTitle: {
+    margin: '0 0 0.75rem 0',
+    color: '#2e7d32',
+    fontSize: '1rem',
+    fontWeight: '600',
+  },
+  recommendationsList: {
+    marginTop: '0.75rem',
+    marginBottom: '0.75rem',
+  },
+  recommendationItem: {
+    margin: '0.5rem 0',
+    fontSize: '0.85rem',
+    color: '#555',
+    padding: '0.5rem',
+    backgroundColor: 'white',
+    borderRadius: '4px',
+  },
+  visualizeButton: {
+    padding: '0.75rem 1.5rem',
+    backgroundColor: '#388e3c',
+    color: 'white',
+    border: 'none',
+    borderRadius: '4px',
+    fontSize: '1rem',
+    fontWeight: '600',
+    cursor: 'pointer',
+    marginTop: '0.5rem',
+  },
+  analysisBadge: {
+    fontSize: '0.85rem',
+    color: '#666',
+    fontWeight: 'normal',
+    fontStyle: 'italic',
+  },
   resultsTable: {
     overflowX: 'auto',
     marginTop: '1rem',
@@ -1256,10 +1729,6 @@ const styles: { [key: string]: React.CSSProperties } = {
     margin: '0 0 1rem 0',
     color: '#666',
     fontSize: '0.9rem',
-  },
-  loadingText: {
-    color: '#666',
-    fontStyle: 'italic',
   },
   structureSection: {
     marginTop: '1.5rem',
