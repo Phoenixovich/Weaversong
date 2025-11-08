@@ -2,14 +2,14 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.config import settings
 from app.database import connect_to_mongo, close_mongo_connection
-from app.routers import auth
+from app.routers import auth, clarify, reminders, public_data
 
-app = FastAPI(title="Auth Service", version="1.0.0")
+app = FastAPI(title="Unified Service", version="1.0.0")
 
 # CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[settings.cors_origin],
+    allow_origins=[settings.cors_origin, "http://localhost:5173", "http://localhost:5174"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -17,6 +17,9 @@ app.add_middleware(
 
 # Include routers
 app.include_router(auth.router)
+app.include_router(clarify.router)
+app.include_router(reminders.router)
+app.include_router(public_data.router)
 
 
 @app.on_event("startup")
@@ -31,7 +34,7 @@ async def shutdown_event():
 
 @app.get("/")
 async def root():
-    return {"message": "Auth Service API"}
+    return {"message": "Unified Service API", "services": ["auth", "clarifai"]}
 
 
 @app.get("/health")
