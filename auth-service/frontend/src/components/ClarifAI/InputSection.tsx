@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 
 interface InputSectionProps {
   onMedical: (text?: string, file?: File, model?: string, style?: string) => void;
@@ -19,6 +19,8 @@ export const InputSection: React.FC<InputSectionProps> = ({
 }) => {
   const [text, setText] = useState('');
   const [file, setFile] = useState<File | null>(null);
+  const [pasteError, setPasteError] = useState<string>('');
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -32,6 +34,51 @@ export const InputSection: React.FC<InputSectionProps> = ({
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       setFile(e.target.files[0]);
+      setText(''); // Clear text when file is selected
+      setPasteError('');
+    }
+  };
+
+  const handlePasteFromClipboard = async () => {
+    try {
+      setPasteError('');
+      const clipboardItems = await navigator.clipboard.read();
+      
+      for (const clipboardItem of clipboardItems) {
+        for (const type of clipboardItem.types) {
+          if (type.startsWith('image/')) {
+            const blob = await clipboardItem.getType(type);
+            // Determine file extension based on MIME type
+            const extension = type.split('/')[1] || 'png';
+            const file = new File([blob], `clipboard-image-${Date.now()}.${extension}`, { type });
+            setFile(file);
+            setText(''); // Clear text when image is pasted
+            if (fileInputRef.current) {
+              fileInputRef.current.value = '';
+            }
+            return;
+          }
+        }
+      }
+      
+      setPasteError('No image found in clipboard. Please copy an image first.');
+    } catch (error: any) {
+      console.error('Error pasting from clipboard:', error);
+      if (error.name === 'NotAllowedError') {
+        setPasteError('Clipboard access denied. Please allow clipboard permissions.');
+      } else if (error.name === 'NotFoundError') {
+        setPasteError('No image found in clipboard. Please copy an image first.');
+      } else {
+        setPasteError('Failed to paste from clipboard. Please try uploading a file instead.');
+      }
+    }
+  };
+
+  const clearFile = () => {
+    setFile(null);
+    setPasteError('');
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
     }
   };
 
@@ -47,17 +94,42 @@ export const InputSection: React.FC<InputSectionProps> = ({
     <div style={containerStyle}>
       <form onSubmit={handleSubmit} style={styles.form}>
         <div style={styles.fileInput}>
-          <label htmlFor="file-upload" style={styles.fileLabel}>
-            📄 Upload PDF or Image
-          </label>
+          <div style={styles.fileInputHeader}>
+            <label htmlFor="file-upload" style={styles.fileLabel}>
+              📄 Upload PDF or Image
+            </label>
+            <button
+              type="button"
+              onClick={handlePasteFromClipboard}
+              style={styles.pasteButton}
+              title="Paste image from clipboard (Ctrl+V or Cmd+V)"
+            >
+              📋 Paste Image
+            </button>
+          </div>
           <input
+            ref={fileInputRef}
             id="file-upload"
             type="file"
-            accept=".pdf,.jpg,.jpeg,.png,.gif"
+            accept=".pdf,.jpg,.jpeg,.png,.gif,.bmp,.webp"
             onChange={handleFileChange}
             style={styles.fileInputField}
           />
-          {file && <p style={styles.fileName}>Selected: {file.name}</p>}
+          {file && (
+            <div style={styles.fileInfo}>
+              <p style={styles.fileName}>Selected: {file.name}</p>
+              <button
+                type="button"
+                onClick={clearFile}
+                style={styles.clearFileButton}
+              >
+                ✕ Clear
+              </button>
+            </div>
+          )}
+          {pasteError && (
+            <p style={styles.errorMessage}>{pasteError}</p>
+          )}
         </div>
 
         <div style={styles.textAreaContainer}>
@@ -67,7 +139,15 @@ export const InputSection: React.FC<InputSectionProps> = ({
           <textarea
             id="text-input"
             value={text}
-            onChange={(e) => setText(e.target.value)}
+            onChange={(e) => {
+              setText(e.target.value);
+              if (e.target.value.trim()) {
+                setFile(null);
+                if (fileInputRef.current) {
+                  fileInputRef.current.value = '';
+                }
+              }
+            }}
             placeholder={
               mode === 'medical'
                 ? 'Paste complex medical instructions or discharge notes here...'
@@ -117,12 +197,31 @@ const styles: { [key: string]: React.CSSProperties } = {
   fileInput: {
     marginBottom: '1rem',
   },
+  fileInputHeader: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: '0.5rem',
+  },
   fileLabel: {
     display: 'block',
-    marginBottom: '0.5rem',
     color: '#333',
     fontWeight: '500',
     cursor: 'pointer',
+  },
+  pasteButton: {
+    padding: '0.5rem 1rem',
+    backgroundColor: '#6c757d',
+    color: 'white',
+    border: 'none',
+    borderRadius: '4px',
+    fontSize: '0.9rem',
+    cursor: 'pointer',
+    fontWeight: '500',
+    transition: 'background-color 0.3s',
+  },
+  pasteButtonHover: {
+    backgroundColor: '#5a6268',
   },
   fileInputField: {
     width: '100%',
@@ -130,10 +229,33 @@ const styles: { [key: string]: React.CSSProperties } = {
     border: '1px solid #ddd',
     borderRadius: '4px',
   },
-  fileName: {
+  fileInfo: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     marginTop: '0.5rem',
+  },
+  fileName: {
     color: '#666',
     fontSize: '0.9rem',
+    margin: 0,
+    flex: 1,
+  },
+  clearFileButton: {
+    padding: '0.25rem 0.75rem',
+    backgroundColor: '#dc3545',
+    color: 'white',
+    border: 'none',
+    borderRadius: '4px',
+    fontSize: '0.85rem',
+    cursor: 'pointer',
+    marginLeft: '0.5rem',
+  },
+  errorMessage: {
+    marginTop: '0.5rem',
+    color: '#dc3545',
+    fontSize: '0.85rem',
+    margin: 0,
   },
   textAreaContainer: {
     marginBottom: '1rem',

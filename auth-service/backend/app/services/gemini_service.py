@@ -191,8 +191,8 @@ async def extract_text_from_image(image_bytes: bytes) -> str:
         # Convert bytes to PIL Image
         image = Image.open(io.BytesIO(image_bytes))
         
-        # Use Gemini Vision model (gemini-1.5-pro supports vision)
-        model = genai.GenerativeModel('gemini-1.5-pro')
+        # Use Gemini Vision model (gemini-2.5-pro supports vision)
+        model = genai.GenerativeModel('gemini-2.5-flash')
         response = model.generate_content([
             "Extract all text from this image. Preserve the structure and formatting as much as possible.",
             image
