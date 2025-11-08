@@ -72,3 +72,63 @@ Users only need to sign in when they want to **post** or contribute alerts, help
 - 🎤 AI-generated text summary from voice input  
 - 🛡️ Community moderation badges for trusted reporters
 
+## Lucas's branch 
+
+# 🌐 Community Service Hub  
+**Unified Access to Public Services and Information**
+
+## 📖 Overview  
+**Community Service Hub** is an all-in-one platform that connects Romanian citizens with essential public services in a simple, accessible way.  
+Built with **React**, **FastAPI**, and **MongoDB**, it brings together authentication, AI-driven document simplification, and open government data — helping users better understand and navigate healthcare, legal, and social systems.
+
+All users can **explore open data and view insights** freely.  
+Login is only required for **personalized services**, such as saving reminders or accessing protected dashboards.
+
+---
+
+## ✨ Services  
+
+### 🔐 **Authentication Service**  
+A secure, fast, and reliable login system:  
+- User registration and JWT-based authentication  
+- Encrypted passwords using bcrypt  
+- Token refresh and session management  
+- Protected routes for personalized experiences  
+
+---
+
+### 🤖 **ClarifAI Service**  
+Turn complex information into simple, everyday language.  
+ClarifAI helps users understand critical documents:  
+- **Medical Documents**: Simplifies doctor notes and discharge summaries  
+- **Legal Documents**: Explains contracts and government forms in plain terms  
+
+**Features:**  
+- Accepts text, PDFs, or images (with OCR support)  
+- Powered by **Gemini AI models** (`gemini-2.5-pro`, `gemini-2.5-flash-lite`, `gemini-2.5-flash`)  
+- Multiple output styles: *default*, *shorter*, *“explain like I’m 5”*  
+- Built-in reminder system to save key information  
+- Markdown-formatted, clear responses  
+
+---
+
+### 📊 **Public Data Hub**  
+Access and interpret open Romanian government data effortlessly.  
+- Live dashboards powered by **data.gov.ro API**  
+- **Social Aid Helper**: Simplified info on benefits, eligibility, and how to apply  
+- **Data Explorer**: AI-assisted insights and statistics from official datasets  
+
+**Supports:**  
+- CSV, JSON, Excel (XLS/XLSX), and ZIP archives  
+- Automatic extraction and parsing  
+- Aggregated summaries using Gemini AI  
+
+---
+
+## 🚀 Future Ideas  
+- 📬 Personalized “My Services” dashboard showing relevant public programs  
+- 🗣️ AI voice assistant for reading simplified documents aloud  
+- 🕵️ Transparency tracker: monitor how public funds are spent locally  
+- 🤝 Community-driven “Help Desk” for sharing citizen knowledge  
+- 🌍 Integration with EU-level datasets (Eurostat, data.europa.eu)  
+- 🧩 Mobile app for quick document uploads and summaries on the go
