@@ -1,15 +1,10 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 
 export const Dashboard: React.FC = () => {
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   const navigate = useNavigate();
-
-  const handleLogout = async () => {
-    await logout();
-    navigate('/login');
-  };
 
   return (
     <div style={styles.container}>
@@ -21,9 +16,13 @@ export const Dashboard: React.FC = () => {
           <p>Email: {user?.email}</p>
           <p>User ID: {user?.id}</p>
         </div>
-        <button onClick={handleLogout} style={styles.button}>
-          Logout
-        </button>
+        <div style={styles.servicesGrid}>
+          <Link to="/clarifai" style={styles.serviceCard}>
+            <div style={styles.serviceIcon}>📄</div>
+            <h2>ClarifAI</h2>
+            <p>Transform complex medical and legal documents into clear, plain-language steps</p>
+          </Link>
+        </div>
       </div>
     </div>
   );
@@ -56,15 +55,30 @@ const styles: { [key: string]: React.CSSProperties } = {
     backgroundColor: '#f9f9f9',
     borderRadius: '4px',
   },
-  button: {
-    width: '100%',
-    padding: '0.75rem',
-    backgroundColor: '#dc3545',
-    color: 'white',
-    border: 'none',
-    borderRadius: '4px',
-    fontSize: '1rem',
-    cursor: 'pointer',
+  servicesGrid: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
+    gap: '1.5rem',
+    marginTop: '2rem',
+  },
+  serviceCard: {
+    display: 'block',
+    padding: '2rem',
+    backgroundColor: '#f8f9fa',
+    borderRadius: '8px',
+    textDecoration: 'none',
+    color: '#333',
+    transition: 'transform 0.3s, box-shadow 0.3s',
+    border: '2px solid #e9ecef',
+  },
+  serviceCardHover: {
+    transform: 'translateY(-5px)',
+    boxShadow: '0 5px 15px rgba(0, 0, 0, 0.1)',
+  },
+  serviceIcon: {
+    fontSize: '3rem',
+    marginBottom: '1rem',
+    textAlign: 'center',
   },
 };
 
