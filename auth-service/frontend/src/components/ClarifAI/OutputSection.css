@@ -1,0 +1,74 @@
+/* Markdown styling for output */
+.markdown-box h1 {
+  font-size: 1.5rem;
+  font-weight: bold;
+  margin-top: 1rem;
+  margin-bottom: 0.5rem;
+  color: #333;
+}
+
+.markdown-box h2 {
+  font-size: 1.25rem;
+  font-weight: bold;
+  margin-top: 0.75rem;
+  margin-bottom: 0.5rem;
+  color: #444;
+}
+
+.markdown-box h3 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-top: 0.75rem;
+  margin-bottom: 0.5rem;
+  color: #555;
+}
+
+.markdown-box p {
+  margin-bottom: 0.75rem;
+  color: #555;
+}
+
+.markdown-box ul,
+.markdown-box ol {
+  margin-left: 1.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.markdown-box li {
+  margin-bottom: 0.5rem;
+  color: #555;
+}
+
+.markdown-box strong {
+  font-weight: bold;
+  color: #333;
+}
+
+.markdown-box em {
+  font-style: italic;
+}
+
+.markdown-box code {
+  background-color: #f4f4f4;
+  padding: 0.2rem 0.4rem;
+  border-radius: 3px;
+  font-family: 'Courier New', monospace;
+  font-size: 0.9em;
+}
+
+.markdown-box pre {
+  background-color: #f4f4f4;
+  padding: 1rem;
+  border-radius: 4px;
+  overflow-x: auto;
+  margin-bottom: 0.75rem;
+}
+
+.markdown-box blockquote {
+  border-left: 3px solid #007bff;
+  padding-left: 1rem;
+  margin-left: 0;
+  color: #666;
+  font-style: italic;
+}
+

@@ -1,134 +1,127 @@
-# Weaversong
+# Community Service Hub
 
-## Andrei's branch
+A unified platform providing accessible public services for Romanian citizens, built with React, FastAPI, and MongoDB.
 
-# 🏡 NeighborHelpboard  
-**Micro-Help in Your Building / Street**
+## Services
 
-## 📖 Overview  
-**NeighborHelpboard** is a hyper-local help board that connects neighbors who need or offer small favors — like carrying groceries, borrowing tools, or fixing something.  
-It encourages real-life cooperation and builds stronger, friendlier communities within apartment buildings or streets.
+### 🔐 Authentication Service
+- User registration and login with JWT authentication
+- Secure password hashing with bcrypt
+- Token refresh mechanism
+- Protected routes and user session management
 
-## ✨ Features  
-- 🧾 Post small help requests or offers  
-- 🤝 Respond to nearby requests  
-- 📍 Filter by building, street, or distance  
-- 🔔 Get notifications when someone nearby needs help  
-- 💬 Lightweight chat or confirmation system  
-- 🏅 Optional trust and thank-you badges  
+### 📄 ClarifAI Service
+Transform complex documents into clear, plain-language steps:
+- **Medical Documents**: Simplify doctor instructions, discharge notes, and medical terminology
+- **Legal Documents**: Break down contracts, government forms, and legal jargon into understandable steps
+- **Features**:
+  - Support for text input, PDF files, and images (with OCR)
+  - Multiple Gemini AI models (gemini-2.5-pro, gemini-2.5-flash-lite, gemini-2.5-flash)
+  - Output styles: default, shorter, or "explain like I'm 5"
+  - Reminder system to save important information
+  - Markdown-formatted output
 
-## 👥 Target Users  
-- Apartment residents  
-- Elderly people needing small assistance  
-- Students and young professionals  
-- Anyone who wants to help or connect locally  
+### 📊 Public Data Hub
+Access and understand Romanian government data:
+- **RO-ALERT Explainer**: Translate technical emergency alerts into clear, actionable safety instructions
+- **Social Aid Helper**: Get answers about social benefits (VMI, eligibility, application process)
+- **Data Explorer**: Browse and analyze datasets from data.gov.ro
+  - Automatic extraction and analysis of ZIP files containing Excel/CSV data
+  - AI-powered aggregated summaries with key insights and statistics
+  - Support for CSV, JSON, Excel (XLSX/XLS), and ZIP formats
 
-## 🚀 Future Ideas  
-- 🗺️ Map view of nearby requests  
-- 🎙️ Voice posts for accessibility  
-- 🏆 Neighborhood leaderboard for active helpers
+## Tech Stack
 
-## Sofiia's branch
+- **Frontend**: React + Vite + TypeScript
+- **Backend**: Python + FastAPI
+- **Database**: MongoDB
+- **AI**: Google Gemini API
+- **Authentication**: JWT (JSON Web Tokens)
 
-# 🏙️ CityPulse  
-**Local Alerts & Community Awareness**
+## Features
 
-## 📖 Overview  
-**CityPulse** is a real-time alert board that helps residents stay aware of what’s happening in their neighborhood - from lost pets and local events to safety notices and weather alerts.  
-It provides both **list** and **map** visualizations, making it easy to understand what’s happening right around you.
+- 🔒 Secure authentication with JWT tokens
+- 🤖 AI-powered document simplification using Gemini
+- 📁 File processing (PDF, images, Excel, ZIP)
+- 📊 Data analysis and visualization
+- 🌐 Romanian language support
+- 📱 Responsive UI design
+- 🔄 Real-time data fetching from data.gov.ro API
 
-All alerts are **publicly viewable** without login, ensuring accessibility.  
-Users only need to sign in when they want to **post** or contribute alerts, helping keep information responsible and trustworthy.
+## Project Structure
 
-## ✨ Features  
-- 📝 Create alerts quickly via:
-  - Simple form input  
-  - Free-text description  
-  - **Voice recording** (for accessibility or convenience)
-- 📃 **Two Display Modes**
-  - List View - compact browsing  
-  - Map View - alerts shown by location  
-- 🎚️ Filter alerts by **sector** and **priority level**
-- 🔄 Real-time updates for immediate local awareness
+```
+Weaversong/
+├── auth-service/
+│   ├── backend/          # FastAPI backend
+│   └── frontend/         # React frontend
+└── README.md
+```
 
-## 📌 Example Alerts  
-| Category | Examples |
-|---|---|
-| 🐕 Lost & Found | Lost pet, missing items |
-| 🔒 Safety Notice | Suspicious activity, break-ins, street hazards |
-| 🌧️ Weather & Environment | Storm warnings, flooding, icy roads |
-| 🎉 Community Announcements | Local meetups, building notices, events |
+## Getting Started
 
-## 🔑 Access Rules  
-| Action | Login Required? |
-|-------|:----------------:|
-| View alerts | No |
-| Use filters / map | No |
-| Create or post alert | **Yes** |
-| Submit voice alert | **Yes** |
+### Prerequisites
+- Python 3.12+
+- Node.js 18+
+- MongoDB connection string
+- Google Gemini API key
 
-## 🚀 Future Ideas  
-- 📬 Subscribe to alerts in your area  
-- 🎤 AI-generated text summary from voice input  
-- 🛡️ Community moderation badges for trusted reporters
+### Backend Setup
+```bash
+cd auth-service/backend
+pip install -r requirements.txt
+# Create .env file with required variables
+uvicorn app.main:app --reload --port 8000
+```
 
-## Lucas's branch 
+### Frontend Setup
+```bash
+cd auth-service/frontend
+npm install
+npm run dev
+```
 
-# 🌐 Community Service Hub  
-**Unified Access to Public Services and Information**
+## Environment Variables
 
-## 📖 Overview  
-**Community Service Hub** is an all-in-one platform that connects Romanian citizens with essential public services in a simple, accessible way.  
-Built with **React**, **FastAPI**, and **MongoDB**, it brings together authentication, AI-driven document simplification, and open government data — helping users better understand and navigate healthcare, legal, and social systems.
+### Backend (.env)
+```
+MONGODB_URI=your_mongodb_connection_string
+MONGODB_DB=CommunityHelp
+JWT_SECRET=your_jwt_secret
+JWT_EXPIRES_MIN=30
+CORS_ORIGIN=http://localhost:5173
+GEMINI_API_KEY=your_gemini_api_key
+```
 
-All users can **explore open data and view insights** freely.  
-Login is only required for **personalized services**, such as saving reminders or accessing protected dashboards.
+### Frontend (.env)
+```
+VITE_API_URL=http://localhost:8000
+```
 
----
+## API Endpoints
 
-## ✨ Services  
+### Authentication
+- `POST /auth/signup` - Register new user
+- `POST /auth/login` - Login and get access token
+- `POST /auth/refresh` - Refresh access token
+- `GET /auth/me` - Get current user info
 
-### 🔐 **Authentication Service**  
-A secure, fast, and reliable login system:  
-- User registration and JWT-based authentication  
-- Encrypted passwords using bcrypt  
-- Token refresh and session management  
-- Protected routes for personalized experiences  
+### ClarifAI
+- `POST /clarify/simplify` - Simplify medical documents
+- `POST /clarify/legal` - Simplify legal documents
 
----
+### Public Data
+- `GET /public-data/datasets` - List/search datasets
+- `GET /public-data/datasets/{id}` - Get dataset details
+- `GET /public-data/datasets/{id}/aggregated` - Get AI analysis of dataset
+- `POST /public-data/explain-alert` - Explain RO-ALERT messages
+- `POST /public-data/explain-social-aid` - Answer social aid questions
 
-### 🤖 **ClarifAI Service**  
-Turn complex information into simple, everyday language.  
-ClarifAI helps users understand critical documents:  
-- **Medical Documents**: Simplifies doctor notes and discharge summaries  
-- **Legal Documents**: Explains contracts and government forms in plain terms  
+### Reminders
+- `POST /reminders` - Create reminder
+- `GET /reminders` - Get user reminders
+- `DELETE /reminders/{id}` - Delete reminder
 
-**Features:**  
-- Accepts text, PDFs, or images (with OCR support)  
-- Powered by **Gemini AI models** (`gemini-2.5-pro`, `gemini-2.5-flash-lite`, `gemini-2.5-flash`)  
-- Multiple output styles: *default*, *shorter*, *“explain like I’m 5”*  
-- Built-in reminder system to save key information  
-- Markdown-formatted, clear responses  
+## License
 
----
-
-### 📊 **Public Data Hub**  
-Access and interpret open Romanian government data effortlessly.  
-- Live dashboards powered by **data.gov.ro API**  
-- **Social Aid Helper**: Simplified info on benefits, eligibility, and how to apply  
-- **Data Explorer**: AI-assisted insights and statistics from official datasets  
-
-**Supports:**  
-- CSV, JSON, Excel (XLS/XLSX), and ZIP archives  
-- Automatic extraction and parsing  
-- Aggregated summaries using Gemini AI  
-
----
-
-## 🚀 Future Ideas  
-- 📬 Personalized “My Services” dashboard showing relevant public programs  
-- 🗣️ AI voice assistant for reading simplified documents aloud  
-- 🕵️ Transparency tracker: monitor how public funds are spent locally  
-- 🤝 Community-driven “Help Desk” for sharing citizen knowledge  
-- 🌍 Integration with EU-level datasets (Eurostat, data.europa.eu)  
-- 🧩 Mobile app for quick document uploads and summaries on the go
+MIT

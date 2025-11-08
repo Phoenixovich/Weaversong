@@ -8,7 +8,7 @@ class Settings(BaseSettings):
     jwt_secret: str
     jwt_expires_min: int = 30
     cors_origin: str
-    gemini_api_key: Optional[str] = None
+    gemini_api_key: str  # Required for ClarifAI service
 
     class Config:
         env_file = ".env"
