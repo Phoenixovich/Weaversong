@@ -10,7 +10,7 @@ from db import settings
 async def generate_title(text: str, category: str, priority: str, location: Optional[str] = None) -> str:
     """
     Generate a relevant, concise title from the input text
-    Uses AI if available (Google Gemini preferred, then OpenAI), otherwise uses smart keyword-based generation
+    Uses library-based extraction first, then AI if available, otherwise uses smart keyword-based generation
     
     Args:
         text: The full input text
@@ -21,7 +21,13 @@ async def generate_title(text: str, category: str, priority: str, location: Opti
     Returns:
         A concise, relevant title (max 60 characters)
     """
-    # Try Google Gemini API first (preferred)
+    # FIRST: Try library-based title extraction (no AI needed)
+    from services.title_extractor import extract_title_from_text
+    library_title = extract_title_from_text(text, category)
+    if library_title:
+        return library_title
+    
+    # SECOND: Try AI if available (Google Gemini preferred, then OpenAI)
     google_api_key = getattr(settings, "google_api_key", None)
     if google_api_key:
         ai_title = await _generate_title_with_google_gemini(text, category, priority, location, google_api_key)
@@ -61,11 +67,18 @@ Alert text: {text}
 Requirements:
 - Be concise and informative (max 60 characters)
 - Include the most important information (what happened, where if relevant)
-- Use clear, direct language
+- Use clear, direct language with proper grammar
 - Don't include "Alert:" or "Warning:" prefix unless it's critical
 - Focus on the key event or issue
-- Rephrase naturally (e.g., "Cat with nametag Adi found near Afi Controceni" instead of "hello! the cat was found near afi controceni")
-- Capitalize location names properly (e.g., "Afi Controceni" not "afi controceni")
+- Rephrase and improve the wording naturally - don't just copy the user's text
+- Reorder words for better readability (e.g., "Ongoing hackathon in UPB library" instead of "politehnica library hackathon ongoing")
+- Expand common abbreviations: "politehnica" -> "UPB", "UPB library" -> "UPB Library"
+- Use proper capitalization for locations and institutions (e.g., "UPB Library", "Afi Controceni", "Herastrau Park")
+- Make it sound professional and clear
+- Examples:
+  * "politehnica library hackathon ongoing" -> "Ongoing Hackathon at UPB Library"
+  * "cat found near afi controceni" -> "Cat Found Near AFI Cotroceni"
+  * "traffic jam calea victoriei" -> "Traffic Jam on Calea Victoriei"
 
 Return only the title, nothing else."""
 
@@ -82,7 +95,7 @@ Return only the title, nothing else."""
                     }],
                     "generationConfig": {
                         "temperature": 0.7,
-                        "maxOutputTokens": 30,
+                        "maxOutputTokens": 40,
                         "topP": 0.8,
                         "topK": 40
                     }
@@ -136,11 +149,18 @@ Alert text: {text}
 Requirements:
 - Be concise and informative (max 60 characters)
 - Include the most important information (what happened, where if relevant)
-- Use clear, direct language
+- Use clear, direct language with proper grammar
 - Don't include "Alert:" or "Warning:" prefix unless it's critical
 - Focus on the key event or issue
-- Rephrase naturally (e.g., "Cat with nametag Adi found near Afi Controceni" instead of "hello! the cat was found near afi controceni")
-- Capitalize location names properly (e.g., "Afi Controceni" not "afi controceni")
+- Rephrase and improve the wording naturally - don't just copy the user's text
+- Reorder words for better readability (e.g., "Ongoing hackathon in UPB library" instead of "politehnica library hackathon ongoing")
+- Expand common abbreviations: "politehnica" -> "UPB", "UPB library" -> "UPB Library"
+- Use proper capitalization for locations and institutions (e.g., "UPB Library", "Afi Controceni", "Herastrau Park")
+- Make it sound professional and clear
+- Examples:
+  * "politehnica library hackathon ongoing" -> "Ongoing Hackathon at UPB Library"
+  * "cat found near afi controceni" -> "Cat Found Near AFI Cotroceni"
+  * "traffic jam calea victoriei" -> "Traffic Jam on Calea Victoriei"
 
 Title:"""
 
@@ -153,10 +173,10 @@ Title:"""
                 json={
                     "model": "gpt-3.5-turbo",
                     "messages": [
-                        {"role": "system", "content": "You are a helpful assistant that generates concise, informative titles for community alerts."},
+                        {"role": "system", "content": "You are a helpful assistant that generates concise, informative titles for community alerts. You improve wording, reorder words for better readability, expand abbreviations (e.g., 'politehnica' -> 'UPB'), and use proper capitalization. Always reformat user input to be more professional and clear."},
                         {"role": "user", "content": prompt}
                     ],
-                    "max_tokens": 30,
+                    "max_tokens": 40,
                     "temperature": 0.7
                 },
                 timeout=5.0

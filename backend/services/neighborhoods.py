@@ -13,29 +13,88 @@ SECTORS = {
     "Sector 6": ["Sector 6", "Sectorul 6"],
 }
 
-# Major areas and neighborhoods
+# Major areas and neighborhoods - Organized by Sector according to official Bucharest distribution
+# Sector 1: Dorobanți, Băneasa, Aviației, Pipera, Aviatorilor, Primăverii, Romană, Victoriei, Herăstrău, Bucureștii Noi, Dămăroaia, Străulești, Chitila, Grivița, 1 Mai, Pajura, Domenii, and a small part of Giulești – the part with Giulești Stadium
+# Sector 2: Pantelimon, Colentina, Iancului, Tei, Floreasca, Moșilor, Obor, Vatra Luminoasă, Fundeni, Ștefan cel Mare
+# Sector 3: Vitan, Dudești, Titan, Centrul Civic, Balta Albă, Dristor, Lipscani, Muncii, Unirii
+# Sector 4: Berceni, Olteniței, Văcărești, Timpuri Noi, Tineretului, Progresul
+# Sector 5: Rahova, Ferentari, Giurgiului, Cotroceni, 13 Septembrie, Dealul Spirii, Odăi
+# Sector 6: Giulești, Crângași, Drumul Taberei, Militari, Regie (also known as Grozăvești), Ghencea
+
 AREAS: Dict[str, List[str]] = {
+    # Sector 1 areas
+    "Dorobanți": ["dorobanti", "dorobanti", "dorobanți"],
+    "Băneasa": ["baneasa", "băneasa", "baneasa airport", "baneasa shopping"],
+    "Aviației": ["aviatiei", "aviației", "aviatiei street"],
+    "Pipera": ["pipera"],
+    "Aviatorilor": ["aviatorilor", "aviatorilor street", "aviatorilor boulevard"],
+    "Primăverii": ["primaverii", "primăverii", "primăverii street"],
+    "Romană": ["romana", "romană", "piata romana", "piata romană"],
+    "Victoriei": ["victoriei", "piata victoriei", "victoriei square", "calea victoriei", "victoriei street"],
+    "Herăstrău": ["herastrau", "herăstrău", "parc herastrau", "herastrau park", "parcul herastrau"],
+    "Bucureștii Noi": ["bucurestii noi", "bucureștii noi", "bucuresti noi"],
+    "Dămăroaia": ["damaroaia", "dămăroaia"],
+    "Străulești": ["straulesti", "străulești"],
+    "Chitila": ["chitila"],
+    "Grivița": ["grivita", "grivița", "grivita station"],
+    "1 Mai": ["1 mai", "1 mai", "primul mai"],
+    "Pajura": ["pajura"],
+    "Domenii": ["domenii"],
+    "Giulești Stadium": ["giulesti stadium", "giulești stadium", "stadionul giulesti", "stadionul giulești"],
+    "Cismigiu": ["cismigiu", "parc cismigiu", "cismigiu park", "parcul cismigiu"],
     "Gara de Nord": ["gara de nord", "gara nord", "nord station", "train station"],
-    "Politehnica": ["politehnica", "university", "upb", "polytechnic"],
-    "AFI Cotroceni": ["afi", "afi cotroceni", "cotroceni", "cotroceni palace"],
-    "Herastrau": ["herastrau", "parc herastrau", "herastrau park"],
-    "Cismigiu": ["cismigiu", "parc cismigiu", "cismigiu park"],
-    "Piata Unirii": ["piata unirii", "unirii", "unirii square"],
-    "Piata Victoriei": ["piata victoriei", "victoriei", "victoriei square"],
-    "Calea Victoriei": ["calea victoriei", "victoriei street"],
-    "Bulevardul Magheru": ["magheru", "bulevardul magheru", "magheru boulevard"],
-    "Lipscani": ["lipscani", "strada lipscani", "old town"],
+    "Politehnica": ["politehnica", "polytehnica", "university", "upb", "polytechnic"],
+    
+    # Sector 2 areas
+    "Pantelimon": ["pantelimon"],
+    "Colentina": ["colentina", "colentina street"],
+    "Iancului": ["iancului", "iancului street"],
+    "Tei": ["tei", "parc tei", "tei park"],
+    "Floreasca": ["floreasca", "floreasca lake", "lacul floreasca"],
+    "Moșilor": ["mosilor", "moșilor", "mosilor street"],
+    "Obor": ["obor", "piata obor", "obor square", "obor market"],
+    "Vatra Luminoasă": ["vatra luminoasa", "vatra luminoasă"],
+    "Fundeni": ["fundeni", "fundeni hospital"],
+    "Ștefan cel Mare": ["stefan cel mare", "ștefan cel mare", "stefan cel mare street"],
+    
+    # Sector 3 areas
+    "Vitan": ["vitan"],
+    "Dudești": ["dudesti", "dudești"],
+    "Titan": ["titan", "parc titan", "titan park"],
+    "Centrul Civic": ["centrul civic", "civic center", "centru civic"],
+    "Balta Albă": ["balta alba", "balta albă"],
+    "Dristor": ["dristor", "piata dristor", "dristor square"],
+    "Lipscani": ["lipscani", "strada lipscani", "old town", "lipscani street"],
+    "Muncii": ["muncii", "piata muncii", "muncii square"],
+    "Unirii": ["unirii", "piata unirii", "unirii square"],
+    "Carol Park": ["carol", "parc carol", "carol park", "parcul carol"],
+    "Carturesti Carusel": ["carturesti", "carusel", "carturesti carusel", "carusel bookstore"],
+    
+    # Sector 4 areas
+    "Berceni": ["berceni"],
+    "Olteniței": ["oltenitei", "olteniței", "oltenitei street"],
+    "Văcărești": ["vacaresti", "văcărești", "vacaresti lake", "lacul vacaresti"],
+    "Timpuri Noi": ["timpuri noi", "timpuri noi"],
+    "Tineretului": ["tineretului", "parc tineretului", "tineretului park"],
+    "Progresul": ["progresul"],
+    
+    # Sector 5 areas
+    "Rahova": ["rahova"],
+    "Ferentari": ["ferentari"],
+    "Giurgiului": ["giurgiului", "giurgiului street"],
+    "Cotroceni": ["cotroceni", "afi cotroceni", "cotroceni palace", "palatul cotroceni"],
+    "13 Septembrie": ["13 septembrie", "13 septembrie street"],
+    "Dealul Spirii": ["dealul spirii", "spirii hill"],
+    "Odăi": ["odai", "odăi"],
+    
+    # Sector 6 areas
+    "Giulești": ["giulesti", "giulești"],
+    "Crângași": ["crangasi", "crângași"],
     "Drumul Taberei": ["drumul taberei", "taberei"],
     "Militari": ["militari", "militari residence"],
-    "Berceni": ["berceni"],
-    "Pantelimon": ["pantelimon"],
-    "Titan": ["titan"],
-    "Vitan": ["vitan"],
-    "Rahova": ["rahova"],
-    "Crangasi": ["crangasi"],
-    "Giulesti": ["giulesti"],
-    "Baneasa": ["baneasa", "baneasa airport"],
-    "Otopeni": ["otopeni", "otopeni airport"],
+    "Regie": ["regie", "grozavesti", "grozăvești"],
+    "Grozăvești": ["grozavesti", "grozăvești", "regie"],
+    "Ghencea": ["ghencea", "stadionul ghencea", "ghencea stadium"],
 }
 
 def detect_neighborhood(text: str, address: str | None = None) -> Tuple[str | None, str | None]:

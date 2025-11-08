@@ -84,6 +84,11 @@ AREA_COORDINATES = {
         "lng": 26.1028,
         "sector": "Sector 3"
     },
+    "Carturesti Carusel": {
+        "lat": 44.4319,
+        "lng": 26.1028,
+        "sector": "Sector 3"
+    },
     "Drumul Taberei": {
         "lat": 44.4100,
         "lng": 26.0300,

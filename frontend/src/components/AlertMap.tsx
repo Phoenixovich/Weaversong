@@ -1,7 +1,8 @@
-import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet'
+import { MapContainer, TileLayer, Marker, Popup, useMap, Polygon, Tooltip } from 'react-leaflet'
 import { DivIcon } from 'leaflet'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import type { Alert, AlertCategory, AlertPriority } from '../types'
+import { fetchSectors, type Sector } from '../services/api'
 import 'leaflet/dist/leaflet.css'
 
 // Category colors for markers (using hex colors for Leaflet)
@@ -46,32 +47,19 @@ const prioritySizes: Record<AlertPriority, number> = {
   Critical: 50,
 }
 
-// Location mappings for sectors and areas (from backend data)
-const SECTOR_BOUNDS: Record<string, { bounds: [number, number, number, number], center: [number, number] }> = {
-  "Sector 1": {
-    bounds: [44.4200, 44.4800, 26.0500, 26.1200],
-    center: [44.4500, 26.0850]
-  },
-  "Sector 2": {
-    bounds: [44.3800, 44.4500, 26.0800, 26.1500],
-    center: [44.4150, 26.1150]
-  },
-  "Sector 3": {
-    bounds: [44.4000, 44.4600, 26.0900, 26.1600],
-    center: [44.4300, 26.1250]
-  },
-  "Sector 4": {
-    bounds: [44.3600, 44.4200, 26.1000, 26.1800],
-    center: [44.3900, 26.1400]
-  },
-  "Sector 5": {
-    bounds: [44.4000, 44.4600, 26.0200, 26.0900],
-    center: [44.4300, 26.0550]
-  },
-  "Sector 6": {
-    bounds: [44.3800, 44.4400, 26.0000, 26.0800],
-    center: [44.4100, 26.0400]
-  },
+// Sector colors for visualization
+const SECTOR_COLORS: Record<string, string> = {
+  "Sector 1": "#3b82f6", // blue
+  "Sector 2": "#22c55e", // green
+  "Sector 3": "#eab308", // yellow
+  "Sector 4": "#ef4444", // red
+  "Sector 5": "#a855f7", // purple
+  "Sector 6": "#f97316", // orange
+}
+
+// Helper function to get sector data by name (for zoom functionality)
+const getSectorData = (sectors: Sector[], sectorName: string): Sector | null => {
+  return sectors.find(s => s.sector === sectorName) || null
 }
 
 const AREA_COORDINATES: Record<string, [number, number]> = {
@@ -112,15 +100,15 @@ function FitBounds({ bounds }: { bounds: [number, number][] }) {
 }
 
 // Component to zoom to selected neighborhood (centers on it)
-function ZoomToNeighborhood({ neighborhood }: { neighborhood: string | null }) {
+function ZoomToNeighborhood({ neighborhood, sectors }: { neighborhood: string | null, sectors: Sector[] }) {
   const map = useMap()
   
   useEffect(() => {
     if (!neighborhood) return
     
     // Check if it's a sector - center on the sector center
-    if (SECTOR_BOUNDS[neighborhood]) {
-      const sector = SECTOR_BOUNDS[neighborhood]
+    const sector = getSectorData(sectors, neighborhood)
+    if (sector && sector.center) {
       const [lat, lng] = sector.center
       map.setView([lat, lng], 13, { animate: true })
     }
@@ -129,7 +117,7 @@ function ZoomToNeighborhood({ neighborhood }: { neighborhood: string | null }) {
       const [lat, lng] = AREA_COORDINATES[neighborhood]
       map.setView([lat, lng], 14, { animate: true })
     }
-  }, [map, neighborhood])
+  }, [map, neighborhood, sectors])
   
   return null
 }
@@ -172,7 +160,28 @@ interface AlertMapProps {
 }
 
 export default function AlertMap({ alerts, selectedNeighborhood }: AlertMapProps) {
+  const [sectors, setSectors] = useState<Sector[]>([])
+  const [sectorsLoading, setSectorsLoading] = useState(true)
+
+  // Fetch sectors from backend on mount
+  useEffect(() => {
+    const loadSectors = async () => {
+      try {
+        const data = await fetchSectors()
+        setSectors(data)
+      } catch (err) {
+        console.error('Failed to load sectors:', err)
+        // Keep empty array on error - map will still work without sector polygons
+        setSectors([])
+      } finally {
+        setSectorsLoading(false)
+      }
+    }
+    loadSectors()
+  }, [])
+
   // Filter alerts that have valid coordinates
+  // For map view: show ALL alerts (don't filter by neighborhood - just zoom)
   const alertsWithCoords = alerts.filter(
     alert => alert.location.lat !== null && alert.location.lng !== null
   )
@@ -182,7 +191,7 @@ export default function AlertMap({ alerts, selectedNeighborhood }: AlertMapProps
   const defaultZoom = 12
 
   // Calculate bounds if we have alerts and no neighborhood is selected
-  // If a neighborhood is selected, we'll zoom to it instead
+  // If a neighborhood is selected, we'll zoom to it instead (but still show all alerts)
   const bounds = (!selectedNeighborhood && alertsWithCoords.length > 0)
     ? alertsWithCoords.map(alert => [alert.location.lat!, alert.location.lng!] as [number, number])
     : null
@@ -228,7 +237,38 @@ export default function AlertMap({ alerts, selectedNeighborhood }: AlertMapProps
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
-        {selectedNeighborhood && <ZoomToNeighborhood neighborhood={selectedNeighborhood} />}
+        {/* Render sector polygons as colored overlays from MongoDB */}
+        {!sectorsLoading && sectors.length > 0 && sectors.map((sector) => {
+          if (!sector.polygon || sector.polygon.length === 0) {
+            return null
+          }
+          
+          // Ensure polygon is closed (first and last point should be the same)
+          const polygonPositions = sector.polygon.length > 0 && 
+            sector.polygon[0][0] === sector.polygon[sector.polygon.length - 1][0] &&
+            sector.polygon[0][1] === sector.polygon[sector.polygon.length - 1][1]
+            ? sector.polygon
+            : [...sector.polygon, sector.polygon[0]] // Close the polygon if not closed
+          
+          return (
+            <Polygon
+              key={sector.sector}
+              positions={polygonPositions}
+              pathOptions={{
+                fillColor: SECTOR_COLORS[sector.sector] || "#6b7280",
+                fillOpacity: 0.2,
+                color: SECTOR_COLORS[sector.sector] || "#6b7280",
+                weight: 2,
+                opacity: 0.7,
+              }}
+            >
+              <Tooltip permanent={false} direction="center">
+                <div className="font-semibold text-sm">{sector.sector}</div>
+              </Tooltip>
+            </Polygon>
+          )
+        })}
+        {selectedNeighborhood && <ZoomToNeighborhood neighborhood={selectedNeighborhood} sectors={sectors} />}
         {!selectedNeighborhood && bounds && <FitBounds bounds={bounds} />}
         {alertsWithCoords.map((alert) => {
           const icon = createMarkerIcon(alert.category, alert.priority)

@@ -13,11 +13,11 @@ class Settings(BaseSettings):
     )
     openai_api_key: str | None = Field(
         default=None,
-        alias="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"
+        alias="OPENAI_API_KEY"
     )
     google_api_key: str | None = Field(
         default=None,
-        alias="AIzaSyCbCRNM4jrpbtNrI35_E7Jio2peVqnOCps"
+        alias="GOOGLE_API_KEY"
     )
     
     # Allow extra fields from .env file (like JWT_SECRET, CORS_ORIGIN, etc.)

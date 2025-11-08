@@ -64,11 +64,14 @@ export default function AlertInput() {
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
   const [analysis, setAnalysis] = useState<AlertAnalysisResult | null>(null)
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null)
+  const [locationError, setLocationError] = useState<string | null>(null)
+  const [gettingLocation, setGettingLocation] = useState(false)
   const [showAnalysis, setShowAnalysis] = useState(false)
   
   // Voice recognition state
   const [isListening, setIsListening] = useState(false)
   const [transcript, setTranscript] = useState('')
+  const [audioMode, setAudioMode] = useState<'record' | 'add'>('record')
   const recognitionRef = useRef<SpeechRecognition | null>(null)
   
   // Form state
@@ -83,33 +86,53 @@ export default function AlertInput() {
     other_contact: ''
   })
 
-  // Get user location on mount (with timeout)
-  useEffect(() => {
-    if (navigator.geolocation) {
-      const timeoutId = setTimeout(() => {
-        // Timeout after 5 seconds - don't block the UI
-      }, 5000)
-      
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          clearTimeout(timeoutId)
-          setUserLocation({
-            lat: position.coords.latitude,
-            lng: position.coords.longitude,
-          })
-        },
-        () => {
-          clearTimeout(timeoutId)
-          // User denied or error getting location - that's okay
-          // Location will be extracted from text mentions if available
-        },
-        {
-          timeout: 5000,
-          maximumAge: 60000, // Use cached location if available
-        }
-      )
+  // Function to get current location
+  const getCurrentLocation = () => {
+    if (!navigator.geolocation) {
+      setLocationError('Geolocation is not supported by your browser.')
+      return
     }
-  }, [])
+
+    setGettingLocation(true)
+    setLocationError(null)
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        setUserLocation({
+          lat: position.coords.latitude,
+          lng: position.coords.longitude,
+        })
+        setLocationError(null)
+        setGettingLocation(false)
+        setMessage({ type: 'success', text: 'Location obtained successfully!' })
+      },
+      (error) => {
+        setGettingLocation(false)
+        let errorMsg = 'Failed to get location. '
+        switch (error.code) {
+          case error.PERMISSION_DENIED:
+            errorMsg += 'Location permission denied. Please enable location sharing in your browser settings.'
+            break
+          case error.POSITION_UNAVAILABLE:
+            errorMsg += 'Location information is unavailable.'
+            break
+          case error.TIMEOUT:
+            errorMsg += 'Location request timed out. Please try again.'
+            break
+          default:
+            errorMsg += 'An unknown error occurred.'
+            break
+        }
+        setLocationError(errorMsg)
+        setMessage({ type: 'error', text: errorMsg })
+      },
+      {
+        timeout: 10000,
+        maximumAge: 60000, // Use cached location if available
+        enableHighAccuracy: true,
+      }
+    )
+  }
 
   // Initialize speech recognition
   useEffect(() => {
@@ -168,8 +191,12 @@ export default function AlertInput() {
 
   const startListening = () => {
     if (recognitionRef.current && !isListening) {
-      setTranscript('')
-      setText('')
+      if (audioMode === 'record') {
+        // Start fresh recording
+        setTranscript('')
+        setText('')
+      }
+      // If 'add' mode, keep existing text and append
       setMessage(null)
       recognitionRef.current.start()
       setIsListening(true)
@@ -193,7 +220,36 @@ export default function AlertInput() {
     
     if (!textToAnalyze) return
 
+    // Check if location is needed - be more lenient, let backend handle detection
+    // The backend will detect locations from the library, so we just check for common location keywords
+    const locationKeywords = [
+      'politehnica', 'upb', 'university', 'polytechnic',
+      'afi', 'cotroceni', 'controceni',
+      'herastrau', 'cismigiu', 'carol',
+      'victoriei', 'magheru', 'unirii', 'lipscani',
+      'gara', 'nord', 'station',
+      'sector', 'sectorul',
+      'calea', 'strada', 'bulevardul', 'piata', 'parcul',
+      'carturesti', 'carusel',
+      'drumul taberei', 'militari', 'berceni', 'pantelimon',
+      'titan', 'vitan', 'rahova', 'crangasi', 'giulesti',
+      'baneasa', 'otopeni'
+    ]
+    const textLower = textToAnalyze.toLowerCase()
+    const hasLocationInText = locationKeywords.some(keyword => textLower.includes(keyword))
+    
+    // Don't block if location might be in text - let backend analyze it
+    // Only require location if text is very short and clearly has no location
+    if (!userLocation && !hasLocationInText && !formData.location && textToAnalyze.length < 20) {
+      setMessage({ 
+        type: 'error', 
+        text: 'Location required: Please either mention a location in your text (e.g., "Calea Victoriei", "Herastrau Park", "Politehnica"), click "Get Current Location" button, or enter a location in the form field.' 
+      })
+      return
+    }
+
     setAnalyzing(true)
+    setMessage(null)
     try {
       const result = await analyzeAlertText(
         textToAnalyze,
@@ -212,10 +268,60 @@ export default function AlertInput() {
         result.other_contact = formData.other_contact || result.other_contact
       }
       
+      // Validate analysis before showing: must have title and location
+      const hasTitle = result.title && result.title.trim().length > 0
+      const hasLocation = (
+        (result.location_hierarchy && (
+          result.location_hierarchy.area ||
+          result.location_hierarchy.sector ||
+          result.location_hierarchy.point ||
+          result.location_hierarchy.city
+        )) ||
+        (result.location && (
+          result.location.lat && result.location.lng
+        )) ||
+        (result.location_mentions && result.location_mentions.length > 0)
+      )
+      
+      if (!hasTitle || !hasLocation) {
+        let errorMsg = 'Analysis incomplete. '
+        if (!hasTitle) {
+          errorMsg += 'Title is missing. '
+        }
+        if (!hasLocation) {
+          errorMsg += 'Location is missing. Please mention a location in your text (e.g., "Politehnica", "Herastrau Park", "Calea Victoriei") or click "Get Current Location".'
+        }
+        setMessage({ type: 'error', text: errorMsg })
+        setAnalysis(null)
+        setShowAnalysis(false)
+        return
+      }
+      
       setAnalysis(result)
       setShowAnalysis(true)
-    } catch (error) {
-      setMessage({ type: 'error', text: 'Failed to analyze text. Please try again.' })
+    } catch (error: any) {
+      let errorMessage = 'Failed to analyze text. '
+      
+      if (error instanceof Error) {
+        if (error.name === 'AbortError' || error.message.includes('timeout')) {
+          errorMessage += 'Request timed out. The AI service may be slow. Please try again.'
+        } else if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
+          errorMessage += 'Network error. Please check your internet connection and ensure the backend server is running.'
+        } else if (error.message.includes('500')) {
+          errorMessage += 'Server error. The backend may be experiencing issues. Please try again later.'
+        } else if (error.message.includes('400')) {
+          errorMessage += 'Invalid request. Please check your input and try again.'
+        } else {
+          errorMessage += error.message || 'An unexpected error occurred.'
+        }
+      } else if (typeof error === 'object' && error !== null && 'message' in error) {
+        errorMessage += String(error.message)
+      } else {
+        errorMessage += 'Please try again.'
+      }
+      
+      setMessage({ type: 'error', text: errorMessage })
+      console.error('Analysis error:', error)
     } finally {
       setAnalyzing(false)
     }
@@ -266,8 +372,27 @@ export default function AlertInput() {
       setTimeout(() => {
         window.location.reload()
       }, 1000)
-    } catch (error) {
-      setMessage({ type: 'error', text: 'Failed to submit alert. Please try again.' })
+    } catch (error: any) {
+      let errorMessage = 'Failed to submit alert. '
+      
+      if (error instanceof Error) {
+        if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
+          errorMessage += 'Network error. Please check your internet connection and ensure the backend server is running.'
+        } else if (error.message.includes('500')) {
+          errorMessage += 'Server error. The backend may be experiencing issues. Please try again later.'
+        } else if (error.message.includes('400')) {
+          errorMessage += 'Invalid data. Please check your alert information and try again.'
+        } else {
+          errorMessage += error.message || 'An unexpected error occurred.'
+        }
+      } else if (typeof error === 'object' && error !== null && 'message' in error) {
+        errorMessage += String(error.message)
+      } else {
+        errorMessage += 'Please try again.'
+      }
+      
+      setMessage({ type: 'error', text: errorMessage })
+      console.error('Submit error:', error)
     } finally {
       setLoading(false)
     }
@@ -378,6 +503,33 @@ export default function AlertInput() {
               ? 'Click the microphone button to start recording. Speak clearly and describe your alert.'
               : 'Voice recognition is not supported in your browser. Please use Text or Form mode.'}
           </p>
+          
+          {/* Audio Mode Selection */}
+          <div className="mb-3 flex gap-2">
+            <button
+              type="button"
+              onClick={() => setAudioMode('record')}
+              className={`px-3 py-1 rounded text-sm transition-colors ${
+                audioMode === 'record'
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-white text-gray-600 border border-gray-300 hover:bg-gray-50'
+              }`}
+            >
+              🎙️ Record New
+            </button>
+            <button
+              type="button"
+              onClick={() => setAudioMode('add')}
+              className={`px-3 py-1 rounded text-sm transition-colors ${
+                audioMode === 'add'
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-white text-gray-600 border border-gray-300 hover:bg-gray-50'
+              }`}
+            >
+              ➕ Add to Existing
+            </button>
+          </div>
+          
           <div className="flex items-center gap-3">
             <button
               type="button"
@@ -483,17 +635,36 @@ export default function AlertInput() {
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Location
               </label>
-              <input
-                type="text"
-                value={formData.location}
-                onChange={(e) => {
-                  setFormData({ ...formData, location: e.target.value })
-                  setShowAnalysis(false)
-                  setAnalysis(null)
-                }}
-                placeholder="e.g., Calea Victoriei near Magheru"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={formData.location}
+                  onChange={(e) => {
+                    setFormData({ ...formData, location: e.target.value })
+                    setShowAnalysis(false)
+                    setAnalysis(null)
+                  }}
+                  placeholder="e.g., Calea Victoriei near Magheru"
+                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+                <button
+                  type="button"
+                  onClick={getCurrentLocation}
+                  disabled={gettingLocation}
+                  className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors whitespace-nowrap"
+                  title="Get your current location"
+                >
+                  {gettingLocation ? '📍 Getting...' : '📍 Get Location'}
+                </button>
+              </div>
+              {locationError && (
+                <p className="mt-1 text-xs text-red-600">{locationError}</p>
+              )}
+              {userLocation && (
+                <p className="mt-1 text-xs text-green-600">
+                  ✓ Location obtained: {userLocation.lat.toFixed(4)}, {userLocation.lng.toFixed(4)}
+                </p>
+              )}
             </div>
             
             <div className="grid grid-cols-3 gap-4">
@@ -551,11 +722,34 @@ export default function AlertInput() {
               rows={4}
               disabled={loading || analyzing || isListening}
             />
-            {!userLocation && (
-              <p className="mt-2 text-sm text-gray-500">
-                💡 <strong>Tip:</strong> Since location access is disabled, please mention the location in your text (e.g., "Calea Victoriei", "Herastrau Park", "Sector 1"). The system will automatically detect and use it.
-              </p>
-            )}
+            <div className="mt-2 space-y-2">
+              {!userLocation && (
+                <div className="flex items-start gap-2 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                  <span className="text-yellow-600">⚠️</span>
+                  <div className="flex-1">
+                    <p className="text-sm text-gray-700">
+                      <strong>Location needed:</strong> Please either mention a location in your text (e.g., "Calea Victoriei", "Herastrau Park", "Sector 1") or click the "Get Location" button below to enable location sharing.
+                    </p>
+                    <button
+                      type="button"
+                      onClick={getCurrentLocation}
+                      disabled={gettingLocation}
+                      className="mt-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors text-sm"
+                    >
+                      {gettingLocation ? '📍 Getting Location...' : '📍 Get Current Location'}
+                    </button>
+                  </div>
+                </div>
+              )}
+              {locationError && (
+                <p className="text-sm text-red-600">{locationError}</p>
+              )}
+              {userLocation && (
+                <p className="text-sm text-green-600">
+                  ✓ Location obtained: {userLocation.lat.toFixed(4)}, {userLocation.lng.toFixed(4)}
+                </p>
+              )}
+            </div>
           </div>
         )}
         
@@ -578,17 +772,26 @@ export default function AlertInput() {
           </button>
           
           {message && (
-            <div className={`px-4 py-2 rounded-lg ${
+            <div className={`px-4 py-2 rounded-lg flex items-center justify-between ${
               message.type === 'success' 
                 ? 'bg-green-100 text-green-800' 
                 : 'bg-red-100 text-red-800'
             }`}>
-              {message.text}
+              <span>{message.text}</span>
+              <button
+                type="button"
+                onClick={() => setMessage(null)}
+                className="ml-4 text-gray-600 hover:text-gray-800"
+                aria-label="Dismiss message"
+              >
+                ✕
+              </button>
             </div>
           )}
         </div>
       </form>
 
+      {/* Analysis Results - Show right after input section */}
       {showAnalysis && analysis && (
         <div className="mt-6 p-4 bg-blue-50 border-2 border-blue-200 rounded-lg">
           <h3 className="font-semibold text-gray-900 mb-3">Analysis Results:</h3>
@@ -612,35 +815,49 @@ export default function AlertInput() {
 
           <div className="mb-4">
             <span className="text-sm text-gray-600">Title:</span>
-            <div className="font-semibold text-gray-900">{analysis.title}</div>
+            <div className="font-semibold text-gray-900">{analysis.title || 'N/A'}</div>
           </div>
 
-          {analysis.location_hierarchy && (
+          {(analysis.location_hierarchy || analysis.location || analysis.location_mentions) && (
             <div className="mb-4">
               <span className="text-sm text-gray-600">Location:</span>
               <div className="text-gray-900">
-                {analysis.location_hierarchy.point && (
-                  <div className="text-xs text-gray-500 mb-1">
-                    📍 Point: {analysis.location_hierarchy.point}
-                  </div>
+                {analysis.location_hierarchy && (
+                  <>
+                    {analysis.location_hierarchy.point && (
+                      <div className="text-xs text-gray-500 mb-1">
+                        📍 Point: {analysis.location_hierarchy.point}
+                      </div>
+                    )}
+                    {analysis.location_hierarchy.area && (
+                      <div className="text-blue-600 font-semibold">
+                        🏘️ Area: {analysis.location_hierarchy.area}
+                      </div>
+                    )}
+                    {analysis.location_hierarchy.sector && (
+                      <div className="text-blue-700 font-semibold">
+                        🏛️ Sector: {analysis.location_hierarchy.sector}
+                      </div>
+                    )}
+                    {analysis.location_hierarchy.city && (
+                      <div className="text-gray-700">
+                        🏙️ City: {analysis.location_hierarchy.city}
+                      </div>
+                    )}
+                  </>
                 )}
-                {analysis.location_hierarchy.area && (
+                {!analysis.location_hierarchy && analysis.location_mentions && analysis.location_mentions.length > 0 && (
                   <div className="text-blue-600 font-semibold">
-                    🏘️ Area: {analysis.location_hierarchy.area}
+                    📍 {analysis.location_mentions.join(', ')}
                   </div>
                 )}
-                {analysis.location_hierarchy.sector && (
-                  <div className="text-blue-700 font-semibold">
-                    🏛️ Sector: {analysis.location_hierarchy.sector}
-                  </div>
-                )}
-                {analysis.location_hierarchy.city && (
+                {!analysis.location_hierarchy && !analysis.location_mentions && analysis.location && analysis.location.lat && analysis.location.lng && (
                   <div className="text-gray-700">
-                    🏙️ City: {analysis.location_hierarchy.city}
+                    📍 Coordinates: {analysis.location.lat.toFixed(4)}, {analysis.location.lng.toFixed(4)}
                   </div>
                 )}
               </div>
-              {analysis.location.address && (
+              {analysis.location && analysis.location.address && (
                 <div className="text-xs text-gray-500 mt-1">
                   {analysis.location.address}
                 </div>
@@ -684,10 +901,13 @@ export default function AlertInput() {
 
           <button
             type="button"
-            onClick={() => setShowAnalysis(false)}
-            className="text-sm text-blue-600 hover:text-blue-800 underline"
+            onClick={() => {
+              setShowAnalysis(false)
+              setAnalysis(null)
+            }}
+            className="mt-2 px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors text-sm font-medium"
           >
-            Hide analysis
+            Hide Analysis
           </button>
         </div>
       )}

@@ -48,16 +48,20 @@ const priorityColors: Record<string, string> = {
 }
 
 export default function AlertList({ view, onViewChange }: AlertListProps) {
-  const [alerts, setAlerts] = useState<Alert[]>([])
+  const [allAlerts, setAllAlerts] = useState<Alert[]>([]) // All alerts for map view (no filters)
+  const [alerts, setAlerts] = useState<Alert[]>([]) // Filtered alerts for list view
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [selectedNeighborhood, setSelectedNeighborhood] = useState<string | null>(null)
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
   const [neighborhoods, setNeighborhoods] = useState<{ Sectors: string[]; Areas: string[]; City: string[] } | null>(null)
+  const [areaSearchQuery, setAreaSearchQuery] = useState<string>('')
+  const [showAreaSuggestions, setShowAreaSuggestions] = useState(false)
 
   useEffect(() => {
     loadNeighborhoods()
-    loadAlerts()
+    loadAllAlerts() // Load all alerts for map view
+    loadAlerts() // Load filtered alerts for list view
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
@@ -81,7 +85,19 @@ export default function AlertList({ view, onViewChange }: AlertListProps) {
     }
   }
 
+  const loadAllAlerts = async () => {
+    // Load all alerts (no filters) for map view
+    try {
+      const data = await fetchAlerts(null, null)
+      setAllAlerts(data)
+    } catch (err) {
+      console.error('Error loading all alerts:', err)
+      setAllAlerts([])
+    }
+  }
+
   const loadAlerts = async () => {
+    // Load filtered alerts for list view
     try {
       setLoading(true)
       setError(null)
@@ -94,6 +110,33 @@ export default function AlertList({ view, onViewChange }: AlertListProps) {
     } finally {
       setLoading(false)
     }
+  }
+
+  // Get all neighborhoods as a flat list for searching
+  const allNeighborhoods = neighborhoods ? [
+    ...neighborhoods.Sectors.map(n => ({ name: n, type: 'Sector' })),
+    ...neighborhoods.Areas.map(n => ({ name: n, type: 'Area' })),
+    ...neighborhoods.City.map(n => ({ name: n, type: 'City' }))
+  ] : []
+
+  // Filter neighborhoods based on search query
+  const filteredNeighborhoods = areaSearchQuery.trim() === ''
+    ? []
+    : allNeighborhoods.filter(n =>
+        n.name.toLowerCase().includes(areaSearchQuery.toLowerCase())
+      ).slice(0, 10) // Limit to 10 suggestions
+
+  // Handle area selection from search
+  const handleAreaSelect = (areaName: string) => {
+    setSelectedNeighborhood(areaName || null)
+    setAreaSearchQuery(areaName)
+    setShowAreaSuggestions(false)
+  }
+
+  // Clear area search when dropdown is used
+  const handleDropdownChange = (value: string) => {
+    setSelectedNeighborhood(value || null)
+    setAreaSearchQuery(value || '')
   }
 
   // Group alerts by category
@@ -160,10 +203,10 @@ export default function AlertList({ view, onViewChange }: AlertListProps) {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center justify-between mb-4 flex-wrap gap-4">
         <h2 className="text-2xl font-bold text-gray-900">Community Alerts</h2>
         
-        <div className="flex gap-3">
+        <div className="flex gap-3 flex-wrap">
           <div className="flex gap-2 bg-gray-100 rounded-lg p-1">
             <button
               onClick={() => onViewChange('list')}
@@ -187,9 +230,63 @@ export default function AlertList({ view, onViewChange }: AlertListProps) {
             </button>
           </div>
           
+          {/* Area Search Input */}
+          <div className="relative">
+            <input
+              type="text"
+              placeholder="🔍 Search area..."
+              value={areaSearchQuery}
+              onChange={(e) => {
+                setAreaSearchQuery(e.target.value)
+                setShowAreaSuggestions(true)
+                if (e.target.value === '') {
+                  setSelectedNeighborhood(null)
+                }
+              }}
+              onFocus={() => setShowAreaSuggestions(true)}
+              onBlur={() => {
+                // Delay to allow click on suggestions
+                setTimeout(() => setShowAreaSuggestions(false), 200)
+              }}
+              className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent w-48"
+            />
+            {showAreaSuggestions && filteredNeighborhoods.length > 0 && (
+              <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                <div
+                  className="px-3 py-2 text-xs text-gray-500 border-b border-gray-200 cursor-pointer hover:bg-gray-50"
+                  onClick={() => {
+                    setSelectedNeighborhood(null)
+                    setAreaSearchQuery('')
+                    setShowAreaSuggestions(false)
+                  }}
+                >
+                  Clear filter
+                </div>
+                {filteredNeighborhoods.map((n) => (
+                  <div
+                    key={n.name}
+                    className="px-4 py-2 hover:bg-blue-50 cursor-pointer border-b border-gray-100 last:border-b-0"
+                    onClick={() => handleAreaSelect(n.name)}
+                  >
+                    <div className="font-medium text-gray-900">{n.name}</div>
+                    <div className="text-xs text-gray-500">{n.type}</div>
+                  </div>
+                ))}
+              </div>
+            )}
+            {showAreaSuggestions && areaSearchQuery.trim() !== '' && filteredNeighborhoods.length === 0 && (
+              <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg">
+                <div className="px-4 py-2 text-sm text-gray-500">
+                  No areas found matching "{areaSearchQuery}"
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Area Dropdown (Alternative) */}
           <select
             value={selectedNeighborhood || ''}
-            onChange={(e) => setSelectedNeighborhood(e.target.value || null)}
+            onChange={(e) => handleDropdownChange(e.target.value)}
             className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           >
             <option value="">All Areas</option>
@@ -228,11 +325,11 @@ export default function AlertList({ view, onViewChange }: AlertListProps) {
       </div>
       
       {view === 'map' ? (
-        alerts.length > 0 ? (
-          <AlertMap alerts={alerts} selectedNeighborhood={selectedNeighborhood} />
+        allAlerts.length > 0 ? (
+          <AlertMap alerts={allAlerts} selectedNeighborhood={selectedNeighborhood} />
         ) : (
           <div className="text-center py-8 text-gray-600">
-            No alerts found. {selectedNeighborhood || selectedCategory ? 'Try adjusting your filters.' : 'Be the first to report something!'}
+            No alerts found. Be the first to report something!
           </div>
         )
       ) : (
@@ -252,92 +349,88 @@ export default function AlertList({ view, onViewChange }: AlertListProps) {
             key={category}
             className={`rounded-lg border-2 p-4 ${categoryColors[category]}`}
           >
-            <h3 className="text-xl font-semibold mb-3 flex items-center gap-2">
+            <h3 className="text-xl font-semibold mb-4 flex items-center gap-2">
               {categoryLabels[category]}
               <span className="text-sm font-normal text-gray-600">
                 ({categoryAlerts.length})
               </span>
             </h3>
             
-            <div className="space-y-3">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {categoryAlerts.map((alert) => (
                 <div
                   key={alert.id}
-                  className="bg-white rounded-lg p-4 shadow-sm border border-gray-200"
+                  className="bg-white rounded-lg p-4 shadow-md border border-gray-200 hover:shadow-lg transition-shadow duration-200 flex flex-col"
                 >
                   <div className="flex items-start justify-between mb-2">
-                    <div className="flex-1">
-                      <h4 className="font-semibold text-gray-900 mb-1">{alert.title}</h4>
-                      <div className="flex items-center gap-2">
-                        <span className={`inline-block px-2 py-1 rounded-full text-xs font-semibold border ${
-                          priorityColors[alert.priority] || priorityColors.Medium
-                        }`}>
-                          {alert.priority}
-                        </span>
-                        <span className="text-xs text-gray-500">
-                          {formatDate(alert.timestamp)}
-                        </span>
-                      </div>
-                    </div>
+                    <h4 className="font-semibold text-gray-900 text-base mb-1 flex-1 line-clamp-2">{alert.title}</h4>
+                  </div>
+                  
+                  <div className="flex items-center gap-2 mb-3">
+                    <span className={`inline-block px-2 py-1 rounded-full text-xs font-semibold border ${
+                      priorityColors[alert.priority] || priorityColors.Medium
+                    }`}>
+                      {alert.priority}
+                    </span>
+                    <span className="text-xs text-gray-500">
+                      {formatDate(alert.timestamp)}
+                    </span>
                   </div>
                   
                   {alert.description && (
-                    <p className="text-gray-700 text-sm mb-2">{alert.description}</p>
+                    <p className="text-gray-700 text-sm mb-3 line-clamp-3 flex-grow">{alert.description}</p>
                   )}
                   
-                  {alert.location_hierarchy && (
-                    <div className="text-xs mb-1">
-                      {alert.location_hierarchy.point && (
-                        <p className="text-gray-400 mb-1">
-                          📍 Point: {alert.location_hierarchy.point}
-                        </p>
-                      )}
-                      {alert.location_hierarchy.area && (
-                        <p className="text-blue-600 font-medium">
-                          🏘️ {alert.location_hierarchy.area}
-                        </p>
-                      )}
-                      {alert.location_hierarchy.sector && (
-                        <p className="text-blue-700 font-medium">
-                          🏛️ {alert.location_hierarchy.sector}
-                        </p>
-                      )}
-                      {alert.location_hierarchy.city && (
-                        <p className="text-gray-600">
-                          🏙️ {alert.location_hierarchy.city}
-                        </p>
-                      )}
-                    </div>
-                  )}
-                  
-                  {alert.location.address && (
-                    <p className="text-xs text-gray-500 flex items-center gap-1 mb-1">
-                      {alert.location.address}
-                    </p>
-                  )}
-                  
-                  {(alert.phone || alert.email || alert.other_contact) && (
-                    <div className="mt-2 pt-2 border-t border-gray-200">
-                      <p className="text-xs font-semibold text-gray-600 mb-1">Contact Information:</p>
-                      <div className="text-xs text-gray-600 space-y-1">
-                        {alert.phone && (
-                          <p className="flex items-center gap-1">
-                            📞 <a href={`tel:${alert.phone}`} className="text-blue-600 hover:underline">{alert.phone}</a>
+                  <div className="mt-auto space-y-2">
+                    {alert.location_hierarchy && (
+                      <div className="text-xs">
+                        {alert.location_hierarchy.area && (
+                          <p className="text-blue-600 font-medium truncate">
+                            🏘️ {alert.location_hierarchy.area}
                           </p>
                         )}
-                        {alert.email && (
-                          <p className="flex items-center gap-1">
-                            ✉️ <a href={`mailto:${alert.email}`} className="text-blue-600 hover:underline">{alert.email}</a>
+                        {alert.location_hierarchy.sector && !alert.location_hierarchy.area && (
+                          <p className="text-blue-700 font-medium truncate">
+                            🏛️ {alert.location_hierarchy.sector}
                           </p>
                         )}
-                        {alert.other_contact && (
-                          <p className="flex items-center gap-1">
-                            💬 {alert.other_contact}
+                        {alert.location_hierarchy.city && !alert.location_hierarchy.area && !alert.location_hierarchy.sector && (
+                          <p className="text-gray-600 truncate">
+                            🏙️ {alert.location_hierarchy.city}
                           </p>
                         )}
                       </div>
-                    </div>
-                  )}
+                    )}
+                    
+                    {alert.location.address && (
+                      <p className="text-xs text-gray-500 truncate" title={alert.location.address}>
+                        📍 {alert.location.address}
+                      </p>
+                    )}
+                    
+                    {(alert.phone || alert.email || alert.other_contact) && (
+                      <div className="pt-2 border-t border-gray-200">
+                        <p className="text-xs font-semibold text-gray-600 mb-1">Contact:</p>
+                        <div className="text-xs text-gray-600 space-y-1">
+                          {alert.phone && (
+                            <p className="truncate">
+                              📞 <a href={`tel:${alert.phone}`} className="text-blue-600 hover:underline">{alert.phone}</a>
+                            </p>
+                          )}
+                          {alert.email && (
+                            <p className="truncate">
+                              ✉️ <a href={`mailto:${alert.email}`} className="text-blue-600 hover:underline truncate block">{alert.email}</a>
+                            </p>
+                          )}
+                          {alert.other_contact && (
+                            <p className="truncate">
+                              💬 {alert.other_contact}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </div>
               ))}
             </div>

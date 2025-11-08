@@ -38,16 +38,26 @@ def analyze_text_sync(text: str) -> Dict[str, Any]:
     """
     Synchronous version for quick location extraction
     Extracts only location mentions without AI title generation
-    Uses the same improved patterns as analyze_text
+    Uses location library first, then pattern matching
     """
     text_lower = text.lower()
     
-    # Extract location mentions (improved pattern matching - same as analyze_text)
+    # FIRST: Try to find location in library (most reliable)
     location_mentions = []
+    from services.location_library import find_location_in_text
+    library_location = find_location_in_text(text)
+    if library_location:
+        location_name, _ = library_location
+        location_mentions.append(location_name)
+        return {
+            "location_mentions": location_mentions
+        }
+    
+    # SECOND: Use pattern matching if library didn't find anything
     # Common Bucharest location patterns - expanded to catch more locations
     bucharest_patterns = [
         r'\b(calea|strada|bulevardul|piata|parcul)\s+([A-Za-z\s]+)',  # Street names
-        r'\b(herastrau|cismigiu|carol|victoriei|magheru|unirii|lipscani|politehnica|gara|nord)\b',  # Common places
+        r'\b(herastrau|cismigiu|carol|victoriei|magheru|unirii|lipscani|politehnica|polytehnica|gara|nord)\b',  # Common places
         r'\b(afi\s+)?(?:cotroceni|controceni)\b',  # AFI Cotroceni (case-insensitive, handles typos like "controceni")
         r'\b(near|at|by|close\s+to|around)\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)\b',  # "near X" or "at X" patterns
         r'\b(sector\s*\d+)\b',  # Sector numbers
@@ -61,16 +71,39 @@ def analyze_text_sync(text: str) -> Dict[str, Any]:
                 if isinstance(match, tuple):
                     # For "near X" patterns, extract the location part
                     if len(match) == 2 and match[0].lower() in ['near', 'at', 'by', 'close to', 'around']:
-                        location_mentions.append(match[1])
+                        location_text = match[1]
+                        # Check if this location is in library
+                        lib_match = find_location_in_text(location_text)
+                        if lib_match:
+                            loc_name, _ = lib_match
+                            if loc_name not in location_mentions:
+                                location_mentions.append(loc_name)
+                        else:
+                            location_mentions.append(location_text)
                     else:
-                        location_mentions.append(" ".join(match))
+                        location_text = " ".join(match)
+                        # Check if this location is in library
+                        lib_match = find_location_in_text(location_text)
+                        if lib_match:
+                            loc_name, _ = lib_match
+                            if loc_name not in location_mentions:
+                                location_mentions.append(loc_name)
+                        else:
+                            location_mentions.append(location_text)
                 else:
                     # Clean up common prefixes
                     location = match.strip()
                     # Remove "afi" prefix if present (for AFI Cotroceni)
                     if location.lower().startswith('afi'):
                         location = location[3:].strip()
-                    location_mentions.append(location)
+                    # Check if this location is in library
+                    lib_match = find_location_in_text(location)
+                    if lib_match:
+                        loc_name, _ = lib_match
+                        if loc_name not in location_mentions:
+                            location_mentions.append(loc_name)
+                    else:
+                        location_mentions.append(location)
     
     # Also check for capitalized words that might be locations (like "Afi", "Controceni")
     words = text.split()
@@ -83,12 +116,20 @@ def analyze_text_sync(text: str) -> Dict[str, Any]:
                 next_word = words[i + 1].strip('.,!?;:').strip()
                 if next_word[0].isupper() and len(next_word) > 3:
                     combined = f"{word_clean} {next_word}"
-                    # Check against known locations
-                    from services.neighborhoods import AREAS
-                    for area, keywords in AREAS.items():
-                        if any(keyword in combined.lower() for keyword in keywords) or area.lower() in combined.lower():
-                            location_mentions.append(area)
-                            break
+                    # Check library first
+                    lib_match = find_location_in_text(combined)
+                    if lib_match:
+                        loc_name, _ = lib_match
+                        if loc_name not in location_mentions:
+                            location_mentions.append(loc_name)
+                    else:
+                        # Fallback to AREAS
+                        from services.neighborhoods import AREAS
+                        for area, keywords in AREAS.items():
+                            if any(keyword in combined.lower() for keyword in keywords) or area.lower() in combined.lower():
+                                if area not in location_mentions:
+                                    location_mentions.append(area)
+                                break
     
     return {
         "location_mentions": location_mentions
@@ -98,7 +139,21 @@ async def analyze_text_with_ai(text: str, user_lat: Optional[float] = None, user
     """
     Use AI (OpenAI/Gemini) to extract structured alert data from user text
     Returns structured data matching MongoDB schema
+    Uses library first, then AI as fallback
     """
+    # FIRST: Try library-based analysis (no AI needed)
+    from services.location_library import find_location_in_text
+    from services.title_extractor import extract_title_from_text
+    
+    library_location = find_location_in_text(text)
+    library_title = extract_title_from_text(text)
+    
+    # If we can extract everything from library, use it
+    if library_location and library_title:
+        location_name, _ = library_location
+        return await analyze_text(text, location_name)
+    
+    # SECOND: Try AI if library didn't work
     # Try Google Gemini API first (preferred)
     google_api_key = getattr(settings, "google_api_key", None)
     if google_api_key:
@@ -114,7 +169,10 @@ async def analyze_text_with_ai(text: str, user_lat: Optional[float] = None, user
             return result
     
     # Fallback to keyword-based analysis
-    return await analyze_text(text, None)
+    location_name = None
+    if library_location:
+        location_name, _ = library_location
+    return await analyze_text(text, location_name)
 
 async def _analyze_with_google_gemini(
     text: str,
@@ -132,11 +190,13 @@ User location (optional): {f"lat: {user_lat}, lng: {user_lng}" if user_lat and u
 
 Extract the following information and return ONLY valid JSON (no markdown, no code blocks):
 {{
-    "title": "A concise, informative title (max 60 chars)",
+    "title": "A concise, informative title (max 60 chars) - IMPROVE WORDING",
     "description": "Full description or null if same as title",
     "category": "One of: Road, Safety, Lost, Weather, Emergency, Event, Infrastructure, Environment, Traffic, Crime, PublicTransport, Construction, General",
     "priority": "One of: Low, Medium, High, Critical",
-    "location_mentions": ["List of location names mentioned in text"],
+    "location_mentions": ["List of location names mentioned in text (e.g., 'Politehnica', 'Calea Victoriei', 'Herastrau')"],
+    "area": "Specific area/neighborhood name if mentioned (e.g., 'Politehnica', 'Herastrau', 'AFI Cotroceni', 'Lipscani') or null",
+    "sector": "Sector number if mentioned or can be inferred (e.g., 'Sector 1', 'Sector 3', 'Sector 6') or null",
     "phone": "Phone number if mentioned, else null",
     "email": "Email if mentioned, else null",
     "other_contact": "Other contact info (WhatsApp, Telegram, etc.) if mentioned, else null"
@@ -146,8 +206,21 @@ Guidelines:
 - Extract category based on content (e.g., "accident" -> Road, "lost dog" -> Lost, "fire" -> Emergency)
 - Determine priority from urgency indicators (e.g., "urgent", "emergency" -> Critical)
 - Extract all location mentions (streets, areas, neighborhoods, sectors)
+- Extract area: If a specific area/neighborhood is mentioned (e.g., Politehnica, Herastrau, AFI Cotroceni, Lipscani, Cismigiu), extract it. Common Bucharest areas include: Politehnica, Herastrau, Cismigiu, AFI Cotroceni, Lipscani, Piata Unirii, Piata Victoriei, Calea Victoriei, Bulevardul Magheru, Gara de Nord, Drumul Taberei, Militari, Berceni, Pantelimon, Titan, Vitan, Rahova, Crangasi, Giulesti, Baneasa, Otopeni, Carturesti Carusel
+- Extract sector: If a sector is mentioned (Sector 1-6) or can be inferred from the area:
+  * Sector 1: Politehnica, Herastrau, Cismigiu, Piata Victoriei, Calea Victoriei, Bulevardul Magheru, Gara de Nord, Baneasa, Otopeni
+  * Sector 2: Pantelimon
+  * Sector 3: Piata Unirii, Lipscani, Titan, Vitan, Carturesti Carusel
+  * Sector 4: Berceni
+  * Sector 5: AFI Cotroceni, Rahova
+  * Sector 6: Drumul Taberei, Militari, Crangasi, Giulesti
 - Extract contact information if present
-- Title should be concise and informative
+- Title: Rephrase and improve wording naturally - don't just copy user's text
+  * Reorder words for better readability (e.g., "Ongoing hackathon in UPB library" instead of "politehnica library hackathon ongoing")
+  * Expand abbreviations: "politehnica" -> "UPB", "UPB library" -> "UPB Library"
+  * Use proper capitalization (e.g., "UPB Library", "Afi Cotroceni", "Calea Victoriei")
+  * Make it professional and clear
+  * Examples: "politehnica library hackathon ongoing" -> "Ongoing Hackathon at UPB Library"
 - Description should be the full text if different from title, else null
 - Return ONLY the JSON object, nothing else"""
 
@@ -210,11 +283,13 @@ User location (optional): {f"lat: {user_lat}, lng: {user_lng}" if user_lat and u
 
 Extract the following information and return ONLY valid JSON (no markdown, no code blocks):
 {{
-    "title": "A concise, informative title (max 60 chars)",
+    "title": "A concise, informative title (max 60 chars) - IMPROVE WORDING",
     "description": "Full description or null if same as title",
     "category": "One of: Road, Safety, Lost, Weather, Emergency, Event, Infrastructure, Environment, Traffic, Crime, PublicTransport, Construction, General",
     "priority": "One of: Low, Medium, High, Critical",
-    "location_mentions": ["List of location names mentioned in text"],
+    "location_mentions": ["List of location names mentioned in text (e.g., 'Politehnica', 'Calea Victoriei', 'Herastrau')"],
+    "area": "Specific area/neighborhood name if mentioned (e.g., 'Politehnica', 'Herastrau', 'AFI Cotroceni', 'Lipscani') or null",
+    "sector": "Sector number if mentioned or can be inferred (e.g., 'Sector 1', 'Sector 3', 'Sector 6') or null",
     "phone": "Phone number if mentioned, else null",
     "email": "Email if mentioned, else null",
     "other_contact": "Other contact info (WhatsApp, Telegram, etc.) if mentioned, else null"
@@ -224,8 +299,21 @@ Guidelines:
 - Extract category based on content (e.g., "accident" -> Road, "lost dog" -> Lost, "fire" -> Emergency)
 - Determine priority from urgency indicators (e.g., "urgent", "emergency" -> Critical)
 - Extract all location mentions (streets, areas, neighborhoods, sectors)
+- Extract area: If a specific area/neighborhood is mentioned (e.g., Politehnica, Herastrau, AFI Cotroceni, Lipscani, Cismigiu), extract it. Common Bucharest areas include: Politehnica, Herastrau, Cismigiu, AFI Cotroceni, Lipscani, Piata Unirii, Piata Victoriei, Calea Victoriei, Bulevardul Magheru, Gara de Nord, Drumul Taberei, Militari, Berceni, Pantelimon, Titan, Vitan, Rahova, Crangasi, Giulesti, Baneasa, Otopeni, Carturesti Carusel
+- Extract sector: If a sector is mentioned (Sector 1-6) or can be inferred from the area:
+  * Sector 1: Politehnica, Herastrau, Cismigiu, Piata Victoriei, Calea Victoriei, Bulevardul Magheru, Gara de Nord, Baneasa, Otopeni
+  * Sector 2: Pantelimon
+  * Sector 3: Piata Unirii, Lipscani, Titan, Vitan, Carturesti Carusel
+  * Sector 4: Berceni
+  * Sector 5: AFI Cotroceni, Rahova
+  * Sector 6: Drumul Taberei, Militari, Crangasi, Giulesti
 - Extract contact information if present
-- Title should be concise and informative
+- Title: Rephrase and improve wording naturally - don't just copy user's text
+  * Reorder words for better readability (e.g., "Ongoing hackathon in UPB library" instead of "politehnica library hackathon ongoing")
+  * Expand abbreviations: "politehnica" -> "UPB", "UPB library" -> "UPB Library"
+  * Use proper capitalization (e.g., "UPB Library", "Afi Cotroceni", "Calea Victoriei")
+  * Make it professional and clear
+  * Examples: "politehnica library hackathon ongoing" -> "Ongoing Hackathon at UPB Library"
 - Description should be the full text if different from title, else null
 - Return ONLY the JSON object, nothing else"""
 
@@ -238,7 +326,7 @@ Guidelines:
                 json={
                     "model": "gpt-3.5-turbo",
                     "messages": [
-                        {"role": "system", "content": "You are a helpful assistant that extracts structured data from user alerts. Always return valid JSON only."},
+                        {"role": "system", "content": "You are a helpful assistant that extracts structured data from user alerts. For titles, you improve wording, reorder words for better readability, expand abbreviations (e.g., 'politehnica' -> 'UPB'), and use proper capitalization. Always reformat user input to be more professional and clear. Always return valid JSON only."},
                         {"role": "user", "content": prompt}
                     ],
                     "max_tokens": 500,
@@ -301,6 +389,15 @@ def _normalize_ai_result(result: Dict[str, Any]) -> Dict[str, Any]:
     if not isinstance(location_mentions, list):
         location_mentions = []
     
+    # Normalize area and sector (from AI extraction)
+    area = result.get("area")
+    if area and area.lower() in ["null", "none", ""]:
+        area = None
+    
+    sector = result.get("sector")
+    if sector and sector.lower() in ["null", "none", ""]:
+        sector = None
+    
     # Normalize contact info
     phone = result.get("phone")
     if phone and phone.lower() in ["null", "none", ""]:
@@ -323,6 +420,8 @@ def _normalize_ai_result(result: Dict[str, Any]) -> Dict[str, Any]:
         "title": title,
         "description": description,
         "location_mentions": location_mentions,
+        "area": area,
+        "sector": sector,
         "suggestions": suggestions,
         "phone": phone,
         "email": email,
@@ -334,11 +433,19 @@ async def analyze_text(text: str, location: Optional[str] = None) -> Dict[str, A
     Analyze user text to extract:
     - Category
     - Priority
-    - Title (using AI if available)
+    - Title (using library first, then AI if needed)
     - Description
     - Location mentions
     """
     text_lower = text.lower()
+    
+    # FIRST: Try to find location in library
+    from services.location_library import find_location_in_text
+    library_location = find_location_in_text(text)
+    matched_location = None
+    matched_location_data = None
+    if library_location:
+        matched_location, matched_location_data = library_location
     
     # Extract category
     category = "General"
@@ -358,19 +465,31 @@ async def analyze_text(text: str, location: Optional[str] = None) -> Dict[str, A
             priority = prio
             break
     
-    # Generate title using AI (with fallback to smart keyword-based)
-    from services.ai_title_generator import generate_title
-    title = await generate_title(text, category, priority, location)
+    # Generate title: Try library-based extraction first, then AI
+    title = None
+    from services.title_extractor import extract_title_from_text
+    title = extract_title_from_text(text, category)
+    
+    # If library extraction didn't work, use AI (with fallback to smart keyword-based)
+    if not title:
+        from services.ai_title_generator import generate_title
+        title = await generate_title(text, category, priority, matched_location or location)
     
     # Description is the full text
     description = text.strip() if text.strip() != title else None
     
-    # Extract location mentions (improved pattern matching - same as analyze_text_sync)
+    # Extract location mentions: Use library first, then pattern matching
     location_mentions = []
-    # Common Bucharest location patterns - expanded to catch more locations
+    
+    # If we found a location in the library, ALWAYS use it first
+    if matched_location:
+        # Add the matched location name (not the tuple)
+        location_mentions.append(matched_location)
+    
+    # Also check for other location patterns (for additional locations mentioned)
     bucharest_patterns = [
         r'\b(calea|strada|bulevardul|piata|parcul)\s+([A-Za-z\s]+)',  # Street names
-        r'\b(herastrau|cismigiu|carol|victoriei|magheru|unirii|lipscani|politehnica|gara|nord)\b',  # Common places
+        r'\b(herastrau|cismigiu|carol|victoriei|magheru|unirii|lipscani|politehnica|polytehnica|gara|nord)\b',  # Common places
         r'\b(afi\s+)?(?:cotroceni|controceni)\b',  # AFI Cotroceni (case-insensitive, handles typos like "controceni")
         r'\b(near|at|by|close\s+to|around)\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)\b',  # "near X" or "at X" patterns
         r'\b(sector\s*\d+)\b',  # Sector numbers
@@ -384,16 +503,38 @@ async def analyze_text(text: str, location: Optional[str] = None) -> Dict[str, A
                 if isinstance(match, tuple):
                     # For "near X" patterns, extract the location part
                     if len(match) == 2 and match[0].lower() in ['near', 'at', 'by', 'close to', 'around']:
-                        location_mentions.append(match[1])
+                        location_text = match[1]
+                        # Check if this location is in library
+                        lib_match = find_location_in_text(location_text)
+                        if lib_match:
+                            loc_name, _ = lib_match
+                            if loc_name not in location_mentions:
+                                location_mentions.append(loc_name)
+                        else:
+                            location_mentions.append(location_text)
                     else:
-                        location_mentions.append(" ".join(match))
+                        location_text = " ".join(match)
+                        lib_match = find_location_in_text(location_text)
+                        if lib_match:
+                            loc_name, _ = lib_match
+                            if loc_name not in location_mentions:
+                                location_mentions.append(loc_name)
+                        else:
+                            location_mentions.append(location_text)
                 else:
                     # Clean up common prefixes
                     location = match.strip()
                     # Remove "afi" prefix if present (for AFI Cotroceni)
                     if location.lower().startswith('afi'):
                         location = location[3:].strip()
-                    location_mentions.append(location)
+                    # Check if this location is in library
+                    lib_match = find_location_in_text(location)
+                    if lib_match:
+                        loc_name, _ = lib_match
+                        if loc_name not in location_mentions:
+                            location_mentions.append(loc_name)
+                    else:
+                        location_mentions.append(location)
     
     # Also check for capitalized words that might be locations (like "Afi", "Controceni")
     words = text.split()
@@ -406,12 +547,20 @@ async def analyze_text(text: str, location: Optional[str] = None) -> Dict[str, A
                 next_word = words[i + 1].strip('.,!?;:').strip()
                 if next_word[0].isupper() and len(next_word) > 3:
                     combined = f"{word_clean} {next_word}"
-                    # Check against known locations
-                    from services.neighborhoods import AREAS
-                    for area, keywords in AREAS.items():
-                        if any(keyword in combined.lower() for keyword in keywords) or area.lower() in combined.lower():
-                            location_mentions.append(area)
-                            break
+                    # Check library first
+                    lib_match = find_location_in_text(combined)
+                    if lib_match:
+                        loc_name, _ = lib_match
+                        if loc_name not in location_mentions:
+                            location_mentions.append(loc_name)
+                    else:
+                        # Fallback to AREAS
+                        from services.neighborhoods import AREAS
+                        for area, keywords in AREAS.items():
+                            if any(keyword in combined.lower() for keyword in keywords) or area.lower() in combined.lower():
+                                if area not in location_mentions:
+                                    location_mentions.append(area)
+                                break
     
     # Extract contact information
     phone = None
@@ -468,10 +617,6 @@ async def analyze_text(text: str, location: Optional[str] = None) -> Dict[str, A
     # If we found a phone but no other_contact, and text mentions WhatsApp, set it
     if phone and not other_contact and 'whatsapp' in text_lower:
         other_contact = f"WhatsApp: {phone}"
-    
-    # Generate title using AI (with fallback to smart keyword-based)
-    from services.ai_title_generator import generate_title
-    title = await generate_title(text, category, priority, location)
     
     # Description is the full text if different from title
     description = text.strip() if text.strip() != title else None
