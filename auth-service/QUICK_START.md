@@ -12,12 +12,12 @@ pip install -r requirements.txt
 
 Create `backend/.env`:
 ```env
-MONGODB_URI=mongodb+srv://lucasnegrea_db_user:9sdmHfJhINmLg7sq@cluster0.l4aer7e.mongodb.net/?appName=Cluster0
-MONGODB_DB=CommunityHelp
-JWT_SECRET=24528b35ededbdcb1a405cd01c60dac5
+MONGODB_URI=
+MONGODB_DB=
+JWT_SECRET=
 JWT_EXPIRES_MIN=30
 CORS_ORIGIN=http://localhost:5173
-GEMINI_API_KEY=AIzaSyBJjGDle8snAX6qc2OCiwY-5yH4Kbwjn-4
+GEMINI_API_KEY=
 ```
 
 ```bash
