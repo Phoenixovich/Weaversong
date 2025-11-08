@@ -1,6 +1,12 @@
 import { useEffect, useState } from 'react'
 import type { Alert, AlertCategory } from '../types'
 import { fetchAlerts, fetchNeighborhoods } from '../services/api'
+import AlertMap from './AlertMap'
+
+interface AlertListProps {
+  view: 'list' | 'map'
+  onViewChange: (view: 'list' | 'map') => void
+}
 
 const categoryLabels: Record<AlertCategory, string> = {
   Road: '🚗 Road Incidents',
@@ -41,7 +47,7 @@ const priorityColors: Record<string, string> = {
   Low: 'bg-green-100 text-green-800 border-green-300',
 }
 
-export default function AlertList() {
+export default function AlertList({ view, onViewChange }: AlertListProps) {
   const [alerts, setAlerts] = useState<Alert[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -158,6 +164,29 @@ export default function AlertList() {
         <h2 className="text-2xl font-bold text-gray-900">Community Alerts</h2>
         
         <div className="flex gap-3">
+          <div className="flex gap-2 bg-gray-100 rounded-lg p-1">
+            <button
+              onClick={() => onViewChange('list')}
+              className={`px-4 py-2 rounded-md transition-colors ${
+                view === 'list'
+                  ? 'bg-white text-blue-600 shadow-sm font-semibold'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              📋 List
+            </button>
+            <button
+              onClick={() => onViewChange('map')}
+              className={`px-4 py-2 rounded-md transition-colors ${
+                view === 'map'
+                  ? 'bg-white text-blue-600 shadow-sm font-semibold'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              🗺️ Map
+            </button>
+          </div>
+          
           <select
             value={selectedNeighborhood || ''}
             onChange={(e) => setSelectedNeighborhood(e.target.value || null)}
@@ -198,11 +227,21 @@ export default function AlertList() {
         </div>
       </div>
       
-      {alerts.length === 0 && (
-        <div className="text-center py-8 text-gray-600">
-          No alerts found. {selectedNeighborhood || selectedCategory ? 'Try adjusting your filters.' : 'Be the first to report something!'}
-        </div>
-      )}
+      {view === 'map' ? (
+        alerts.length > 0 ? (
+          <AlertMap alerts={alerts} selectedNeighborhood={selectedNeighborhood} />
+        ) : (
+          <div className="text-center py-8 text-gray-600">
+            No alerts found. {selectedNeighborhood || selectedCategory ? 'Try adjusting your filters.' : 'Be the first to report something!'}
+          </div>
+        )
+      ) : (
+        <>
+          {alerts.length === 0 && (
+            <div className="text-center py-8 text-gray-600">
+              No alerts found. {selectedNeighborhood || selectedCategory ? 'Try adjusting your filters.' : 'Be the first to report something!'}
+            </div>
+          )}
       
       {categoryOrder.map((category) => {
         const categoryAlerts = groupedAlerts[category] || []
@@ -305,7 +344,10 @@ export default function AlertList() {
           </div>
         )
       })}
+        </>
+      )}
     </div>
   )
 }
+
 

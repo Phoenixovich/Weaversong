@@ -2,16 +2,43 @@
 Geocoding service using Nominatim (OpenStreetMap) for reverse geocoding
 """
 import httpx
-from typing import Dict, Any
+from typing import Dict, Any, Optional
 
-async def geocode_address(address: str) -> Dict[str, Any] | None:
+async def geocode_address(address: str, use_correction: bool = True) -> Dict[str, Any] | None:
     """
     Geocode an address to get coordinates
-    Returns: {lat: float, lng: float, address: str} or None
+    If geocoding fails and use_correction is True, tries to correct the address first
+    Returns: {lat: float, lng: float, address: str, corrected: bool} or None
     """
     if not address:
         return None
     
+    # First try: geocode the original address
+    result = await _geocode_address_internal(address)
+    if result:
+        result["corrected"] = False
+        return result
+    
+    # Second try: if geocoding failed and correction is enabled, try correcting the address
+    if use_correction:
+        from services.address_correction import correct_address
+        
+        correction = correct_address(address)
+        if correction.get("corrected") and correction["confidence"] >= 0.6:
+            corrected_address = correction["corrected"]
+            result = await _geocode_address_internal(corrected_address)
+            if result:
+                result["corrected"] = True
+                result["original_address"] = address
+                result["corrected_address"] = corrected_address
+                return result
+    
+    return None
+
+async def _geocode_address_internal(address: str) -> Dict[str, Any] | None:
+    """
+    Internal geocoding function (without correction)
+    """
     try:
         async with httpx.AsyncClient() as client:
             # Nominatim API for geocoding

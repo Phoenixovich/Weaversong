@@ -11,6 +11,14 @@ class Settings(BaseSettings):
         default="CommunityHelp",
         alias="MONGODB_DB"
     )
+    openai_api_key: str | None = Field(
+        default=None,
+        alias="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"
+    )
+    google_api_key: str | None = Field(
+        default=None,
+        alias="AIzaSyCbCRNM4jrpbtNrI35_E7Jio2peVqnOCps"
+    )
     
     # Allow extra fields from .env file (like JWT_SECRET, CORS_ORIGIN, etc.)
     model_config = ConfigDict(

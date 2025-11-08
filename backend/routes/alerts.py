@@ -3,7 +3,7 @@ from datetime import datetime
 from models.alert import AlertCreate, AlertResponse, AlertAnalysisRequest
 import db
 from services.users import get_or_create_anonymous_user, get_or_create_user_by_username
-from services.ai_analysis import analyze_text
+from services.ai_analysis import analyze_text, analyze_text_sync, analyze_text_with_ai
 from services.geocoding import geocode_address, reverse_geocode
 from services.neighborhoods import detect_neighborhood, detect_neighborhood_from_coords, get_all_neighborhoods
 from services.location_hierarchy import get_location_hierarchy, get_display_location
@@ -144,8 +144,19 @@ async def analyze_alert_text(request: AlertAnalysisRequest):
     if db.database is None:
         raise HTTPException(status_code=500, detail="Database not connected")
     
-    # Analyze text
-    analysis = analyze_text(request.text)
+    # Use AI to analyze text and extract structured data
+    analysis = await analyze_text_with_ai(request.text, request.user_lat, request.user_lng)
+    
+    # If AI analysis didn't work, fall back to keyword-based analysis
+    if not analysis or not analysis.get("title"):
+        # Extract location first for better title generation
+        location_text = None
+        temp_analysis = analyze_text_sync(request.text)  # Quick sync analysis for location
+        if temp_analysis.get("location_mentions") and len(temp_analysis["location_mentions"]) > 0:
+            location_text = temp_analysis["location_mentions"][0]
+        
+        # Full analysis with AI title generation
+        analysis = await analyze_text(request.text, location=location_text)
     text_lower = request.text.lower()
     
     # Special handling: Weather alerts should be city-wide (Bucharest)
@@ -158,14 +169,34 @@ async def analyze_alert_text(request: AlertAnalysisRequest):
         "address": None
     }
     
+    # Get location mentions from analysis
+    location_mentions = analysis.get("location_mentions", [])
+    
     # Priority: If location mentions found in text, use those (don't use user location)
-    if analysis.get("location_mentions") and len(analysis["location_mentions"]) > 0:
+    # This ensures mentioned locations are always used instead of current GPS location
+    if location_mentions and len(location_mentions) > 0:
         # Try to geocode the first location mention
-        location_text = analysis["location_mentions"][0]
-        geocoded = await geocode_address(location_text)
+        location_text = location_mentions[0]
+        
+        # Correct address if needed (using AI/fuzzy matching)
+        from services.address_correction import correct_address
+        address_correction = correct_address(location_text)
+        
+        # Use corrected address if available and confident, otherwise use original
+        address_to_geocode = address_correction.get("corrected") if address_correction.get("corrected") and address_correction.get("confidence", 0) >= 0.6 else location_text
+        
+        geocoded = await geocode_address(address_to_geocode, use_correction=True)
         if geocoded:
             location_data.update(geocoded)
-    # Fallback: If no location mentioned, use user's GPS location
+            # Add correction info if address was corrected
+            if geocoded.get("corrected"):
+                analysis["address_correction"] = {
+                    "original": location_text,
+                    "corrected": geocoded.get("corrected_address"),
+                    "confidence": address_correction.get("confidence", 0),
+                    "suggestions": address_correction.get("suggestions", [])
+                }
+    # Fallback: If no location mentioned in text, use user's GPS location
     elif request.user_lat and request.user_lng:
         location_data["lat"] = request.user_lat
         location_data["lng"] = request.user_lng

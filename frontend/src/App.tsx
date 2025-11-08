@@ -1,10 +1,13 @@
+import { useState } from 'react'
 import AlertInput from './components/AlertInput'
 import AlertList from './components/AlertList'
 
 function App() {
+  const [view, setView] = useState<'list' | 'map'>('list')
+
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="container mx-auto px-4 py-8 max-w-4xl">
+      <div className="container mx-auto px-4 py-8 max-w-7xl">
         <header className="mb-8">
           <h1 className="text-4xl font-bold text-gray-900 mb-2">
             LocalVoice / KidSafe Alerts
@@ -15,7 +18,7 @@ function App() {
         </header>
 
         <AlertInput />
-        <AlertList />
+        <AlertList view={view} onViewChange={setView} />
       </div>
     </div>
   )
