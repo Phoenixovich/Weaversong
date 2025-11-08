@@ -4,11 +4,13 @@ const API_BASE_URL = '/api'
 
 export async function fetchAlerts(
   neighborhood?: string | null,
-  category?: string | null
+  category?: string | null,
+  priority?: string | null
 ): Promise<Alert[]> {
   const params = new URLSearchParams()
   if (neighborhood) params.append('neighborhood', neighborhood)
   if (category) params.append('category', category)
+  if (priority) params.append('priority', priority)
   
   const url = `${API_BASE_URL}/alerts${params.toString() ? `?${params.toString()}` : ''}`
   const response = await fetch(url, {
@@ -33,7 +35,8 @@ export async function fetchNeighborhoods(): Promise<{ Sectors: string[]; Areas: 
 export async function analyzeAlertText(
   text: string,
   userLat?: number | null,
-  userLng?: number | null
+  userLng?: number | null,
+  isSpeech?: boolean
 ): Promise<AlertAnalysisResult> {
   try {
     const response = await fetch(`${API_BASE_URL}/alerts/analyze`, {
@@ -45,26 +48,64 @@ export async function analyzeAlertText(
         text,
         user_lat: userLat,
         user_lng: userLng,
+        is_speech: isSpeech || false,
       }),
       signal: AbortSignal.timeout(30000) // 30 second timeout for analysis
     })
     
     if (!response.ok) {
-      let errorMessage = `Failed to analyze alert (${response.status}). `
+      let errorMessage = ''
       try {
         const errorData = await response.json()
+        // Extract the actual error detail - could be a string or an array
         if (errorData.detail) {
-          errorMessage += errorData.detail
+          if (typeof errorData.detail === 'string') {
+            errorMessage = errorData.detail
+          } else if (Array.isArray(errorData.detail) && errorData.detail.length > 0) {
+            // If it's an array of validation errors, extract the first one
+            const firstError = errorData.detail[0]
+            if (typeof firstError === 'object' && firstError.msg) {
+              errorMessage = firstError.msg
+            } else if (typeof firstError === 'string') {
+              errorMessage = firstError
+            } else {
+              errorMessage = JSON.stringify(firstError)
+            }
+          } else if (typeof errorData.detail === 'object') {
+            errorMessage = JSON.stringify(errorData.detail)
+          }
         } else if (errorData.message) {
-          errorMessage += errorData.message
+          errorMessage = errorData.message
+        } else if (errorData.error) {
+          errorMessage = errorData.error
         }
-      } catch {
+        
+        // If we didn't get a specific error message, use status-based messages
+        if (!errorMessage) {
+          if (response.status === 500) {
+            errorMessage = 'Server error (500). Check backend console/terminal for details.'
+          } else if (response.status === 400) {
+            errorMessage = 'Invalid request (400). Please check your input.'
+          } else if (response.status === 503) {
+            errorMessage = 'Service unavailable (503). The AI service may be down or API keys are missing.'
+          } else if (response.status === 404) {
+            errorMessage = 'Endpoint not found (404). The backend route may be missing.'
+          } else {
+            errorMessage = `HTTP ${response.status} error occurred.`
+          }
+        }
+      } catch (parseError) {
+        // If we can't parse the error response, use status-based messages
         if (response.status === 500) {
-          errorMessage += 'Server error. The backend may be experiencing issues.'
+          errorMessage = 'Server error (500). Check backend console/terminal for details. Common issues: MongoDB connection failed, API keys missing, or backend crashed.'
         } else if (response.status === 400) {
-          errorMessage += 'Invalid request. Please check your input.'
+          errorMessage = 'Invalid request (400). Please check your input.'
         } else if (response.status === 503) {
-          errorMessage += 'Service unavailable. The AI service may be down.'
+          errorMessage = 'Service unavailable (503). The AI service may be down or API keys are missing.'
+        } else if (response.status === 404) {
+          errorMessage = 'Endpoint not found (404). The backend route may be missing.'
+        } else {
+          errorMessage = `HTTP ${response.status} error occurred.`
         }
       }
       const error = new Error(errorMessage)

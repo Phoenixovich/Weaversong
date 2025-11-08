@@ -146,17 +146,26 @@ export default function AlertInput() {
 
         recognition.onresult = (event: SpeechRecognitionEvent) => {
           let finalTranscript = ''
+          let interimTranscript = ''
 
           for (let i = event.resultIndex; i < event.results.length; i++) {
             const transcript = event.results[i][0].transcript
             if (event.results[i].isFinal) {
               finalTranscript += transcript + ' '
+            } else {
+              interimTranscript += transcript + ' '
             }
           }
 
+          // Update text with both final and interim results for better UX
+          const combinedTranscript = (transcript + finalTranscript + interimTranscript).trim()
+          if (combinedTranscript) {
+            setText(combinedTranscript)
+          }
+
+          // Only update transcript state with final results
           if (finalTranscript) {
             setTranscript(prev => prev + finalTranscript)
-            setText(prev => prev + finalTranscript)
           }
         }
 
@@ -220,41 +229,18 @@ export default function AlertInput() {
     
     if (!textToAnalyze) return
 
-    // Check if location is needed - be more lenient, let backend handle detection
-    // The backend will detect locations from the library, so we just check for common location keywords
-    const locationKeywords = [
-      'politehnica', 'upb', 'university', 'polytechnic',
-      'afi', 'cotroceni', 'controceni',
-      'herastrau', 'cismigiu', 'carol',
-      'victoriei', 'magheru', 'unirii', 'lipscani',
-      'gara', 'nord', 'station',
-      'sector', 'sectorul',
-      'calea', 'strada', 'bulevardul', 'piata', 'parcul',
-      'carturesti', 'carusel',
-      'drumul taberei', 'militari', 'berceni', 'pantelimon',
-      'titan', 'vitan', 'rahova', 'crangasi', 'giulesti',
-      'baneasa', 'otopeni'
-    ]
-    const textLower = textToAnalyze.toLowerCase()
-    const hasLocationInText = locationKeywords.some(keyword => textLower.includes(keyword))
-    
-    // Don't block if location might be in text - let backend analyze it
-    // Only require location if text is very short and clearly has no location
-    if (!userLocation && !hasLocationInText && !formData.location && textToAnalyze.length < 20) {
-      setMessage({ 
-        type: 'error', 
-        text: 'Location required: Please either mention a location in your text (e.g., "Calea Victoriei", "Herastrau Park", "Politehnica"), click "Get Current Location" button, or enter a location in the form field.' 
-      })
-      return
-    }
-
-    setAnalyzing(true)
+    // Clear any previous error messages when starting analysis
     setMessage(null)
+    setAnalyzing(true)
     try {
+      // For voice input, always use AI to clean and structure the transcript
+      const isSpeechInput = inputMode === 'voice'
+      
       const result = await analyzeAlertText(
         textToAnalyze,
         userLocation?.lat,
-        userLocation?.lng
+        userLocation?.lng,
+        isSpeechInput
       )
       
       // If form mode, merge form data with analysis
@@ -300,24 +286,24 @@ export default function AlertInput() {
       setAnalysis(result)
       setShowAnalysis(true)
     } catch (error: any) {
-      let errorMessage = 'Failed to analyze text. '
+      let errorMessage = ''
       
       if (error instanceof Error) {
-        if (error.name === 'AbortError' || error.message.includes('timeout')) {
-          errorMessage += 'Request timed out. The AI service may be slow. Please try again.'
-        } else if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
-          errorMessage += 'Network error. Please check your internet connection and ensure the backend server is running.'
-        } else if (error.message.includes('500')) {
-          errorMessage += 'Server error. The backend may be experiencing issues. Please try again later.'
-        } else if (error.message.includes('400')) {
-          errorMessage += 'Invalid request. Please check your input and try again.'
+        // Use the error message directly (it should already contain the backend error detail)
+        const errorMsg = error.message || ''
+        
+        if (error.name === 'AbortError' || errorMsg.includes('timeout') || errorMsg.includes('timed out')) {
+          errorMessage = 'Request timed out. The AI service may be slow. Please try again.'
+        } else if (errorMsg.includes('Failed to fetch') || errorMsg.includes('NetworkError') || errorMsg.includes('network')) {
+          errorMessage = 'Network error: Cannot connect to the backend server. Please check your internet connection and ensure the backend server is running on port 8000.'
         } else {
-          errorMessage += error.message || 'An unexpected error occurred.'
+          // Use the actual error message from backend (should already contain details)
+          errorMessage = errorMsg || 'An unexpected error occurred. Please check the backend console/terminal for details.'
         }
       } else if (typeof error === 'object' && error !== null && 'message' in error) {
-        errorMessage += String(error.message)
+        errorMessage = String(error.message) || 'An unexpected error occurred.'
       } else {
-        errorMessage += 'Please try again.'
+        errorMessage = 'An unexpected error occurred. Please check the backend console/terminal for details.'
       }
       
       setMessage({ type: 'error', text: errorMessage })
@@ -723,18 +709,18 @@ export default function AlertInput() {
               disabled={loading || analyzing || isListening}
             />
             <div className="mt-2 space-y-2">
-              {!userLocation && (
-                <div className="flex items-start gap-2 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-                  <span className="text-yellow-600">⚠️</span>
+              {!userLocation && text.trim().length < 30 && (
+                <div className="flex items-start gap-2 p-2 bg-blue-50 border border-blue-200 rounded-lg">
+                  <span className="text-blue-600">💡</span>
                   <div className="flex-1">
-                    <p className="text-sm text-gray-700">
-                      <strong>Location needed:</strong> Please either mention a location in your text (e.g., "Calea Victoriei", "Herastrau Park", "Sector 1") or click the "Get Location" button below to enable location sharing.
+                    <p className="text-xs text-gray-600">
+                      <strong>Tip:</strong> You can mention a location in your text (e.g., "Politehnica", "Herastrau Park") or click below to share your current location.
                     </p>
                     <button
                       type="button"
                       onClick={getCurrentLocation}
                       disabled={gettingLocation}
-                      className="mt-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors text-sm"
+                      className="mt-1 px-3 py-1 bg-blue-600 text-white rounded text-xs hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
                     >
                       {gettingLocation ? '📍 Getting Location...' : '📍 Get Current Location'}
                     </button>

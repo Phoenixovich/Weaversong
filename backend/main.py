@@ -10,7 +10,7 @@ async def lifespan(app: FastAPI):
     yield
     await close_mongo_connection()
 
-app = FastAPI(title="LocalVoice API", version="1.0.0", lifespan=lifespan)
+app = FastAPI(title="CityPulse API", version="1.0.0", lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
@@ -25,5 +25,5 @@ app.include_router(sectors.router, prefix="/api/sectors", tags=["sectors"])
 
 @app.get("/")
 async def root():
-    return {"message": "LocalVoice API"}
+    return {"message": "CityPulse API"}
 

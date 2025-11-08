@@ -1,6 +1,6 @@
 """
 AI Analysis service to extract structured data from user text
-Uses AI (OpenAI/Gemini) to extract structured alert data matching MongoDB schema
+Uses Google Gemini API to extract structured alert data matching MongoDB schema
 """
 import re
 import json
@@ -135,13 +135,33 @@ def analyze_text_sync(text: str) -> Dict[str, Any]:
         "location_mentions": location_mentions
     }
 
-async def analyze_text_with_ai(text: str, user_lat: Optional[float] = None, user_lng: Optional[float] = None) -> Dict[str, Any]:
+async def analyze_text_with_ai(text: str, user_lat: Optional[float] = None, user_lng: Optional[float] = None, is_speech: bool = False) -> Dict[str, Any]:
     """
-    Use AI (OpenAI/Gemini) to extract structured alert data from user text
+    Use Google Gemini API to extract structured alert data from user text
     Returns structured data matching MongoDB schema
-    Uses library first, then AI as fallback
+    
+    For speech input (is_speech=True), always uses AI to clean and structure the transcript.
+    For text input, tries library first, then AI as fallback.
     """
-    # FIRST: Try library-based analysis (no AI needed)
+    # For speech input, ALWAYS use AI (skip library-based extraction)
+    # Speech recognition needs AI to clean noise, filler words, and structure properly
+    if is_speech:
+        # Try Google Gemini API
+        google_api_key = getattr(settings, "google_api_key", None)
+        if google_api_key:
+            result = await _analyze_with_google_gemini(text, user_lat, user_lng, google_api_key, is_speech=True)
+            if result:
+                return result
+        
+        # Fallback to keyword-based analysis if AI fails
+        from services.location_library import find_location_in_text
+        library_location = find_location_in_text(text)
+        location_name = None
+        if library_location:
+            location_name, _ = library_location
+        return await analyze_text(text, location_name)
+    
+    # For text input, try library-based analysis first (faster, no AI)
     from services.location_library import find_location_in_text
     from services.title_extractor import extract_title_from_text
     
@@ -154,17 +174,10 @@ async def analyze_text_with_ai(text: str, user_lat: Optional[float] = None, user
         return await analyze_text(text, location_name)
     
     # SECOND: Try AI if library didn't work
-    # Try Google Gemini API first (preferred)
+    # Try Google Gemini API
     google_api_key = getattr(settings, "google_api_key", None)
     if google_api_key:
-        result = await _analyze_with_google_gemini(text, user_lat, user_lng, google_api_key)
-        if result:
-            return result
-    
-    # Try OpenAI API as fallback
-    openai_api_key = getattr(settings, "openai_api_key", None)
-    if openai_api_key:
-        result = await _analyze_with_openai(text, user_lat, user_lng, openai_api_key)
+        result = await _analyze_with_google_gemini(text, user_lat, user_lng, google_api_key, is_speech=False)
         if result:
             return result
     
@@ -178,13 +191,32 @@ async def _analyze_with_google_gemini(
     text: str,
     user_lat: Optional[float],
     user_lng: Optional[float],
-    api_key: str
+    api_key: str,
+    is_speech: bool = False
 ) -> Optional[Dict[str, Any]]:
     """Extract structured alert data using Google Gemini API"""
     try:
         async with httpx.AsyncClient(timeout=10.0) as client:
-            prompt = f"""Analyze this user alert text and extract structured data in JSON format. The alert is from Bucharest, Romania.
+            speech_instruction = ""
+            if is_speech:
+                speech_instruction = """
+IMPORTANT: This input is from speech recognition. The transcript may contain:
+- Filler words (um, uh, like, you know)
+- Repetitions and stutters
+- Incomplete sentences
+- Background noise artifacts
+- Incorrect punctuation or capitalization
 
+Please clean the transcript by:
+1. Removing filler words and repetitions
+2. Fixing grammar and sentence structure
+3. Correcting any obvious speech recognition errors
+4. Extracting the core meaning and intent
+5. Structuring it into a clear, professional alert format
+"""
+            
+            prompt = f"""Analyze this user alert text and extract structured data in JSON format. The alert is from Bucharest, Romania.
+{speech_instruction}
 User text: "{text}"
 User location (optional): {f"lat: {user_lat}, lng: {user_lng}" if user_lat and user_lng else "Not provided"}
 
@@ -267,96 +299,6 @@ Guidelines:
     
     return None
 
-async def _analyze_with_openai(
-    text: str,
-    user_lat: Optional[float],
-    user_lng: Optional[float],
-    api_key: str
-) -> Optional[Dict[str, Any]]:
-    """Extract structured alert data using OpenAI API"""
-    try:
-        async with httpx.AsyncClient(timeout=10.0) as client:
-            prompt = f"""Analyze this user alert text and extract structured data in JSON format. The alert is from Bucharest, Romania.
-
-User text: "{text}"
-User location (optional): {f"lat: {user_lat}, lng: {user_lng}" if user_lat and user_lng else "Not provided"}
-
-Extract the following information and return ONLY valid JSON (no markdown, no code blocks):
-{{
-    "title": "A concise, informative title (max 60 chars) - IMPROVE WORDING",
-    "description": "Full description or null if same as title",
-    "category": "One of: Road, Safety, Lost, Weather, Emergency, Event, Infrastructure, Environment, Traffic, Crime, PublicTransport, Construction, General",
-    "priority": "One of: Low, Medium, High, Critical",
-    "location_mentions": ["List of location names mentioned in text (e.g., 'Politehnica', 'Calea Victoriei', 'Herastrau')"],
-    "area": "Specific area/neighborhood name if mentioned (e.g., 'Politehnica', 'Herastrau', 'AFI Cotroceni', 'Lipscani') or null",
-    "sector": "Sector number if mentioned or can be inferred (e.g., 'Sector 1', 'Sector 3', 'Sector 6') or null",
-    "phone": "Phone number if mentioned, else null",
-    "email": "Email if mentioned, else null",
-    "other_contact": "Other contact info (WhatsApp, Telegram, etc.) if mentioned, else null"
-}}
-
-Guidelines:
-- Extract category based on content (e.g., "accident" -> Road, "lost dog" -> Lost, "fire" -> Emergency)
-- Determine priority from urgency indicators (e.g., "urgent", "emergency" -> Critical)
-- Extract all location mentions (streets, areas, neighborhoods, sectors)
-- Extract area: If a specific area/neighborhood is mentioned (e.g., Politehnica, Herastrau, AFI Cotroceni, Lipscani, Cismigiu), extract it. Common Bucharest areas include: Politehnica, Herastrau, Cismigiu, AFI Cotroceni, Lipscani, Piata Unirii, Piata Victoriei, Calea Victoriei, Bulevardul Magheru, Gara de Nord, Drumul Taberei, Militari, Berceni, Pantelimon, Titan, Vitan, Rahova, Crangasi, Giulesti, Baneasa, Otopeni, Carturesti Carusel
-- Extract sector: If a sector is mentioned (Sector 1-6) or can be inferred from the area:
-  * Sector 1: Politehnica, Herastrau, Cismigiu, Piata Victoriei, Calea Victoriei, Bulevardul Magheru, Gara de Nord, Baneasa, Otopeni
-  * Sector 2: Pantelimon
-  * Sector 3: Piata Unirii, Lipscani, Titan, Vitan, Carturesti Carusel
-  * Sector 4: Berceni
-  * Sector 5: AFI Cotroceni, Rahova
-  * Sector 6: Drumul Taberei, Militari, Crangasi, Giulesti
-- Extract contact information if present
-- Title: Rephrase and improve wording naturally - don't just copy user's text
-  * Reorder words for better readability (e.g., "Ongoing hackathon in UPB library" instead of "politehnica library hackathon ongoing")
-  * Expand abbreviations: "politehnica" -> "UPB", "UPB library" -> "UPB Library"
-  * Use proper capitalization (e.g., "UPB Library", "Afi Cotroceni", "Calea Victoriei")
-  * Make it professional and clear
-  * Examples: "politehnica library hackathon ongoing" -> "Ongoing Hackathon at UPB Library"
-- Description should be the full text if different from title, else null
-- Return ONLY the JSON object, nothing else"""
-
-            response = await client.post(
-                "https://api.openai.com/v1/chat/completions",
-                headers={
-                    "Authorization": f"Bearer {api_key}",
-                    "Content-Type": "application/json"
-                },
-                json={
-                    "model": "gpt-3.5-turbo",
-                    "messages": [
-                        {"role": "system", "content": "You are a helpful assistant that extracts structured data from user alerts. For titles, you improve wording, reorder words for better readability, expand abbreviations (e.g., 'politehnica' -> 'UPB'), and use proper capitalization. Always reformat user input to be more professional and clear. Always return valid JSON only."},
-                        {"role": "user", "content": prompt}
-                    ],
-                    "max_tokens": 500,
-                    "temperature": 0.3,
-                    "response_format": {"type": "json_object"}
-                },
-                timeout=10.0
-            )
-            
-            if response.status_code == 200:
-                data = response.json()
-                if "choices" in data and len(data["choices"]) > 0:
-                    result_text = data["choices"][0]["message"]["content"].strip()
-                    # Remove markdown code blocks if present
-                    result_text = re.sub(r'```json\s*', '', result_text)
-                    result_text = re.sub(r'```\s*', '', result_text)
-                    result_text = result_text.strip()
-                    
-                    try:
-                        result = json.loads(result_text)
-                        # Validate and normalize
-                        return _normalize_ai_result(result)
-                    except json.JSONDecodeError:
-                        print(f"Failed to parse OpenAI JSON: {result_text}")
-                        return None
-    except Exception as e:
-        print(f"OpenAI API error: {e}")
-        return None
-    
-    return None
 
 def _normalize_ai_result(result: Dict[str, Any]) -> Dict[str, Any]:
     """Normalize and validate AI extraction result"""

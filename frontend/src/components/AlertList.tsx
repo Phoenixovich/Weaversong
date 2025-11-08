@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import type { Alert, AlertCategory } from '../types'
+import type { Alert, AlertCategory, AlertPriority } from '../types'
 import { fetchAlerts, fetchNeighborhoods } from '../services/api'
 import AlertMap from './AlertMap'
 
@@ -54,6 +54,7 @@ export default function AlertList({ view, onViewChange }: AlertListProps) {
   const [error, setError] = useState<string | null>(null)
   const [selectedNeighborhood, setSelectedNeighborhood] = useState<string | null>(null)
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
+  const [selectedPriority, setSelectedPriority] = useState<string | null>(null)
   const [neighborhoods, setNeighborhoods] = useState<{ Sectors: string[]; Areas: string[]; City: string[] } | null>(null)
   const [areaSearchQuery, setAreaSearchQuery] = useState<string>('')
   const [showAreaSuggestions, setShowAreaSuggestions] = useState(false)
@@ -68,7 +69,7 @@ export default function AlertList({ view, onViewChange }: AlertListProps) {
   useEffect(() => {
     loadAlerts()
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedNeighborhood, selectedCategory])
+  }, [selectedNeighborhood, selectedCategory, selectedPriority])
 
   const loadNeighborhoods = async () => {
     try {
@@ -101,7 +102,7 @@ export default function AlertList({ view, onViewChange }: AlertListProps) {
     try {
       setLoading(true)
       setError(null)
-      const data = await fetchAlerts(selectedNeighborhood, selectedCategory)
+      const data = await fetchAlerts(selectedNeighborhood, selectedCategory, selectedPriority)
       setAlerts(data)
     } catch (err) {
       setError('Failed to load alerts. Make sure the backend is running.')
@@ -321,6 +322,18 @@ export default function AlertList({ view, onViewChange }: AlertListProps) {
               <option key={cat} value={cat}>{categoryLabels[cat]}</option>
             ))}
           </select>
+          
+          <select
+            value={selectedPriority || ''}
+            onChange={(e) => setSelectedPriority(e.target.value || null)}
+            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          >
+            <option value="">All Priorities</option>
+            <option value="Critical">🔴 Critical</option>
+            <option value="High">🟠 High</option>
+            <option value="Medium">🟡 Medium</option>
+            <option value="Low">🟢 Low</option>
+          </select>
         </div>
       </div>
       
@@ -336,7 +349,7 @@ export default function AlertList({ view, onViewChange }: AlertListProps) {
         <>
           {alerts.length === 0 && (
             <div className="text-center py-8 text-gray-600">
-              No alerts found. {selectedNeighborhood || selectedCategory ? 'Try adjusting your filters.' : 'Be the first to report something!'}
+              No alerts found. {selectedNeighborhood || selectedCategory || selectedPriority ? 'Try adjusting your filters.' : 'Be the first to report something!'}
             </div>
           )}
       

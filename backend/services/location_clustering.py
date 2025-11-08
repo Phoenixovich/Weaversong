@@ -61,7 +61,7 @@ async def get_clustered_coordinates(
     Returns:
         (lat, lng) with clustering offset if needed
     """
-    if not db:
+    if db is None:
         return (lat, lng)
     
     try:

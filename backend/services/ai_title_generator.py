@@ -1,6 +1,6 @@
 """
 AI Title Generator service
-Uses Google Gemini API (preferred), OpenAI API, or falls back to smart keyword-based generation
+Uses Google Gemini API or falls back to smart keyword-based generation
 """
 import httpx
 import re
@@ -27,17 +27,10 @@ async def generate_title(text: str, category: str, priority: str, location: Opti
     if library_title:
         return library_title
     
-    # SECOND: Try AI if available (Google Gemini preferred, then OpenAI)
+    # SECOND: Try AI if available (Google Gemini)
     google_api_key = getattr(settings, "google_api_key", None)
     if google_api_key:
         ai_title = await _generate_title_with_google_gemini(text, category, priority, location, google_api_key)
-        if ai_title:
-            return ai_title
-    
-    # Try OpenAI API as fallback
-    openai_api_key = getattr(settings, "openai_api_key", None)
-    if openai_api_key:
-        ai_title = await _generate_title_with_openai(text, category, priority, location, openai_api_key)
         if ai_title:
             return ai_title
     
@@ -126,77 +119,6 @@ Return only the title, nothing else."""
     
     return None
 
-async def _generate_title_with_openai(
-    text: str, 
-    category: str, 
-    priority: str, 
-    location: Optional[str],
-    api_key: str
-) -> Optional[str]:
-    """
-    Generate title using OpenAI API
-    """
-    try:
-        async with httpx.AsyncClient(timeout=5.0) as client:
-            # Build prompt
-            prompt = f"""Generate a concise, informative title (max 60 characters) for this community alert in Bucharest, Romania.
-
-Category: {category}
-Priority: {priority}
-Location: {location if location else "Not specified"}
-Alert text: {text}
-
-Requirements:
-- Be concise and informative (max 60 characters)
-- Include the most important information (what happened, where if relevant)
-- Use clear, direct language with proper grammar
-- Don't include "Alert:" or "Warning:" prefix unless it's critical
-- Focus on the key event or issue
-- Rephrase and improve the wording naturally - don't just copy the user's text
-- Reorder words for better readability (e.g., "Ongoing hackathon in UPB library" instead of "politehnica library hackathon ongoing")
-- Expand common abbreviations: "politehnica" -> "UPB", "UPB library" -> "UPB Library"
-- Use proper capitalization for locations and institutions (e.g., "UPB Library", "Afi Controceni", "Herastrau Park")
-- Make it sound professional and clear
-- Examples:
-  * "politehnica library hackathon ongoing" -> "Ongoing Hackathon at UPB Library"
-  * "cat found near afi controceni" -> "Cat Found Near AFI Cotroceni"
-  * "traffic jam calea victoriei" -> "Traffic Jam on Calea Victoriei"
-
-Title:"""
-
-            response = await client.post(
-                "https://api.openai.com/v1/chat/completions",
-                headers={
-                    "Authorization": f"Bearer {api_key}",
-                    "Content-Type": "application/json"
-                },
-                json={
-                    "model": "gpt-3.5-turbo",
-                    "messages": [
-                        {"role": "system", "content": "You are a helpful assistant that generates concise, informative titles for community alerts. You improve wording, reorder words for better readability, expand abbreviations (e.g., 'politehnica' -> 'UPB'), and use proper capitalization. Always reformat user input to be more professional and clear."},
-                        {"role": "user", "content": prompt}
-                    ],
-                    "max_tokens": 40,
-                    "temperature": 0.7
-                },
-                timeout=5.0
-            )
-            
-            if response.status_code == 200:
-                data = response.json()
-                if "choices" in data and len(data["choices"]) > 0:
-                    title = data["choices"][0]["message"]["content"].strip()
-                    # Remove quotes if present
-                    title = title.strip('"').strip("'")
-                    # Limit to 60 characters
-                    if len(title) > 60:
-                        title = title[:57] + "..."
-                    return title
-    except Exception as e:
-        print(f"OpenAI API error: {e}")
-        return None
-    
-    return None
 
 def _generate_title_smart(text: str, category: str, priority: str, location: Optional[str] = None) -> str:
     """

@@ -51,4 +51,5 @@ class AlertAnalysisRequest(BaseModel):
     text: str
     user_lat: float | None = None  # User's current location
     user_lng: float | None = None
+    is_speech: bool = False  # Indicates if input is from speech recognition (requires AI cleaning)
 

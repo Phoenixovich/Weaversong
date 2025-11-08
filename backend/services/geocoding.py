@@ -50,7 +50,7 @@ async def _geocode_address_internal(address: str) -> Dict[str, Any] | None:
                 "limit": 1,
             }
             headers = {
-                "User-Agent": "LocalVoice/1.0"
+                "User-Agent": "CityPulse/1.0"
             }
             
             response = await client.get(url, params=params, headers=headers, timeout=3.0)
@@ -91,7 +91,7 @@ async def reverse_geocode(lat: float, lng: float) -> str | None:
                 "format": "json",
             }
             headers = {
-                "User-Agent": "LocalVoice/1.0"
+                "User-Agent": "CityPulse/1.0"
             }
             
             response = await client.get(url, params=params, headers=headers, timeout=3.0)
