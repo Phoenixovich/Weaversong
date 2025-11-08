@@ -3,7 +3,7 @@ from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from jose import jwt, JWTError
 from datetime import datetime
 import os
-from database import users
+from app.database import users
 from bson import ObjectId
 
 security = HTTPBearer()

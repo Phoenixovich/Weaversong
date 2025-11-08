@@ -2,7 +2,7 @@
 from fastapi import APIRouter, HTTPException, Query
 from bson import ObjectId
 from datetime import datetime
-from database import helpboard_users  # ✅ updated
+from app.database import helpboard_users  # ✅ updated
 from typing import Optional
 
 router = APIRouter()

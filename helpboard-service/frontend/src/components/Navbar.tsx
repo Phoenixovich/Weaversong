@@ -19,7 +19,7 @@ export default function Navbar() {
           <button onClick={logout}>Logout</button>
         </>
       ) : (
-        <a href="https://auth-service.local/login?redirect_uri=http://localhost:5173/login-callback">
+        <a href="https://auth-service.local/login?redirect_uri=http://localhost:5173/login">
           Login / Signup
         </a>
       )}
