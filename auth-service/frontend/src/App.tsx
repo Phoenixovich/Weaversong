@@ -12,6 +12,7 @@ import UsersPage from './pages/UsersPage';
 import RequestsPage from './pages/RequestsPage';
 import ResponsesPage from './pages/ResponsesPage';
 import LoginCallback from './pages/LoginCallback';
+import CityPulse from './pages/CityPulse';
 
 const AppRoutes: React.FC = () => {
   const { isAuthenticated } = useAuth();
@@ -35,6 +36,14 @@ const AppRoutes: React.FC = () => {
           element={
             <ProtectedRoute>
               <ClarifAI />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/citypulse"
+          element={
+            <ProtectedRoute>
+              <CityPulse />
             </ProtectedRoute>
           }
         />

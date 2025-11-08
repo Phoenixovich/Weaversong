@@ -29,6 +29,9 @@ export const Navbar: React.FC = () => {
               <Link to="/clarifai" className={isActive('/clarifai')}>
                 ClarifAI
               </Link>
+              <Link to="/citypulse" className={isActive('/citypulse')}>
+                CityPulse
+              </Link>
               <Link to="/public-data" className={isActive('/public-data')}>
                 Public Data
               </Link>

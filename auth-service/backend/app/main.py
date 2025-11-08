@@ -4,6 +4,7 @@ from app.config import settings
 from app.database import connect_to_mongo, close_mongo_connection
 from app.routers import auth, clarify, reminders, public_data
 from app.routers import helpboard_requests, helpboard_responses, helpboard_users
+from app.routers import citypulse_alerts, citypulse_sectors
 
 app = FastAPI(title="Unified Service", version="1.0.0")
 
@@ -26,6 +27,10 @@ app.include_router(helpboard_requests.router)
 app.include_router(helpboard_responses.router)
 app.include_router(helpboard_users.router)
 
+# CityPulse routers
+app.include_router(citypulse_alerts.router)
+app.include_router(citypulse_sectors.router)
+
 
 @app.on_event("startup")
 async def startup_event():
@@ -39,7 +44,7 @@ async def shutdown_event():
 
 @app.get("/")
 async def root():
-    return {"message": "Unified Service API", "services": ["auth", "clarifai"]}
+    return {"message": "Unified Service API", "services": ["auth", "clarifai", "citypulse"]}
 
 
 @app.get("/health")
