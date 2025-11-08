@@ -1,0 +1,165 @@
+/* Global Accessibility Styles */
+
+body.accessibility-mode {
+  font-size: 1.25rem;
+  line-height: 1.8;
+}
+
+body.accessibility-mode * {
+  letter-spacing: 0.5px;
+}
+
+/* High Contrast Colors */
+body.accessibility-mode {
+  color: #000000;
+  background-color: #ffffff;
+}
+
+/* Buttons - Larger and Higher Contrast */
+/* Navbar buttons are styled separately in Navbar.css */
+body.accessibility-mode button,
+body.accessibility-mode .btn,
+body.accessibility-mode [role="button"] {
+  font-size: 1.15rem !important;
+  padding: 1rem 2rem !important;
+  min-height: 48px !important;
+  min-width: 48px !important;
+  border: 3px solid #000000 !important;
+  font-weight: 600 !important;
+  cursor: pointer;
+}
+
+body.accessibility-mode button:focus,
+body.accessibility-mode .btn:focus,
+body.accessibility-mode [role="button"]:focus {
+  outline: 4px solid #0056b3 !important;
+  outline-offset: 2px !important;
+}
+
+/* Links */
+/* Navbar links are styled separately in Navbar.css with higher specificity */
+body.accessibility-mode a {
+  font-size: 1.15rem !important;
+  font-weight: 600 !important;
+  text-decoration: underline !important;
+  color: #0056b3 !important;
+}
+
+body.accessibility-mode a:focus {
+  outline: 4px solid #0056b3 !important;
+  outline-offset: 2px !important;
+}
+
+/* Headings */
+body.accessibility-mode h1 {
+  font-size: 2.5rem !important;
+  font-weight: 700 !important;
+  color: #000000 !important;
+  margin-bottom: 1.5rem !important;
+}
+
+body.accessibility-mode h2 {
+  font-size: 2rem !important;
+  font-weight: 700 !important;
+  color: #000000 !important;
+  margin-bottom: 1.25rem !important;
+}
+
+body.accessibility-mode h3 {
+  font-size: 1.75rem !important;
+  font-weight: 600 !important;
+  color: #000000 !important;
+  margin-bottom: 1rem !important;
+}
+
+body.accessibility-mode h4 {
+  font-size: 1.5rem !important;
+  font-weight: 600 !important;
+  color: #000000 !important;
+}
+
+/* Text Inputs */
+body.accessibility-mode input[type="text"],
+body.accessibility-mode input[type="email"],
+body.accessibility-mode input[type="password"],
+body.accessibility-mode input[type="number"],
+body.accessibility-mode textarea,
+body.accessibility-mode select {
+  font-size: 1.15rem !important;
+  padding: 0.75rem 1rem !important;
+  border: 3px solid #000000 !important;
+  min-height: 48px !important;
+}
+
+body.accessibility-mode input:focus,
+body.accessibility-mode textarea:focus,
+body.accessibility-mode select:focus {
+  outline: 4px solid #0056b3 !important;
+  outline-offset: 2px !important;
+  border-color: #0056b3 !important;
+}
+
+/* Labels */
+body.accessibility-mode label {
+  font-size: 1.15rem !important;
+  font-weight: 600 !important;
+  color: #000000 !important;
+  margin-bottom: 0.5rem !important;
+}
+
+/* Cards and Containers */
+body.accessibility-mode .card,
+body.accessibility-mode [class*="card"],
+body.accessibility-mode [class*="container"] {
+  border: 3px solid #000000 !important;
+  padding: 1.5rem !important;
+}
+
+/* Tables */
+body.accessibility-mode table {
+  font-size: 1.15rem !important;
+  border: 3px solid #000000 !important;
+}
+
+body.accessibility-mode th,
+body.accessibility-mode td {
+  padding: 1rem !important;
+  border: 2px solid #000000 !important;
+}
+
+body.accessibility-mode th {
+  font-weight: 700 !important;
+  background-color: #f0f0f0 !important;
+}
+
+/* Navigation - Navbar styles are handled in Navbar.css */
+/* The navbar has its own accessibility styles that override these global ones */
+
+/* Remove or simplify decorative elements */
+body.accessibility-mode .icon,
+body.accessibility-mode [class*="icon"] {
+  font-size: 1.5rem !important;
+}
+
+/* Increase spacing for better readability */
+body.accessibility-mode p,
+body.accessibility-mode li {
+  margin-bottom: 1rem !important;
+  line-height: 1.8 !important;
+}
+
+/* Simplify visual complexity */
+body.accessibility-mode [class*="shadow"],
+body.accessibility-mode [style*="box-shadow"] {
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3) !important;
+}
+
+/* Ensure sufficient color contrast */
+body.accessibility-mode {
+  --primary-color: #0056b3;
+  --secondary-color: #5a0f7a;
+  --text-color: #000000;
+  --background-color: #ffffff;
+  --border-color: #000000;
+}
+

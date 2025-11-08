@@ -1,31 +1,57 @@
 import React from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { useAccessibility } from '../contexts/AccessibilityContext';
 
 export const Dashboard: React.FC = () => {
   const { user } = useAuth();
+  const { isAccessibilityMode, getAccessibilityStyles } = useAccessibility();
   const navigate = useNavigate();
+  const accStyles = getAccessibilityStyles();
+
+  const cardStyle = isAccessibilityMode
+    ? { ...styles.card, border: `3px solid ${accStyles.contrastColors.border}`, padding: '2.5rem' }
+    : styles.card;
+
+  const serviceCardStyle = isAccessibilityMode
+    ? {
+        ...styles.serviceCard,
+        border: `3px solid ${accStyles.contrastColors.border}`,
+        padding: '2rem',
+        fontSize: accStyles.fontSize,
+      }
+    : styles.serviceCard;
 
   return (
     <div style={styles.container}>
-      <div style={styles.card}>
-        <h1 style={styles.title}>Dashboard</h1>
-        <div style={styles.userInfo}>
+      <div style={cardStyle}>
+        <h1 style={{ ...styles.title, fontSize: accStyles.titleFontSize, color: accStyles.contrastColors.text }}>
+          Dashboard
+        </h1>
+        <div style={{ ...styles.userInfo, fontSize: accStyles.fontSize, border: isAccessibilityMode ? `2px solid ${accStyles.contrastColors.border}` : 'none' }}>
           <p><strong>Welcome, {user?.name}!</strong></p>
           <p>Username: {user?.username}</p>
           <p>Email: {user?.email}</p>
-          <p>User ID: {user?.id}</p>
+          {!isAccessibilityMode && <p>User ID: {user?.id}</p>}
         </div>
-        <div style={styles.servicesGrid}>
-          <Link to="/clarifai" style={styles.serviceCard}>
-            <div style={styles.serviceIcon}>📄</div>
-            <h2>ClarifAI</h2>
-            <p>Transform complex medical and legal documents into clear, plain-language steps</p>
+        <div style={isAccessibilityMode ? { ...styles.servicesGrid, gridTemplateColumns: '1fr', gap: '2rem' } : styles.servicesGrid}>
+          <Link to="/clarifai" style={serviceCardStyle}>
+            {!isAccessibilityMode && <div style={styles.serviceIcon}>📄</div>}
+            <h2 style={{ fontSize: isAccessibilityMode ? '1.75rem' : '1.5rem', color: accStyles.contrastColors.text }}>
+              ClarifAI
+            </h2>
+            <p style={{ fontSize: accStyles.fontSize, color: accStyles.contrastColors.text }}>
+              Transform complex medical and legal documents into clear, plain-language steps
+            </p>
           </Link>
-          <Link to="/public-data" style={styles.serviceCard}>
-            <div style={styles.serviceIcon}>📊</div>
-            <h2>Public Data Hub</h2>
-            <p>Understand government alerts, social benefits, and explore Romanian open data</p>
+          <Link to="/public-data" style={serviceCardStyle}>
+            {!isAccessibilityMode && <div style={styles.serviceIcon}>📊</div>}
+            <h2 style={{ fontSize: isAccessibilityMode ? '1.75rem' : '1.5rem', color: accStyles.contrastColors.text }}>
+              Public Data Hub
+            </h2>
+            <p style={{ fontSize: accStyles.fontSize, color: accStyles.contrastColors.text }}>
+              Understand government alerts, social benefits, and explore Romanian open data
+            </p>
           </Link>
         </div>
       </div>
