@@ -1,0 +1,99 @@
+[
+  {
+    "title": "Traffic Accident on Calea Victoriei",
+    "description": "Two-car collision near the intersection with Bulevardul Magheru. Traffic is slow.",
+    "category": "Road",
+    "location": {
+      "lat": 44.4475,
+      "lng": 26.0975,
+      "address": "Calea Victoriei, Bucharest"
+    },
+    "timestamp": 1735689600,
+    "user_id": "user_johndoe"
+  },
+  {
+    "title": "Lost Dog - Golden Retriever",
+    "description": "Lost golden retriever named Max, last seen near Herastrau Park. Wearing a red collar.",
+    "category": "Lost",
+    "location": {
+      "lat": 44.4750,
+      "lng": 26.0800,
+      "address": "Herastrau Park, Bucharest"
+    },
+    "timestamp": 1735678800,
+    "user_id": "user_janedoe"
+  },
+  {
+    "title": "Heavy Rain Warning",
+    "description": "Severe weather alert: Heavy rain expected in the next 2 hours. Avoid flooded areas.",
+    "category": "Weather",
+    "location": {
+      "lat": 44.4325,
+      "lng": 26.1039,
+      "address": "City Center, Bucharest"
+    },
+    "timestamp": 1735691400,
+    "user_id": "user_anonymous"
+  },
+  {
+    "title": "Suspicious Activity Near School",
+    "description": "Unusual behavior reported near School #1. Please be cautious.",
+    "category": "Safety",
+    "location": {
+      "lat": 44.4500,
+      "lng": 26.0900,
+      "address": "Near School #1, Bucharest"
+    },
+    "timestamp": 1735686000,
+    "user_id": "user_anonymous"
+  },
+  {
+    "title": "Community Cleanup Event",
+    "description": "Organizing a neighborhood cleanup this Saturday at 10 AM. All welcome!",
+    "category": "General",
+    "location": {
+      "lat": 44.4400,
+      "lng": 26.1000,
+      "address": "Parcul Carol, Bucharest"
+    },
+    "timestamp": 1735603200,
+    "user_id": "user_johndoe"
+  },
+  {
+    "title": "Road Closure - Construction",
+    "description": "Strada Lipscani closed for construction until next week. Use alternate routes.",
+    "category": "Road",
+    "location": {
+      "lat": 44.4319,
+      "lng": 26.1028,
+      "address": "Strada Lipscani, Bucharest"
+    },
+    "timestamp": 1735675200,
+    "user_id": "user_anonymous"
+  },
+  {
+    "title": "Found Cat - Black and White",
+    "description": "Found a friendly black and white cat near the metro station. Looking for owner.",
+    "category": "Lost",
+    "location": {
+      "lat": 44.4250,
+      "lng": 26.1050,
+      "address": "Piata Unirii, Bucharest"
+    },
+    "timestamp": 1735682400,
+    "user_id": "user_janedoe"
+  },
+  {
+    "title": "Ice on Sidewalks",
+    "description": "Icy conditions on sidewalks near Cismigiu Park. Walk carefully.",
+    "category": "Safety",
+    "location": {
+      "lat": 44.4400,
+      "lng": 26.0950,
+      "address": "Cismigiu Park, Bucharest"
+    },
+    "timestamp": 1735691100,
+    "user_id": "user_anonymous"
+  }
+]
+
