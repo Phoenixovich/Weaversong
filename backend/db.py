@@ -4,7 +4,7 @@ from pydantic import Field, ConfigDict
 
 class Settings(BaseSettings):
     mongodb_url: str = Field(
-        default="mongodb+srv://sofiia:B1y7FkvDPG0USAhH@cluster0.l4aer7e.mongodb.net/?retryWrites=true&w=majority",
+        default="",
         alias="MONGODB_URI"
     )
     mongodb_db_name: str = Field(
@@ -34,6 +34,8 @@ database = None
 
 async def connect_to_mongo():
     global client, database
+    if not settings.mongodb_url:
+        raise ValueError("MONGODB_URI environment variable is required. Please set it in your .env file.")
     try:
         client = AsyncIOMotorClient(settings.mongodb_url, serverSelectionTimeoutMS=5000)
         # Test connection

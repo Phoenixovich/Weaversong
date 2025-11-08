@@ -4,11 +4,12 @@
 
 ### Step 1: Connect to MongoDB
 1. Open **MongoDB Compass**
-2. Connect to your cluster using the connection string:
+2. Connect to your cluster using the connection string from your `.env` file:
    ```
-   mongodb+srv://sofiia:B1y7FkvDPG0USAhH@cluster0.l4aer7e.mongodb.net/?retryWrites=true&w=majority
+   mongodb+srv://username:password@cluster.mongodb.net/?retryWrites=true&w=majority
    ```
-3. Select the database: **`CommunityHelp`**
+   Or use the `MONGODB_URI` environment variable from your `.env` file.
+3. Select the database: **`CommunityHelp`** (or the database name from your `MONGODB_DB` environment variable)
 
 ### Step 2: Import Alerts
 1. In the **`CommunityHelp`** database, click on the **`alerts`** collection
@@ -65,9 +66,17 @@ The import file (`alerts_import.json`) contains:
 If you prefer using the command line:
 
 ```bash
-mongoimport --uri "mongodb+srv://sofiia:B1y7FkvDPG0USAhH@cluster0.l4aer7e.mongodb.net/CommunityHelp?retryWrites=true&w=majority" \
+mongoimport --uri "$MONGODB_URI" \
   --collection alerts \
-  --file alerts_import.json \
+  --file test_data.json \
+  --jsonArray
+```
+
+Or use your connection string directly:
+```bash
+mongoimport --uri "mongodb+srv://username:password@cluster.mongodb.net/CommunityHelp?retryWrites=true&w=majority" \
+  --collection alerts \
+  --file test_data.json \
   --jsonArray
 ```
 

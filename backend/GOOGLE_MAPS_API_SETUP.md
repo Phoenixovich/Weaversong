@@ -46,10 +46,10 @@ This guide explains how to get and configure your Google Maps Platform API key f
 
 3. **Example `.env` file**:
    ```
-   MONGODB_URI=mongodb+srv://username:password@cluster0.l4aer7e.mongodb.net/?retryWrites=true&w=majority
+   MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/?retryWrites=true&w=majority
    MONGODB_DB=CommunityHelp
-   GOOGLE_API_KEY=AIzaSyCbCRNM4jrpbtNrI35_E7Jio2peVqnOCps
-   OPENAI_API_KEY=sk-...your_openai_key_here
+   GOOGLE_API_KEY=your_google_api_key_here
+   OPENAI_API_KEY=your_openai_key_here
    ```
 
 ## Step 3: Restart Your Backend Server
