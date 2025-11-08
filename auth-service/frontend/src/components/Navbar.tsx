@@ -22,14 +22,17 @@ export const Navbar: React.FC = () => {
           <Link to="/dashboard"> Community Service Hub</Link>
         </div>
         
-        <div className="navbar-links">
-          <Link to="/dashboard" className={isActive('/dashboard')}>
-            Dashboard
-          </Link>
-          <Link to="/clarifai" className={isActive('/clarifai')}>
-            ClarifAI
-          </Link>
-        </div>
+            <div className="navbar-links">
+              <Link to="/dashboard" className={isActive('/dashboard')}>
+                Dashboard
+              </Link>
+              <Link to="/clarifai" className={isActive('/clarifai')}>
+                ClarifAI
+              </Link>
+              <Link to="/public-data" className={isActive('/public-data')}>
+                Public Data
+              </Link>
+            </div>
 
         <div className="navbar-user">
           {user && (

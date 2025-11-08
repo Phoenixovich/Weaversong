@@ -22,6 +22,11 @@ export const Dashboard: React.FC = () => {
             <h2>ClarifAI</h2>
             <p>Transform complex medical and legal documents into clear, plain-language steps</p>
           </Link>
+          <Link to="/public-data" style={styles.serviceCard}>
+            <div style={styles.serviceIcon}>📊</div>
+            <h2>Public Data Hub</h2>
+            <p>Understand government alerts, social benefits, and explore Romanian open data</p>
+          </Link>
         </div>
       </div>
     </div>

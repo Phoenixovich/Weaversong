@@ -7,6 +7,7 @@ import { Login } from './pages/Login';
 import { Signup } from './pages/Signup';
 import { Dashboard } from './pages/Dashboard';
 import { ClarifAI } from './pages/ClarifAI';
+import { PublicDataHub } from './pages/PublicDataHub';
 
 const AppRoutes: React.FC = () => {
   const { isAuthenticated } = useAuth();
@@ -30,6 +31,14 @@ const AppRoutes: React.FC = () => {
           element={
             <ProtectedRoute>
               <ClarifAI />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/public-data"
+          element={
+            <ProtectedRoute>
+              <PublicDataHub />
             </ProtectedRoute>
           }
         />

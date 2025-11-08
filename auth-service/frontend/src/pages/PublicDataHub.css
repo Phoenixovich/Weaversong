@@ -1,0 +1,67 @@
+.public-data-hub-page {
+  min-height: 100vh;
+  background-color: #f5f5f5;
+}
+
+.public-data-hub-page .markdown-container h1,
+.public-data-hub-page .markdown-container h2,
+.public-data-hub-page .markdown-container h3 {
+  margin-top: 1.5rem;
+  margin-bottom: 0.5rem;
+  color: #333;
+}
+
+.public-data-hub-page .markdown-container h1 {
+  font-size: 1.8rem;
+}
+
+.public-data-hub-page .markdown-container h2 {
+  font-size: 1.5rem;
+}
+
+.public-data-hub-page .markdown-container h3 {
+  font-size: 1.2rem;
+}
+
+.public-data-hub-page .markdown-container p {
+  margin: 0.75rem 0;
+  line-height: 1.6;
+  color: #555;
+}
+
+.public-data-hub-page .markdown-container ul,
+.public-data-hub-page .markdown-container ol {
+  margin: 0.75rem 0;
+  padding-left: 2rem;
+}
+
+.public-data-hub-page .markdown-container li {
+  margin: 0.5rem 0;
+  line-height: 1.6;
+}
+
+.public-data-hub-page .markdown-container strong {
+  font-weight: 600;
+  color: #333;
+}
+
+.public-data-hub-page .markdown-container code {
+  background-color: #f5f5f5;
+  padding: 0.2rem 0.4rem;
+  border-radius: 3px;
+  font-family: 'Courier New', monospace;
+  font-size: 0.9em;
+}
+
+.public-data-hub-page .markdown-container pre {
+  background-color: #f5f5f5;
+  padding: 1rem;
+  border-radius: 4px;
+  overflow-x: auto;
+}
+
+.public-data-hub-page .markdown-container pre code {
+  background-color: transparent;
+  padding: 0;
+}
+
