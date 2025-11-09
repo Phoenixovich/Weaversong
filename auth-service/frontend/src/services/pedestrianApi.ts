@@ -1,4 +1,4 @@
-const API_BASE_URL = '/pedestrian';
+import api from './api';
 
 export interface PedestrianData {
   lat: number;
@@ -30,17 +30,8 @@ export interface PopularLocation {
  */
 export async function recordPedestrianData(data: PedestrianData): Promise<void> {
   try {
-    const response = await fetch(`${API_BASE_URL}/data`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(data),
-    });
-
-    if (!response.ok) {
-      throw new Error('Failed to record pedestrian data');
-    }
+    // Use the shared axios instance so requests go to the backend (VITE_API_URL)
+    await api.post('/pedestrian/data', data);
   } catch (error) {
     console.error('Failed to record pedestrian data:', error);
     // Don't throw - this is non-critical
@@ -72,20 +63,10 @@ export async function getPedestrianAnalytics(params?: {
     });
   }
 
-  const response = await fetch(`${API_BASE_URL}/analytics?${queryParams.toString()}`, {
-    headers: {
-      'Authorization': `Bearer ${token}`,
-    },
+  const response = await api.get(`/pedestrian/analytics?${queryParams.toString()}`, {
+    headers: { Authorization: `Bearer ${token}` },
   });
-
-  if (!response.ok) {
-    if (response.status === 403) {
-      throw new Error('This feature requires premium subscription or admin role');
-    }
-    throw new Error('Failed to fetch analytics');
-  }
-
-  return response.json();
+  return response.data;
 }
 
 /**
@@ -97,20 +78,10 @@ export async function getPopularLocations(limit: number = 10): Promise<PopularLo
     throw new Error('Authentication required');
   }
 
-  const response = await fetch(`${API_BASE_URL}/popular-locations?limit=${limit}`, {
-    headers: {
-      'Authorization': `Bearer ${token}`,
-    },
+  const response = await api.get(`/pedestrian/popular-locations?limit=${limit}`, {
+    headers: { Authorization: `Bearer ${token}` },
   });
-
-  if (!response.ok) {
-    if (response.status === 403) {
-      throw new Error('This feature requires premium subscription or admin role');
-    }
-    throw new Error('Failed to fetch popular locations');
-  }
-
-  return response.json();
+  return response.data;
 }
 
 
