@@ -37,6 +37,7 @@ class PedestrianAnalyticsResponse(BaseModel):
     daily_stats: dict  # {day_of_week: count}
     peak_hours: list  # List of hours with highest traffic
     average_per_hour: float
+    business_suggestions: list  # List of business type suggestions based on peak hours and days
 
 
 class LocationGroup(BaseModel):

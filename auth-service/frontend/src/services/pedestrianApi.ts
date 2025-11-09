@@ -15,6 +15,7 @@ export interface PedestrianAnalytics {
   daily_stats: { [day: string]: number };
   peak_hours: number[];
   average_per_hour: number;
+  business_suggestions: string[];
 }
 
 export interface PopularLocation {

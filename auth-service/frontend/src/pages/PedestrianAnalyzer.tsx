@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useRoleGuard } from '../hooks/useRoleGuard';
-import { UserRole } from '../types/auth';
-import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import './PedestrianAnalyzer.css';
 import { getPedestrianAnalytics, getPopularLocations } from '../services/pedestrianApi';
 
@@ -15,6 +14,7 @@ interface PedestrianAnalytics {
   daily_stats: { [day: string]: number };
   peak_hours: number[];
   average_per_hour: number;
+  business_suggestions: string[];
 }
 
 interface PopularLocation {
@@ -24,11 +24,9 @@ interface PopularLocation {
   count: number;
 }
 
-const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d', '#ffc658'];
-
 export const PedestrianAnalyzer: React.FC = () => {
   const { user } = useAuth();
-  const { isAdmin, hasAnyRole } = useRoleGuard();
+  const { isAdmin } = useRoleGuard();
   const [analytics, setAnalytics] = useState<PedestrianAnalytics[]>([]);
   const [popularLocations, setPopularLocations] = useState<PopularLocation[]>([]);
   const [loading, setLoading] = useState(false);
@@ -48,20 +46,6 @@ export const PedestrianAnalyzer: React.FC = () => {
       loadAnalyticsProgressive();
     }
   }, [hasAccess, dateRange, timeframe]);
-
-  const loadPopularLocations = async () => {
-    try {
-      const data = await getPopularLocations(
-        10,
-        dateRange.start_date,
-        dateRange.end_date,
-        timeframe || undefined
-      );
-      setPopularLocations(data);
-    } catch (error: any) {
-      console.error('Failed to load popular locations:', error);
-    }
-  };
 
   const loadAnalyticsProgressive = async () => {
     setLoading(true);
@@ -202,6 +186,19 @@ export const PedestrianAnalyzer: React.FC = () => {
                 className="dateInput"
               />
             </div>
+            <div>
+              <label className="label">Timeframe:</label>
+              <select
+                value={timeframe}
+                onChange={(e) => setTimeframe(e.target.value)}
+                className="dateInput"
+              >
+                <option value="">All Time</option>
+                <option value="week">Last Week</option>
+                <option value="month">Last Month</option>
+                <option value="year">Last Year</option>
+              </select>
+            </div>
             <button onClick={loadAnalyticsProgressive} className="refreshButton">
               🔄 Refresh
             </button>
@@ -270,6 +267,35 @@ export const PedestrianAnalyzer: React.FC = () => {
                   </div>
                 </div>
 
+                {/* Business Suggestions */}
+                {selectedLocation.business_suggestions && selectedLocation.business_suggestions.length > 0 && (
+                  <div className="suggestionsCard">
+                    <h4 className="suggestionsTitle">💡 Business Suggestions</h4>
+                    <p className="suggestionsSubtitle">
+                      Based on peak hours and traffic patterns, these business types would be ideal for this location:
+                    </p>
+                    <div className="suggestionsList">
+                      {selectedLocation.business_suggestions.map((suggestion, index) => (
+                        <div key={index} className="suggestionItem">
+                          <span className="suggestionIcon">
+                            {suggestion === 'Coffee Shop' && '☕'}
+                            {suggestion === 'Pastry Shop' && '🥐'}
+                            {suggestion === 'Vending Machine' && '🥤'}
+                            {suggestion === 'Restaurant' && '🍽️'}
+                            {suggestion === 'Fast Food' && '🍔'}
+                            {suggestion === 'Night Club' && '🎉'}
+                            {suggestion === 'Bar' && '🍺'}
+                            {suggestion === 'Convenience Store' && '🏪'}
+                            {suggestion === 'Food Truck' && '🚚'}
+                            {!['Coffee Shop', 'Pastry Shop', 'Vending Machine', 'Restaurant', 'Fast Food', 'Night Club', 'Bar', 'Convenience Store', 'Food Truck'].includes(suggestion) && '💼'}
+                          </span>
+                          <span className="suggestionText">{suggestion}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
                 <div className="chartContainer">
                   <h4 className="chartTitle">Hourly Traffic Pattern</h4>
                   <ResponsiveContainer width="100%" height={300}>
@@ -324,6 +350,23 @@ export const PedestrianAnalyzer: React.FC = () => {
                           <span className="analyticsStatLabel">Avg/Hour</span>
                         </div>
                       </div>
+                      {item.business_suggestions && item.business_suggestions.length > 0 && (
+                        <div className="quickSuggestions">
+                          <div className="quickSuggestionsLabel">Suggestions:</div>
+                          <div className="quickSuggestionsList">
+                            {item.business_suggestions.slice(0, 2).map((suggestion, idx) => (
+                              <span key={idx} className="quickSuggestionTag">
+                                {suggestion}
+                              </span>
+                            ))}
+                            {item.business_suggestions.length > 2 && (
+                              <span className="quickSuggestionTag">
+                                +{item.business_suggestions.length - 2} more
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      )}
                       <button
                         onClick={() => setSelectedLocation(item)}
                         className="viewDetailsButton"

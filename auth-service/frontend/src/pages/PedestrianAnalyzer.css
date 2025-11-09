@@ -290,3 +290,102 @@
   color: #666;
 }
 
+.suggestionsCard {
+  margin-top: 2rem;
+  padding: 1.5rem;
+  background-color: white;
+  border-radius: 8px;
+  border: 2px solid #e3f2fd;
+}
+
+.suggestionsTitle {
+  margin: 0 0 0.5rem 0;
+  color: #333;
+  font-size: 1.2rem;
+}
+
+.suggestionsSubtitle {
+  margin: 0 0 1rem 0;
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.suggestionsList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.suggestionItem {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  background-color: #f8f9fa;
+  border-radius: 6px;
+  border: 1px solid #e9ecef;
+}
+
+.suggestionIcon {
+  font-size: 1.5rem;
+}
+
+.suggestionText {
+  font-size: 1rem;
+  color: #333;
+  font-weight: 500;
+}
+
+.quickSuggestions {
+  margin-bottom: 1rem;
+  padding: 0.75rem;
+  background-color: #f8f9fa;
+  border-radius: 6px;
+  border: 1px solid #e9ecef;
+}
+
+.quickSuggestionsLabel {
+  font-size: 0.85rem;
+  color: #666;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+}
+
+.quickSuggestionsList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.quickSuggestionTag {
+  padding: 0.25rem 0.75rem;
+  background-color: #007bff;
+  color: white;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.locationCard:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  border-color: #007bff;
+}
+
+.refreshButton:hover {
+  background-color: #0056b3;
+}
+
+.viewDetailsButton:hover {
+  background-color: #0056b3;
+}
+
+.viewDetailsButton:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+.closeButton:hover {
+  background-color: #c82333;
+}
+
