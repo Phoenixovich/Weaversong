@@ -70,78 +70,80 @@ export const Signup: React.FC = () => {
   };
 
   return (
-    <div className="container">
-      <div className="card">
-        <h1 className="title">Sign Up</h1>
-        {error && <div className="error">{error}</div>}
-        <form onSubmit={handleSubmit} className="form">
-          <div className="formGroup">
-            <label htmlFor="email" className="label">
-              Email
-            </label>
-            <input
-              id="email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              className="input"
-              placeholder="Enter your email"
-            />
-          </div>
-          <div className="formGroup">
-            <label htmlFor="username" className="label">
-              Username
-            </label>
-            <input
-              id="username"
-              type="text"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              required
-              className="input"
-              placeholder="Choose a username"
-            />
-          </div>
-          <div className="formGroup">
-            <label htmlFor="name" className="label">
-              Name
-            </label>
-            <input
-              id="name"
-              type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              required
-              className="input"
-              placeholder="Enter your full name"
-            />
-          </div>
-          <div className="formGroup">
-            <label htmlFor="password" className="label">
-              Password
-            </label>
-            <input
-              id="password"
-              type="password"
-              value={password}
-              onChange={(e) => {
-                // Only allow English letters, numbers, and special characters (no spaces)
-                const value = e.target.value.replace(/[^A-Za-z0-9!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/g, '');
-                setPassword(value);
-              }}
-              required
-              className="input"
-              placeholder="Choose a password"
-            />
-          </div>
-          <button type="submit" disabled={loading} className="button">
-            {loading ? 'Signing up...' : 'Sign Up'}
-          </button>
-        </form>
-        <p className="linkText">
-          Already have an account? <Link to="/login" className="link">Login</Link>
-        </p>
+    <div className="signup-container">
+      <div className="signup-content">
+        <div className="signup-card">
+          <h1 className="signup-title gradient-text">Sign Up</h1>
+          {error && <div className="signup-error">{error}</div>}
+          <form onSubmit={handleSubmit} className="signup-form">
+            <div className="signup-form-group">
+              <label htmlFor="email" className="signup-label">
+                Email
+              </label>
+              <input
+                id="email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                className="signup-input"
+                placeholder="Enter your email"
+              />
+            </div>
+            <div className="signup-form-group">
+              <label htmlFor="username" className="signup-label">
+                Username
+              </label>
+              <input
+                id="username"
+                type="text"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                required
+                className="signup-input"
+                placeholder="Choose a username"
+              />
+            </div>
+            <div className="signup-form-group">
+              <label htmlFor="name" className="signup-label">
+                Name
+              </label>
+              <input
+                id="name"
+                type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                required
+                className="signup-input"
+                placeholder="Enter your full name"
+              />
+            </div>
+            <div className="signup-form-group">
+              <label htmlFor="password" className="signup-label">
+                Password
+              </label>
+              <input
+                id="password"
+                type="password"
+                value={password}
+                onChange={(e) => {
+                  // Only allow English letters, numbers, and special characters (no spaces)
+                  const value = e.target.value.replace(/[^A-Za-z0-9!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/g, '');
+                  setPassword(value);
+                }}
+                required
+                className="signup-input"
+                placeholder="Choose a password"
+              />
+            </div>
+            <button type="submit" disabled={loading} className="signup-button btn-primary">
+              {loading ? 'Signing up...' : 'Sign Up'}
+            </button>
+          </form>
+          <p className="signup-link-text">
+            Already have an account? <Link to="/login" className="signup-link">Login</Link>
+          </p>
+        </div>
       </div>
     </div>
   );

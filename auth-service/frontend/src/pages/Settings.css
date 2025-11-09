@@ -1,74 +1,187 @@
-.container {
+.settings-container {
+  min-height: 100vh;
+  background-color: var(--color-bg-light);
+  padding: 2rem 1rem;
+}
+
+.settings-content {
   max-width: 800px;
-  margin: 2rem auto;
-  padding: 0 1rem;
+  margin: 0 auto;
 }
 
-.card {
-  background-color: white;
-  padding: 2rem;
-  border-radius: 8px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-}
-
-.title {
+.settings-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   margin-bottom: 2rem;
-  color: #333;
+  flex-wrap: wrap;
+  gap: 1rem;
 }
 
-.section {
+.settings-title {
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+.settings-nav-buttons {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.settings-card {
+  background-color: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  padding: 2rem;
+}
+
+.settings-message {
+  padding: 1rem;
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
+  font-weight: 500;
+}
+
+.settings-message-success {
+  background-color: #d4edda;
+  color: #155724;
+  border: 1px solid #c3e6cb;
+}
+
+.settings-message-error {
+  background-color: #f8d7da;
+  color: #721c24;
+  border: 1px solid #f5c6cb;
+}
+
+.settings-section {
   margin-bottom: 2rem;
   padding-bottom: 2rem;
-  border-bottom: 1px solid #e0e0e0;
+  border-bottom: 2px solid var(--color-bg-soft);
 }
 
-.sectionTitle {
-  margin-bottom: 1rem;
-  color: #333;
-  font-size: 1.2rem;
+.settings-section:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+  padding-bottom: 0;
 }
 
-.checkboxLabel {
+.settings-section-title {
+  font-size: 1.75rem;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin: 0 0 1.5rem 0;
+}
+
+.settings-checkbox-label {
   display: flex;
   align-items: center;
   gap: 0.75rem;
   cursor: pointer;
-  font-size: 1rem;
-  color: #333;
+  margin-bottom: 0.5rem;
 }
 
-.checkbox {
+.settings-checkbox {
   width: 1.25rem;
   height: 1.25rem;
   cursor: pointer;
+  accent-color: var(--color-primary-start);
+  border: 2px solid var(--color-bg-soft);
+  border-radius: 4px;
+  transition: all 0.2s ease;
 }
 
-.helpText {
-  margin-top: 0.5rem;
-  color: #666;
+.settings-checkbox:checked {
+  background-color: var(--color-primary-start);
+  border-color: var(--color-primary-start);
+}
+
+.settings-checkbox:focus {
+  outline: 2px solid var(--color-primary-start);
+  outline-offset: 2px;
+}
+
+.settings-checkbox-text {
+  font-size: 1rem;
+  color: var(--color-text-primary);
+  font-weight: 500;
+}
+
+.settings-help-text {
+  margin-top: 0.75rem;
   font-size: 0.9rem;
+  color: var(--color-text-muted);
+  line-height: 1.5;
 }
 
-.infoRow {
+.settings-info-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.settings-info-row {
   display: flex;
   justify-content: space-between;
-  padding: 0.75rem 0;
-  border-bottom: 1px solid #f0f0f0;
+  align-items: center;
+  padding: 1rem 0;
+  border-bottom: 1px solid var(--color-bg-soft);
+  transition: background-color 0.2s ease;
 }
 
-.successMessage {
-  padding: 0.75rem;
-  background-color: #d4edda;
-  color: #155724;
-  border-radius: 4px;
-  margin-bottom: 1rem;
+.settings-info-row:last-child {
+  border-bottom: none;
 }
 
-.errorMessage {
-  padding: 0.75rem;
-  background-color: #f8d7da;
-  color: #721c24;
-  border-radius: 4px;
-  margin-bottom: 1rem;
+.settings-info-row:hover {
+  background-color: var(--color-bg-warm);
+  margin: 0 -1rem;
+  padding-left: 1rem;
+  padding-right: 1rem;
+  border-radius: 6px;
 }
 
+.settings-info-label {
+  font-size: 1rem;
+  color: var(--color-text-primary);
+  font-weight: 600;
+}
+
+.settings-info-value {
+  font-size: 1rem;
+  color: var(--color-text-secondary);
+  text-align: right;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .settings-title {
+    font-size: 2rem;
+  }
+
+  .settings-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .settings-nav-buttons {
+    width: 100%;
+  }
+
+  .settings-nav-buttons .btn-secondary {
+    flex: 1;
+    text-align: center;
+  }
+
+  .settings-info-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .settings-info-value {
+    text-align: left;
+  }
+}

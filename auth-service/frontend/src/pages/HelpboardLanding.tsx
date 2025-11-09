@@ -103,139 +103,141 @@ const HelpboardLanding: React.FC = () => {
 
 
   return (
-    <div className="helpboard-page">
-      <div className="header">
-        <h1 className="headerTitle">💼 Helpboard</h1>
-        <p className="headerSubtitle">
-          Find local help, post requests, and connect with skilled neighbours.
-        </p>
-      </div>
-      <div className="headerButtons">
-        <div className="controlsRow">
-          <button
-            onClick={() => setShowRequestForm((s) => !s)}
-            className={`tabButton ${showRequestForm ? 'tabButtonActive' : ''}`}
-          >
-            {showRequestForm ? '✕ Close Form' : '+ Submit Request'}
-          </button>
-          {user && (
-            <>
-              <Link to="/helpboard/my-trades" className="tabButton">
-                👷 My Trades
-              </Link>
-              <Link to="/helpboard/my-requests" className="tabButton">
-                📋 My Requests
-              </Link>
-              <Link to="/helpboard/my-responses" className="tabButton">
-                💬 My Responses
-              </Link>
-            </>
-          )}
-          <Link to="/helpboard/requests" className="tabButton">
-            📣 All Requests
-          </Link>
-        </div>
-      </div>
-
-      <div className="content">
-        {error && (
-          <div className="errorBanner">
-            ⚠️ {error}
-          </div>
-        )}
-
-      {showRequestForm && (
-        <div className="formSection">
-          <RequestForm onCreated={() => { setShowRequestForm(false); fetchAll(); }} />
-        </div>
-      )}
-
-      <div className="requestsSection">
-        <h2 className="sectionTitle">📋 Active Requests</h2>
-        {loading ? (
-          <div className="loading">
-            <p>Loading requests…</p>
-          </div>
-        ) : getActiveRequests().length === 0 ? (
-          <div className="emptyState">
-            <p>No active requests at the moment.</p>
+    <div className="min-h-screen bg-background-light">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <header className="mb-8">
+          <h1 className="text-4xl md:text-5xl font-bold mb-3 gradient-text">
+            💼 Helpboard
+          </h1>
+          <p className="text-xl text-gray-600">
+            Find local help, post requests, and connect with skilled neighbours.
+          </p>
+          <div className="controlsRow mt-4">
+            <button
+              onClick={() => setShowRequestForm((s) => !s)}
+              className={`tabButton ${showRequestForm ? 'tabButtonActive' : ''}`}
+            >
+              {showRequestForm ? '✕ Close Form' : '+ Submit Request'}
+            </button>
             {user && (
-              <p className="emptyHint">Create one using the form above!</p>
+              <>
+                <Link to="/helpboard/my-trades" className="tabButton">
+                  👷 My Trades
+                </Link>
+                <Link to="/helpboard/my-requests" className="tabButton">
+                  📋 My Requests
+                </Link>
+                <Link to="/helpboard/my-responses" className="tabButton">
+                  💬 My Responses
+                </Link>
+              </>
             )}
+            <Link to="/helpboard/requests" className="tabButton">
+              📣 All Requests
+            </Link>
           </div>
-        ) : (
-          <div className="requestsList">
-            {getActiveRequests().map((r) => (
-              <div key={r._id} className="requestCard">
-                <div className="requestHeader">
-                  <h3 className="requestTitle">{r.title}</h3>
-                  <div className="badges">
-                    {r.status && (
-                      <span
-                        className="badge"
-                        style={{
-                          backgroundColor: getStatusColor(r.status),
-                          color: 'white',
-                        }}
-                      >
-                        {r.status}
-                      </span>
-                    )}
-                    {r.urgency && (
-                      <span
-                        className="badge"
-                        style={{
-                          backgroundColor: getUrgencyColor(r.urgency),
-                          color: 'white',
-                        }}
-                      >
-                        {r.urgency}
-                      </span>
-                    )}
-                  </div>
-                </div>
-                {r.description && (
-                  <p className="requestDescription">{r.description}</p>
-                )}
-                <div className="requestDetails">
-                  {r.trade_needed && (
-                    <div className="detailItem">
-                      <strong>Trade:</strong> {r.trade_needed}
-                    </div>
-                  )}
-                  {r.budget !== undefined && r.budget > 0 && (
-                    <div className="detailItem">
-                      <strong>Budget:</strong> ${r.budget}
-                    </div>
-                  )}
-                  {r.date_created && (
-                    <div className="detailItem">
-                      <strong>Created:</strong> {new Date(r.date_created).toLocaleDateString()}
-                    </div>
-                  )}
-                </div>
-                {/* Only show response form for requests NOT owned by the user */}
-                {user && r.user_id !== user.id && (
-                  <button
-                    onClick={() => toggleRequest(r._id)}
-                    className="expandButton"
-                  >
-                    {expandedRequests.has(r._id) ? '▼ Hide Response Form' : '▶ Add Response'}
-                  </button>
-                )}
-                {expandedRequests.has(r._id) && user && r.user_id !== user.id && (
-                  <div className="responseSection">
-                    <ResponseForm
-                      request_id={r._id}
-                      onCreated={() => handleResponseCreated(r._id)}
-                    />
-                  </div>
+        </header>
+
+        <div className="content">
+          {error && (
+            <div className="errorBanner">
+              ⚠️ {error}
+            </div>
+          )}
+
+          {showRequestForm && (
+            <div className="formSection">
+              <RequestForm onCreated={() => { setShowRequestForm(false); fetchAll(); }} />
+            </div>
+          )}
+
+          <div className="requestsSection">
+            <h2 className="sectionTitle">📋 Active Requests</h2>
+            {loading ? (
+              <div className="loading">
+                <p>Loading requests…</p>
+              </div>
+            ) : getActiveRequests().length === 0 ? (
+              <div className="emptyState">
+                <p>No active requests at the moment.</p>
+                {user && (
+                  <p className="emptyHint">Create one using the form above!</p>
                 )}
               </div>
-            ))}
+            ) : (
+              <div className="requestsList">
+                {getActiveRequests().map((r) => (
+                  <div key={r._id} className="requestCard">
+                    <div className="requestHeader">
+                      <h3 className="requestTitle">{r.title}</h3>
+                      <div className="badges">
+                        {r.status && (
+                          <span
+                            className="badge"
+                            style={{
+                              backgroundColor: getStatusColor(r.status),
+                              color: 'white',
+                            }}
+                          >
+                            {r.status}
+                          </span>
+                        )}
+                        {r.urgency && (
+                          <span
+                            className="badge"
+                            style={{
+                              backgroundColor: getUrgencyColor(r.urgency),
+                              color: 'white',
+                            }}
+                          >
+                            {r.urgency}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    {r.description && (
+                      <p className="requestDescription">{r.description}</p>
+                    )}
+                    <div className="requestDetails">
+                      {r.trade_needed && (
+                        <div className="detailItem">
+                          <strong>Trade:</strong> {r.trade_needed}
+                        </div>
+                      )}
+                      {r.budget !== undefined && r.budget > 0 && (
+                        <div className="detailItem">
+                          <strong>Budget:</strong> ${r.budget}
+                        </div>
+                      )}
+                      {r.date_created && (
+                        <div className="detailItem">
+                          <strong>Created:</strong> {new Date(r.date_created).toLocaleDateString()}
+                        </div>
+                      )}
+                    </div>
+                    {/* Only show response form for requests NOT owned by the user */}
+                    {user && r.user_id !== user.id && (
+                      <button
+                        onClick={() => toggleRequest(r._id)}
+                        className="expandButton"
+                      >
+                        {expandedRequests.has(r._id) ? '▼ Hide Response Form' : '▶ Add Response'}
+                      </button>
+                    )}
+                    {expandedRequests.has(r._id) && user && r.user_id !== user.id && (
+                      <div className="responseSection">
+                        <ResponseForm
+                          request_id={r._id}
+                          onCreated={() => handleResponseCreated(r._id)}
+                        />
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
-        )}
-      </div>
+        </div>
       </div>
     </div>
   );

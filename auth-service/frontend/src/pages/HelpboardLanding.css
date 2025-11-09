@@ -1,60 +1,61 @@
-.header {
-  color: white;
-  text-align: center;
-  padding: 2rem;
-  background-color: #20c997;
-}
-
-.headerButtons {
-  background-color: #20c997;
-  padding: 0 2rem 1.5rem 2rem;
-  text-align: center;
-}
-
-.headerTitle {
-  margin: 0;
-  font-size: 2.5rem;
-  font-weight: bold;
-}
-
-.headerSubtitle {
-  margin: 0.5rem 0 1rem 0;
-  font-size: 1.1rem;
-  opacity: 0.9;
-}
-
 .controlsRow {
   display: flex;
-  justify-content: center;
-  gap: 2rem;
   flex-wrap: wrap;
-  margin-top: 1rem;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
 }
 
 .tabButton {
   padding: 0.75rem 2rem;
-  border: 2px solid white;
+  position: relative;
   background-color: transparent;
-  color: white;
+  border: 2px solid transparent;
   border-radius: 6px;
   cursor: pointer;
   font-weight: 600;
   transition: all 0.3s ease;
   text-decoration: none;
   display: inline-block;
+  color: transparent;
+  background: linear-gradient(135deg, #FF7A18 0%, #A100FF 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  isolation: isolate;
+}
+
+.tabButton::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 6px;
+  padding: 2px;
+  background: linear-gradient(135deg, #FF7A18 0%, #A100FF 100%);
+  -webkit-mask: 
+    linear-gradient(#fff 0 0) content-box, 
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  z-index: -1;
 }
 
 .tabButtonActive {
-  background-color: white;
-  color: #20c997;
+  background: linear-gradient(135deg, #FF7A18 0%, #A100FF 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.tabButtonActive::before {
+  -webkit-mask: none;
+  mask: none;
+  background: rgba(255, 122, 24, 0.1);
+  padding: 0;
 }
 
 .content {
-  min-height: calc(100vh - 200px);
-  padding: 2rem 1rem;
-  max-width: 1200px;
-  margin: 0 auto;
-  background-color: #f0fdfa;
+  padding: 0;
 }
 
 .errorBanner {
