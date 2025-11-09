@@ -45,7 +45,7 @@ export default function RequestsPage() {
     setLoading(true);
     try {
       const res = await api.get<RequestItem[]>('/helpboard/requests');
-      setRequests(res.data);
+      setRequests(Array.isArray(res.data) ? res.data : []);
     } catch (error) {
       console.error('Failed to fetch requests:', error);
     } finally {
@@ -142,11 +142,12 @@ export default function RequestsPage() {
 
   const getResponsesForRequest = (requestId: string) => {
     // Only show responses if the current user owns the request
+    if (!Array.isArray(requests)) return [];
     const request = requests.find(r => r._id === requestId);
     if (!user || !request || request.user_id !== user.id) {
       return [];
     }
-    return responses.filter(r => r.request_id === requestId);
+    return Array.isArray(responses) ? responses.filter(r => r.request_id === requestId) : [];
   };
 
   const getStatusColor = (status?: string) => {
@@ -226,7 +227,7 @@ export default function RequestsPage() {
               </div>
             ) : (
               <div className="requests-page-grid">
-                {requests.map((request) => (
+                {Array.isArray(requests) ? requests.map((request) => (
                   <div key={request._id} className="requests-page-card">
                     <div className="requests-page-card-header">
                       <h3 className="requests-page-card-title">{request.title}</h3>
@@ -280,7 +281,7 @@ export default function RequestsPage() {
                     {getResponsesForRequest(request._id).length > 0 && (
                       <div className="requests-page-responses-section">
                         <h4 className="requests-page-responses-title">Responses ({getResponsesForRequest(request._id).length})</h4>
-                        {getResponsesForRequest(request._id).map((response) => (
+                        {Array.isArray(getResponsesForRequest(request._id)) ? getResponsesForRequest(request._id).map((response) => (
                           <div key={response._id} className="requests-page-response-item">
                             <div className="requests-page-response-header">
                               <p className="requests-page-response-message">{response.message}</p>
@@ -319,7 +320,7 @@ export default function RequestsPage() {
                               </div>
                             )}
                           </div>
-                        ))}
+                        )) : []}
                       </div>
                     )}
 

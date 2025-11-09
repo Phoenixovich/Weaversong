@@ -280,7 +280,7 @@ export const PedestrianAnalyzer: React.FC = () => {
                       Based on peak hours and traffic patterns, these business types would be ideal for this location:
                     </p>
                     <div className="suggestionsList">
-                      {selectedLocation.business_suggestions.map((suggestion, index) => (
+                      {Array.isArray(selectedLocation.business_suggestions) ? selectedLocation.business_suggestions.map((suggestion, index) => (
                         <div key={index} className="suggestionItem">
                           <span className="suggestionIcon">
                             {suggestion === 'Coffee Shop' && '☕'}
@@ -296,7 +296,7 @@ export const PedestrianAnalyzer: React.FC = () => {
                           </span>
                           <span className="suggestionText">{suggestion}</span>
                         </div>
-                      ))}
+                      )) : []}
                     </div>
                   </div>
                 )}

@@ -678,11 +678,11 @@ export const PublicDataHub: React.FC = () => {
                         className="selectField"
                       >
                         <option value="">Select field...</option>
-                        {datastoreResults.fields?.map((field) => (
+                        {Array.isArray(datastoreResults.fields) ? datastoreResults.fields.map((field) => (
                           <option key={field.id} value={field.id}>
                             {field.id} ({field.type})
                           </option>
-                        ))}
+                        )) : null}
                       </select>
                     </div>
                   )}
@@ -708,9 +708,11 @@ export const PublicDataHub: React.FC = () => {
                       )}
                     </h3>
                     <div className="chartsGrid">
-                      {((Array.isArray(visualizationAnalysis?.visualizable_fields) ? visualizationAnalysis.visualizable_fields : null) || (Array.isArray(datastoreResults.fields) ? datastoreResults.fields.slice(0, 6).map(f => f.id) : [])).map((fieldId) => {
-                        const field = datastoreResults.fields?.find(f => f.id === fieldId);
-                        if (!field) return null;
+                      {(() => {
+                        const fields = (Array.isArray(visualizationAnalysis?.visualizable_fields) ? visualizationAnalysis.visualizable_fields : null) || (Array.isArray(datastoreResults.fields) ? datastoreResults.fields.slice(0, 6).map(f => f.id) : []);
+                        return Array.isArray(fields) ? fields.map((fieldId) => {
+                          const field = datastoreResults.fields?.find(f => f.id === fieldId);
+                          if (!field) return null;
                         
                         const chartData = getChartData(fieldId);
                         if (chartData.length === 0 || chartData.length === 1) return null; // Skip if only 1 value
@@ -757,9 +759,9 @@ export const PublicDataHub: React.FC = () => {
                                     fill="#8884d8"
                                     dataKey="value"
                                   >
-                                    {chartData.map((_, index) => (
+                                    {Array.isArray(chartData) ? chartData.map((_, index) => (
                                       <Cell key={`cell-${index}`} fill={`hsl(${index * 360 / chartData.length}, 70%, 50%)`} />
-                                    ))}
+                                    )) : null}
                                   </Pie>
                                   <Tooltip />
                                 </PieChart>
@@ -767,7 +769,7 @@ export const PublicDataHub: React.FC = () => {
                             )}
                           </div>
                         );
-                      })}
+                      }) : []}
                     </div>
                   </div>
                 )}
@@ -813,9 +815,12 @@ export const PublicDataHub: React.FC = () => {
                             fill="#8884d8"
                             dataKey="value"
                           >
-                            {getChartData().map((_, index) => (
-                              <Cell key={`cell-${index}`} fill={`hsl(${index * 360 / getChartData().length}, 70%, 50%)`} />
-                            ))}
+                            {(() => {
+                              const data = getChartData();
+                              return Array.isArray(data) ? data.map((_, index) => (
+                                <Cell key={`cell-${index}`} fill={`hsl(${index * 360 / data.length}, 70%, 50%)`} />
+                              )) : null;
+                            })()}
                           </Pie>
                           <Tooltip />
                           <Legend />
@@ -831,11 +836,11 @@ export const PublicDataHub: React.FC = () => {
                     <table className="table">
                       <thead>
                         <tr>
-                          {datastoreResults.fields?.map((field) => (
+                          {Array.isArray(datastoreResults.fields) ? datastoreResults.fields.map((field) => (
                             <th key={field.id} className="tableHeader">
                               {field.id}
                             </th>
-                          ))}
+                          )) : null}
                         </tr>
                       </thead>
                       <tbody>
@@ -932,8 +937,8 @@ export const PublicDataHub: React.FC = () => {
 
             {datasets.length > 0 && (
               <div className="datasetsList">
-                <h2 className="sectionTitle">Found {datasets.length} datasets</h2>
-                {datasets.map((dataset, index) => (
+                <h2 className="sectionTitle">Found {Array.isArray(datasets) ? datasets.length : 0} datasets</h2>
+                {Array.isArray(datasets) ? datasets.map((dataset, index) => (
                   <div
                     key={dataset.id || index}
                     className="datasetCard"
@@ -954,7 +959,7 @@ export const PublicDataHub: React.FC = () => {
                       </p>
                     )}
                   </div>
-                ))}
+                )) : []}
               </div>
             )}
 
@@ -1025,7 +1030,7 @@ export const PublicDataHub: React.FC = () => {
                 {selectedDataset.resources && selectedDataset.resources.length > 0 && (
                   <div className="resourcesSection">
                     <h3 className="sectionSubtitle">Resources</h3>
-                    {selectedDataset.resources.map((resource, index) => (
+                    {selectedDataset.resources && Array.isArray(selectedDataset.resources) ? selectedDataset.resources.map((resource, index) => (
                       <div key={index} className="resourceItem">
                         <a
                           href={resource.url}
@@ -1036,7 +1041,7 @@ export const PublicDataHub: React.FC = () => {
                           📄 {resource.name || resource.url} ({resource.format})
                         </a>
                       </div>
-                    ))}
+                    )) : []}
                   </div>
                 )}
               </div>

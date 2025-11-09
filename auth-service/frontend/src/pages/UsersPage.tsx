@@ -37,7 +37,7 @@ export default function UsersPage() {
           const res = await api.get<User[]>(
             `/helpboard/users/nearby?lat=${latitude}&lon=${longitude}&radius_km=3`
           );
-          setUsers(res.data);
+          setUsers(Array.isArray(res.data) ? res.data : []);
           setLoading(false);
         },
         () => {
@@ -63,7 +63,7 @@ export default function UsersPage() {
           const res = await api.get<User[]>(
             `/helpboard/users/search?trade=${tradeSearch}&lat=${latitude}&lon=${longitude}&radius_km=3`
           );
-          setUsers(res.data);
+          setUsers(Array.isArray(res.data) ? res.data : []);
           setLoading(false);
         },
         () => {
@@ -159,11 +159,11 @@ export default function UsersPage() {
           </div>
         ) : (
           <div className="usersGrid">
-            {users.map((u) => (
+            {Array.isArray(users) ? users.map((u) => (
               <div key={u._id} className="userCard">
                 <div className="userHeader">
                   <h3 className="userTitle">
-                    {u.trades?.map((t) => t.name).join(', ') || 'No trades listed'}
+                    {Array.isArray(u.trades) ? u.trades.map((t) => t.name).join(', ') : 'No trades listed'}
                   </h3>
                   <span
                     className="availabilityBadge"
@@ -176,7 +176,7 @@ export default function UsersPage() {
                   </span>
                 </div>
                 <div className="userDetails">
-                  {u.trades && u.trades.length > 0 && (
+                  {u.trades && Array.isArray(u.trades) && u.trades.length > 0 && (
                     <div className="tradesList">
                       {u.trades.map((trade, index) => (
                         <div key={index} className="tradeItem">
