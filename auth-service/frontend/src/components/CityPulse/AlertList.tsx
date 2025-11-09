@@ -370,7 +370,7 @@ export default function AlertList({ view, onViewChange }: AlertListProps) {
               className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent w-48"
             />
             {showAreaSuggestions && filteredNeighborhoods.length > 0 && (
-              <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+              <div className="absolute z-[1000] w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
                 <div
                   className="px-3 py-2 text-xs text-gray-500 border-b border-gray-200 cursor-pointer hover:bg-gray-50"
                   onClick={() => {

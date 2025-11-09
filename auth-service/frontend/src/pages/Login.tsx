@@ -33,46 +33,48 @@ export const Login: React.FC = () => {
   };
 
   return (
-    <div className="container">
-      <div className="card">
-        <h1 className="title">Login</h1>
-        {error && <div className="error">{error}</div>}
-        <form onSubmit={handleSubmit} className="form">
-          <div className="formGroup">
-            <label htmlFor="email" className="label">
-              Email
-            </label>
-            <input
-              id="email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              className="input"
-              placeholder="Enter your email"
-            />
-          </div>
-          <div className="formGroup">
-            <label htmlFor="password" className="label">
-              Password
-            </label>
-            <input
-              id="password"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              className="input"
-              placeholder="Enter your password"
-            />
-          </div>
-          <button type="submit" disabled={loading} className="button">
-            {loading ? 'Logging in...' : 'Login'}
-          </button>
-        </form>
-        <p className="linkText">
-          Don't have an account? <Link to="/signup" className="link">Sign up</Link>
-        </p>
+    <div className="login-container">
+      <div className="login-content">
+        <div className="login-card">
+          <h1 className="login-title gradient-text">Login</h1>
+          {error && <div className="login-error">{error}</div>}
+          <form onSubmit={handleSubmit} className="login-form">
+            <div className="login-form-group">
+              <label htmlFor="email" className="login-label">
+                Email
+              </label>
+              <input
+                id="email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                className="login-input"
+                placeholder="Enter your email"
+              />
+            </div>
+            <div className="login-form-group">
+              <label htmlFor="password" className="login-label">
+                Password
+              </label>
+              <input
+                id="password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                className="login-input"
+                placeholder="Enter your password"
+              />
+            </div>
+            <button type="submit" disabled={loading} className="login-button btn-primary">
+              {loading ? 'Logging in...' : 'Login'}
+            </button>
+          </form>
+          <p className="login-link-text">
+            Don't have an account? <Link to="/signup" className="login-link">Sign up</Link>
+          </p>
+        </div>
       </div>
     </div>
   );

@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { authAPI } from '../services/api';
 import { UserBadge } from '../components/UserBadge';
-import { useNavigate } from 'react-router-dom';
 import { Link } from 'react-router-dom';
 import './Profile.css';
 
@@ -16,7 +15,6 @@ interface UserStats {
 
 export const Profile: React.FC = () => {
   const { user, setUser } = useAuth();
-  const navigate = useNavigate();
   const [stats, setStats] = useState<UserStats | null>(null);
   const [loading, setLoading] = useState(false);
   const [upgrading, setUpgrading] = useState(false);
@@ -166,8 +164,8 @@ export const Profile: React.FC = () => {
 
   if (!user) {
     return (
-      <div className="container">
-        <div className="card">
+      <div className="profile-container">
+        <div className="profile-content">
           <p>Please log in to view your profile.</p>
         </div>
       </div>
@@ -175,109 +173,118 @@ export const Profile: React.FC = () => {
   }
 
   return (
-    <div className="container">
-      <div className="card">
-        <div className="header">
-          <h1 className="title">My Profile</h1>
-          <Link to="/settings" className="settingsLink">
-            ⚙️ Settings
-          </Link>
+    <div className="profile-container">
+      <div className="profile-content">
+        <div className="profile-header">
+          <h1 className="profile-title gradient-text">My Profile</h1>
+          <div className="profile-nav-buttons">
+            <Link to="/dashboard" className="btn-secondary">← Dashboard</Link>
+            <Link to="/settings" className="btn-secondary">Settings →</Link>
+          </div>
         </div>
 
         {message && (
-          <div className={message.type === 'success' ? 'successMessage' : 'errorMessage'}>
+          <div className={`profile-message ${message.type === 'success' ? 'profile-message-success' : 'profile-message-error'}`}>
             {message.text}
           </div>
         )}
 
-        <div className="profileSection">
-          <div className="sectionHeader">
-            <h2 className="sectionTitle">Profile Information</h2>
+        <div className="profile-section profile-card">
+          <div className="profile-section-header">
+            <h2 className="profile-section-title gradient-text">Profile Information</h2>
             {!isEditing && (
-              <button onClick={handleEditProfile} className="editButton">
+              <button onClick={handleEditProfile} className="profile-edit-button btn-secondary">
                 ✏️ Edit Profile
               </button>
             )}
           </div>
-          
+      
           {isEditing ? (
-            <div className="editForm">
-              <div className="formGroup">
-                <label className="label">Username</label>
+            <div className="profile-edit-form">
+              <div className="profile-form-group">
+                <label className="profile-label">Username</label>
                 <input
                   type="text"
                   value={editingProfile.username}
                   onChange={(e) => setEditingProfile({ ...editingProfile, username: e.target.value })}
-                  className="input"
                   placeholder="Enter username"
+                  className="profile-input"
                 />
               </div>
               
-              <div className="formGroup">
-                <label className="label">Default Phone</label>
+              <div className="profile-form-group">
+                <label className="profile-label">Default Phone</label>
                 <input
                   type="tel"
                   value={editingProfile.default_phone}
                   onChange={(e) => setEditingProfile({ ...editingProfile, default_phone: e.target.value })}
-                  className="input"
                   placeholder="Enter phone number (optional)"
+                  className="profile-input"
                 />
-                <p className="helpText">This will be used when creating alerts if "Allow contacting me" is checked.</p>
+                <p className="profile-help-text">This will be used when creating alerts if "Allow contacting me" is checked.</p>
               </div>
               
-              <div className="formGroup">
-                <label className="label">Other Contact Info</label>
+              <div className="profile-form-group">
+                <label className="profile-label">Other Contact Info</label>
                 <input
                   type="text"
                   value={editingProfile.default_other_contact}
                   onChange={(e) => setEditingProfile({ ...editingProfile, default_other_contact: e.target.value })}
-                  className="input"
                   placeholder="Enter other contact info (optional)"
+                  className="profile-input"
                 />
-                <p className="helpText">Additional contact information (e.g., Telegram, WhatsApp).</p>
+                <p className="profile-help-text">Additional contact information (e.g., Telegram, WhatsApp).</p>
               </div>
               
-              <div className="formActions">
+              <div className="profile-form-actions">
                 <button
                   onClick={handleSaveProfile}
                   disabled={saving || !editingProfile.username.trim()}
-                  className="saveButton"
+                  className="profile-save-button btn-primary"
                 >
                   {saving ? 'Saving...' : 'Save Changes'}
                 </button>
                 <button
                   onClick={handleCancelEdit}
                   disabled={saving}
-                  className="cancelEditButton"
+                  className="profile-cancel-button btn-secondary"
                 >
                   Cancel
                 </button>
               </div>
             </div>
           ) : (
-            <div className="userInfo">
-              <UserBadge user={user} showRole={true} size="large" />
-              <div className="userDetails">
-                <div className="detailRow">
-                  <strong>Email:</strong> {user.email}
+            <div className="profile-info">
+              <div className="profile-badge-container">
+                <UserBadge user={user} showRole={true} size="large" />
+              </div>
+              <div className="profile-details-grid">
+                <div className="profile-detail-row">
+                  <strong className="profile-detail-label">Email:</strong>
+                  <span className="profile-detail-value">{user.email}</span>
                 </div>
-                <div className="detailRow">
-                  <strong>Username:</strong> {user.username}
+                <div className="profile-detail-row">
+                  <strong className="profile-detail-label">Username:</strong>
+                  <span className="profile-detail-value">{user.username}</span>
                 </div>
-                <div className="detailRow">
-                  <strong>Role:</strong> {user.role ? user.role.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase()) : 'User'}
+                <div className="profile-detail-row">
+                  <strong className="profile-detail-label">Role:</strong>
+                  <span className="profile-detail-value">{user.role ? user.role.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase()) : 'User'}</span>
                 </div>
-                <div className="detailRow">
-                  <strong>Member Since:</strong> {new Date(user.date_created).toLocaleDateString()}
+                <div className="profile-detail-row">
+                  <strong className="profile-detail-label">Member Since:</strong>
+                  <span className="profile-detail-value">{new Date(user.date_created).toLocaleDateString()}</span>
                 </div>
                 {user.default_phone && (
-                  <div className="detailRow">
-                    <strong>Default Phone:</strong> {user.default_phone}
+                  <div className="profile-detail-row">
+                    <strong className="profile-detail-label">Default Phone:</strong>
+                    <span className="profile-detail-value">{user.default_phone}</span>
                   </div>
                 )}
                 {user.default_other_contact && (
-                  <div className="detailRow">
-                    <strong>Other Contact:</strong> {user.default_other_contact}
+                  <div className="profile-detail-row">
+                    <strong className="profile-detail-label">Other Contact:</strong>
+                    <span className="profile-detail-value">{user.default_other_contact}</span>
                   </div>
                 )}
               </div>
@@ -285,85 +292,81 @@ export const Profile: React.FC = () => {
           )}
         </div>
 
-        <div className="statsSection">
-          <h2 className="sectionTitle">Contributions</h2>
+        <div className="profile-section profile-card">
+          <h2 className="profile-section-title gradient-text">Contributions</h2>
           {loading ? (
-            <p>Loading statistics...</p>
+            <p className="profile-loading">Loading statistics...</p>
           ) : stats ? (
-            <div className="statsGrid">
-              <div className="statCard">
-                <div className="statIcon">🚨</div>
-                <div className="statValue">{stats.alerts}</div>
-                <div className="statLabel">Alerts</div>
+            <div className="profile-stats-grid">
+              <div className="profile-stat-card">
+                <div className="profile-stat-icon">🚨</div>
+                <div className="profile-stat-value">{stats.alerts}</div>
+                <div className="profile-stat-label">Alerts</div>
               </div>
-              <div className="statCard">
-                <div className="statIcon">📣</div>
-                <div className="statValue">{stats.requests}</div>
-                <div className="statLabel">Requests</div>
+              <div className="profile-stat-card">
+                <div className="profile-stat-icon">📣</div>
+                <div className="profile-stat-value">{stats.requests}</div>
+                <div className="profile-stat-label">Requests</div>
               </div>
-              <div className="statCard">
-                <div className="statIcon">💬</div>
-                <div className="statValue">{stats.responses}</div>
-                <div className="statLabel">Responses</div>
+              <div className="profile-stat-card">
+                <div className="profile-stat-icon">💬</div>
+                <div className="profile-stat-value">{stats.responses}</div>
+                <div className="profile-stat-label">Responses</div>
               </div>
-              <div className="statCard">
-                <div className="statIcon">📋</div>
-                <div className="statValue">{stats.reminders}</div>
-                <div className="statLabel">Reminders</div>
+              <div className="profile-stat-card">
+                <div className="profile-stat-icon">📋</div>
+                <div className="profile-stat-value">{stats.reminders}</div>
+                <div className="profile-stat-label">Reminders</div>
               </div>
-              <div className="statCard totalCard">
-                <div className="statIcon">📊</div>
-                <div className="statValue">{stats.total}</div>
-                <div className="statLabel">Total</div>
+              <div className="profile-stat-card profile-stat-total">
+                <div className="profile-stat-icon">📊</div>
+                <div className="profile-stat-value">{stats.total}</div>
+                <div className="profile-stat-label">Total</div>
               </div>
             </div>
           ) : (
-            <p>No statistics available.</p>
+            <p className="profile-no-stats">No statistics available.</p>
           )}
         </div>
 
-        <div className="premiumSection">
-          <h2 className="sectionTitle">Premium Status</h2>
-          <div className="premiumCard">
+        <div className="profile-section profile-card">
+          <h2 className="profile-section-title gradient-text">Premium Status</h2>
+          <div className="profile-premium-content">
             {user.is_premium ? (
-              <>
-                <div className="premiumActive">
-                  <span className="premiumBadge">⭐ Premium Member</span>
-                  <p className="premiumDescription">
-                    You have access to all premium features including promoted events, 
-                    advanced analytics, and enhanced visibility.
-                  </p>
-                  <button
-                    onClick={handleCancelPremium}
-                    disabled={cancelling}
-                    className="cancelButton"
-                  >
-                    {cancelling ? 'Cancelling...' : 'Cancel Premium'}
-                  </button>
-                </div>
-              </>
+              <div className="profile-premium-active">
+                <span className="profile-premium-badge">⭐ Premium Member</span>
+                <p className="profile-premium-description">
+                  You have access to all premium features including promoted events, 
+                  advanced analytics, and enhanced visibility.
+                </p>
+                <button
+                  onClick={handleCancelPremium}
+                  disabled={cancelling}
+                  className="profile-cancel-premium-button btn-secondary"
+                >
+                  {cancelling ? 'Cancelling...' : 'Cancel Premium'}
+                </button>
+              </div>
             ) : (
-              <>
-                <div className="premiumInactive">
-                  <h3 className="premiumTitle">Upgrade to Premium</h3>
-                  <p className="premiumDescription">
-                    Get access to premium features:
-                  </p>
-                  <ul className="premiumFeatures">
-                    <li className="premiumFeatureItem">✓ Create promoted events</li>
-                    <li className="premiumFeatureItem">✓ Highlight or boost visibility of content</li>
-                    <li className="premiumFeatureItem">✓ Access advanced stats and dashboards</li>
-                    <li className="premiumFeatureItem">✓ Additional premium-only UI sections</li>
-                  </ul>
-                  <button
-                    onClick={handleUpgrade}
-                    disabled={upgrading}
-                    className="upgradeButton"
-                  >
-                    {upgrading ? 'Upgrading...' : 'Upgrade to Premium'}
-                  </button>
-                </div>
-              </>
+              <div className="profile-premium-inactive">
+                <h3 className="profile-premium-title">Upgrade to Premium</h3>
+                <p className="profile-premium-description">
+                  Get access to premium features:
+                </p>
+                <ul className="profile-premium-features">
+                  <li>✓ Create promoted events</li>
+                  <li>✓ Highlight or boost visibility of content</li>
+                  <li>✓ Access advanced stats and dashboards</li>
+                  <li>✓ Additional premium-only UI sections</li>
+                </ul>
+                <button
+                  onClick={handleUpgrade}
+                  disabled={upgrading}
+                  className="profile-upgrade-button btn-primary"
+                >
+                  {upgrading ? 'Upgrading...' : 'Upgrade to Premium'}
+                </button>
+              </div>
             )}
           </div>
         </div>
@@ -371,5 +374,3 @@ export const Profile: React.FC = () => {
     </div>
   );
 };
-
-

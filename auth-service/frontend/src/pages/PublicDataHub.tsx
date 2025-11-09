@@ -361,15 +361,18 @@ export const PublicDataHub: React.FC = () => {
   };
 
   return (
-    <div className="public-data-hub-page">
-      <div className={getHeaderClassName()}>
-        <h1 className="headerTitle">Public Data Hub</h1>
-        <p className="headerSubtitle">
-          {activeTab === 'datastore' && 'Query and visualize structured data from data.gov.ro'}
-          {activeTab === 'social-aid' && 'Learn about social benefits and eligibility'}
-          {activeTab === 'explorer' && 'Explore Romanian open data'}
-        </p>
-        <div className="controlsRow">
+    <div className="min-h-screen bg-background-light">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <header className="mb-8">
+          <h1 className="text-4xl md:text-5xl font-bold mb-3 gradient-text">
+            Public Data Hub
+          </h1>
+          <p className="text-xl text-gray-600">
+            {activeTab === 'datastore' && 'Query and visualize structured data from data.gov.ro'}
+            {activeTab === 'social-aid' && 'Learn about social benefits and eligibility'}
+            {activeTab === 'explorer' && 'Explore Romanian open data'}
+          </p>
+          <div className="controlsRow mt-4">
           <div className="tabSelector">
             <button
               className={`tabButton ${activeTab === 'datastore' ? 'tabButtonActiveDatastore' : ''}`}
@@ -418,9 +421,9 @@ export const PublicDataHub: React.FC = () => {
             </div>
           )}
         </div>
-      </div>
+        </header>
 
-      <div className="content">
+        <div className="content">
         {error && (
           <div className="errorBanner">
             ⚠️ {error}
@@ -1181,6 +1184,7 @@ export const PublicDataHub: React.FC = () => {
             )}
           </div>
         )}
+        </div>
       </div>
     </div>
   );

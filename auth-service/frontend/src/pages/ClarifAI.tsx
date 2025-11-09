@@ -46,15 +46,18 @@ export const ClarifAI: React.FC = () => {
   };
 
   return (
-    <div className="clarifai-page">
-      <div className={`clarifai-header ${mode}`}>
-        <h1 className="header-title">ClarifAI</h1>
-        <p className="header-subtitle">
-          {mode === 'medical' 
-            ? 'Turn complex medical instructions into clear, simple steps'
-            : 'Turn complex legal documents into clear, simple steps'}
-        </p>
-        <div className="clarifai-controls">
+    <div className="min-h-screen bg-background-light">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <header className="mb-8">
+          <h1 className="text-4xl md:text-5xl font-bold mb-3 gradient-text">
+            ClarifAI
+          </h1>
+          <p className="text-xl text-gray-600">
+            {mode === 'medical' 
+              ? 'Turn complex medical instructions into clear, simple steps'
+              : 'Turn complex legal documents into clear, simple steps'}
+          </p>
+          <div className="clarifai-controls mt-4">
           <div className="tab-selector">
             <button
               className={`tab-button ${mode === 'medical' ? 'active-medical' : ''}`}
@@ -110,9 +113,9 @@ export const ClarifAI: React.FC = () => {
             </select>
           </div>
         </div>
-      </div>
+        </header>
 
-      <div className={`clarifai-content ${mode}`}>
+        <div className={`clarifai-content ${mode}`}>
         <InputSection
           onMedical={handleMedical}
           onLegal={handleLegal}
@@ -136,6 +139,7 @@ export const ClarifAI: React.FC = () => {
         )}
 
         <ReminderList />
+        </div>
       </div>
     </div>
   );

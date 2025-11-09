@@ -190,7 +190,7 @@ export default function LocationPicker({ initialLat, initialLng, onLocationSelec
 
         {/* Search Results */}
         {searchResults.length > 0 && (
-          <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+          <div className="absolute z-[1000] w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
             {searchResults.map((result, index) => (
               <button
                 key={index}

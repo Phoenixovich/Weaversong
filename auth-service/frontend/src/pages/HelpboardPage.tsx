@@ -149,13 +149,16 @@ export default function HelpboardPage() {
   };
 
   return (
-    <div className="helpboard-page">
-      <div className="header">
-        <h1 className="headerTitle">💼 Helpboard</h1>
-        <p className="headerSubtitle">
-          Connect with local helpers and offer your services
-        </p>
-        <div className="controlsRow">
+    <div className="min-h-screen bg-background-light">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <header className="mb-8">
+          <h1 className="text-4xl md:text-5xl font-bold mb-3 gradient-text">
+            💼 Helpboard
+          </h1>
+          <p className="text-xl text-gray-600">
+            Connect with local helpers and offer your services
+          </p>
+          <div className="controlsRow mt-4">
           <div className="tabSelector">
             <button
               className={`tabButton ${activeTab === 'requests' ? 'tabButtonActive' : ''}`}
@@ -171,9 +174,9 @@ export default function HelpboardPage() {
             </button>
           </div>
         </div>
-      </div>
+        </header>
 
-      <div className="content">
+        <div className="content">
         {activeTab === 'requests' && (
           <div>
             <div className="createSection">
@@ -354,6 +357,7 @@ export default function HelpboardPage() {
           })()}
         </div>
         )}
+        </div>
       </div>
     </div>
   );
