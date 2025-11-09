@@ -14,6 +14,7 @@ interface PedestrianAnalytics {
   daily_stats: { [day: string]: number };
   peak_hours: number[];
   average_per_hour: number;
+  business_suggestions: string[];
 }
 
 interface PopularLocation {
@@ -283,6 +284,35 @@ export const PedestrianAnalyzer: React.FC = () => {
                   </div>
                 </div>
 
+                {/* Business Suggestions */}
+                {selectedLocation.business_suggestions && selectedLocation.business_suggestions.length > 0 && (
+                  <div style={styles.suggestionsCard}>
+                    <h4 style={styles.suggestionsTitle}>💡 Business Suggestions</h4>
+                    <p style={styles.suggestionsSubtitle}>
+                      Based on peak hours and traffic patterns, these business types would be ideal for this location:
+                    </p>
+                    <div style={styles.suggestionsList}>
+                      {selectedLocation.business_suggestions.map((suggestion, index) => (
+                        <div key={index} style={styles.suggestionItem}>
+                          <span style={styles.suggestionIcon}>
+                            {suggestion === 'Coffee Shop' && '☕'}
+                            {suggestion === 'Pastry Shop' && '🥐'}
+                            {suggestion === 'Vending Machine' && '🥤'}
+                            {suggestion === 'Restaurant' && '🍽️'}
+                            {suggestion === 'Fast Food' && '🍔'}
+                            {suggestion === 'Night Club' && '🎉'}
+                            {suggestion === 'Bar' && '🍺'}
+                            {suggestion === 'Convenience Store' && '🏪'}
+                            {suggestion === 'Food Truck' && '🚚'}
+                            {!['Coffee Shop', 'Pastry Shop', 'Vending Machine', 'Restaurant', 'Fast Food', 'Night Club', 'Bar', 'Convenience Store', 'Food Truck'].includes(suggestion) && '💼'}
+                          </span>
+                          <span style={styles.suggestionText}>{suggestion}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
                 <div style={styles.chartContainer}>
                   <h4 style={styles.chartTitle}>Hourly Traffic Pattern</h4>
                   <ResponsiveContainer width="100%" height={300}>
@@ -337,6 +367,23 @@ export const PedestrianAnalyzer: React.FC = () => {
                           <span style={styles.analyticsStatLabel}>Avg/Hour</span>
                         </div>
                       </div>
+                      {item.business_suggestions && item.business_suggestions.length > 0 && (
+                        <div style={styles.quickSuggestions}>
+                          <div style={styles.quickSuggestionsLabel}>Suggestions:</div>
+                          <div style={styles.quickSuggestionsList}>
+                            {item.business_suggestions.slice(0, 2).map((suggestion, idx) => (
+                              <span key={idx} style={styles.quickSuggestionTag}>
+                                {suggestion}
+                              </span>
+                            ))}
+                            {item.business_suggestions.length > 2 && (
+                              <span style={styles.quickSuggestionTag}>
+                                +{item.business_suggestions.length - 2} more
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      )}
                       <button
                         onClick={() => setSelectedLocation(item)}
                         style={styles.viewDetailsButton}
@@ -608,6 +655,71 @@ const styles: { [key: string]: React.CSSProperties } = {
   loadingText: {
     fontSize: '0.9rem',
     color: '#666',
+  },
+  suggestionsCard: {
+    marginTop: '2rem',
+    padding: '1.5rem',
+    backgroundColor: 'white',
+    borderRadius: '8px',
+    border: '2px solid #e3f2fd',
+  },
+  suggestionsTitle: {
+    margin: '0 0 0.5rem 0',
+    color: '#333',
+    fontSize: '1.2rem',
+  },
+  suggestionsSubtitle: {
+    margin: '0 0 1rem 0',
+    color: '#666',
+    fontSize: '0.9rem',
+  },
+  suggestionsList: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '0.75rem',
+  },
+  suggestionItem: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '0.75rem',
+    padding: '0.75rem',
+    backgroundColor: '#f8f9fa',
+    borderRadius: '6px',
+    border: '1px solid #e9ecef',
+  },
+  suggestionIcon: {
+    fontSize: '1.5rem',
+  },
+  suggestionText: {
+    fontSize: '1rem',
+    color: '#333',
+    fontWeight: '500',
+  },
+  quickSuggestions: {
+    marginBottom: '1rem',
+    padding: '0.75rem',
+    backgroundColor: '#f8f9fa',
+    borderRadius: '6px',
+    border: '1px solid #e9ecef',
+  },
+  quickSuggestionsLabel: {
+    fontSize: '0.85rem',
+    color: '#666',
+    marginBottom: '0.5rem',
+    fontWeight: '500',
+  },
+  quickSuggestionsList: {
+    display: 'flex',
+    flexWrap: 'wrap',
+    gap: '0.5rem',
+  },
+  quickSuggestionTag: {
+    padding: '0.25rem 0.75rem',
+    backgroundColor: '#007bff',
+    color: 'white',
+    borderRadius: '12px',
+    fontSize: '0.8rem',
+    fontWeight: '500',
   },
 };
 

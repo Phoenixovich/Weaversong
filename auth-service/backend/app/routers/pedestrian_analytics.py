@@ -17,6 +17,121 @@ from app.models.user import UserInDB, UserRole
 router = APIRouter(prefix="/pedestrian", tags=["pedestrian"])
 
 
+def generate_business_suggestions(
+    peak_hours: List[int],
+    daily_stats: dict,
+    hourly_stats: dict,
+    total_count: int
+) -> List[str]:
+    """
+    Generate business suggestions based on peak hours and days of the week.
+    Always returns at least 1 suggestion.
+    
+    Args:
+        peak_hours: List of peak hours (0-23)
+        daily_stats: Dictionary mapping day_of_week (0-6) to count
+        hourly_stats: Dictionary mapping hour (0-23) to count
+        total_count: Total pedestrian count
+    
+    Returns:
+        List of business type suggestions
+    """
+    suggestions = []
+    scores = {}
+    
+    # Analyze peak hours
+    morning_traffic = sum(hourly_stats.get(str(h), 0) for h in range(6, 12))
+    daytime_traffic = sum(hourly_stats.get(str(h), 0) for h in range(12, 18))
+    evening_traffic = sum(hourly_stats.get(str(h), 0) for h in range(18, 22))
+    night_traffic = sum(hourly_stats.get(str(h), 0) for h in range(22, 24)) + sum(hourly_stats.get(str(h), 0) for h in range(0, 6))
+    
+    # Analyze days of week
+    weekday_traffic = sum(daily_stats.get(str(d), 0) for d in range(0, 5))  # Monday-Friday
+    weekend_traffic = sum(daily_stats.get(str(d), 0) for d in range(5, 7))  # Saturday-Sunday
+    
+    # Check for specific peak hours
+    has_morning_peak = any(6 <= h < 12 for h in peak_hours)
+    has_lunch_peak = any(11 <= h <= 14 for h in peak_hours)
+    has_afternoon_peak = any(14 <= h < 18 for h in peak_hours)
+    has_evening_peak = any(18 <= h < 22 for h in peak_hours)
+    has_night_peak = any(h >= 22 or h < 6 for h in peak_hours)
+    
+    # Coffee Shop - good for morning and daytime traffic
+    if morning_traffic > 0 or daytime_traffic > 0:
+        score = (morning_traffic * 2 + daytime_traffic) / total_count if total_count > 0 else 0
+        scores["Coffee Shop"] = score
+    
+    # Pastry/Bakery - morning and daytime
+    if morning_traffic > 0 or has_morning_peak:
+        score = (morning_traffic * 1.5 + daytime_traffic * 0.5) / total_count if total_count > 0 else 0
+        scores["Pastry Shop"] = score
+    
+    # Vending Machine - good for consistent traffic throughout the day
+    if total_count > 0:
+        hour_variance = len([h for h in range(24) if hourly_stats.get(str(h), 0) > 0])
+        score = (hour_variance / 24.0) * 0.5 + (total_count / 1000.0) * 0.5
+        scores["Vending Machine"] = min(score, 1.0)
+    
+    # Restaurant - lunch and dinner hours
+    if has_lunch_peak or has_evening_peak:
+        score = ((sum(hourly_stats.get(str(h), 0) for h in [11, 12, 13, 14]) * 1.5 +
+                 sum(hourly_stats.get(str(h), 0) for h in [18, 19, 20, 21]) * 1.5) / total_count) if total_count > 0 else 0
+        scores["Restaurant"] = score
+    
+    # Fast Food - lunch and evening
+    if has_lunch_peak or has_evening_peak:
+        score = ((sum(hourly_stats.get(str(h), 0) for h in [11, 12, 13, 14, 18, 19, 20, 21]) * 1.2) / total_count) if total_count > 0 else 0
+        scores["Fast Food"] = score
+    
+    # Night Club - night traffic, especially weekends
+    if has_night_peak or night_traffic > 0:
+        score = ((night_traffic * 1.5 + weekend_traffic * 0.5) / total_count) if total_count > 0 else 0
+        scores["Night Club"] = score
+    
+    # Bar - evening and night, weekends
+    if has_evening_peak or has_night_peak:
+        score = ((evening_traffic + night_traffic * 1.2 + weekend_traffic * 0.8) / total_count) if total_count > 0 else 0
+        scores["Bar"] = score
+    
+    # Convenience Store - consistent traffic
+    if total_count > 50:
+        hour_coverage = len([h for h in range(24) if hourly_stats.get(str(h), 0) > 0])
+        score = (hour_coverage / 24.0) * 0.6 + (total_count / 500.0) * 0.4
+        scores["Convenience Store"] = min(score, 1.0)
+    
+    # Food Truck - lunch and evening peaks
+    if has_lunch_peak or has_evening_peak:
+        score = ((sum(hourly_stats.get(str(h), 0) for h in [11, 12, 13, 14, 18, 19, 20]) * 1.3) / total_count) if total_count > 0 else 0
+        scores["Food Truck"] = score
+    
+    # Sort by score and get top suggestions
+    sorted_suggestions = sorted(scores.items(), key=lambda x: x[1], reverse=True)
+    
+    # Always return at least 1 suggestion
+    if sorted_suggestions:
+        # Get top 3 suggestions
+        top_suggestions = [s[0] for s in sorted_suggestions[:3]]
+        suggestions.extend(top_suggestions)
+    else:
+        # Fallback: suggest based on total traffic
+        if total_count > 100:
+            suggestions.append("Vending Machine")
+        elif total_count > 50:
+            suggestions.append("Coffee Shop")
+        else:
+            suggestions.append("Convenience Store")
+    
+    # Remove duplicates while preserving order
+    seen = set()
+    unique_suggestions = []
+    for s in suggestions:
+        if s not in seen:
+            seen.add(s)
+            unique_suggestions.append(s)
+    
+    return unique_suggestions[:3]  # Return top 3 suggestions
+
+
 def can_access_pedestrian_analytics(user: Optional[UserInDB]) -> bool:
     """Check if user can access pedestrian analytics (premium or admin)"""
     if not user:
@@ -245,6 +360,14 @@ async def get_pedestrian_analytics(
             except:
                 pass
 
+        # Generate business suggestions based on peak hours and days
+        business_suggestions = generate_business_suggestions(
+            peak_hours=peak_hours,
+            daily_stats=daily_stats,
+            hourly_stats=hourly_stats,
+            total_count=doc["total_count"]
+        )
+
         results.append(PedestrianAnalyticsResponse(
             location_name=location_name_result,
             lat=location_lat,
@@ -253,7 +376,8 @@ async def get_pedestrian_analytics(
             hourly_stats=hourly_stats,
             daily_stats=daily_stats,
             peak_hours=peak_hours,
-            average_per_hour=round(average_per_hour, 2)
+            average_per_hour=round(average_per_hour, 2),
+            business_suggestions=business_suggestions
         ))
 
     return results
