@@ -87,7 +87,8 @@ export const publicDataAPI = {
 
       analyzeDatastoreResource: async (
         resourceId: string,
-        model: string = 'gemini-2.5-flash'
+        model: string = 'gemini-2.5-flash',
+        maxFields?: number
       ): Promise<{
         visualizable_fields: string[];
         recommended_limit: number;
@@ -99,6 +100,9 @@ export const publicDataAPI = {
       }> => {
         const formData = new FormData();
         formData.append('model', model);
+        if (maxFields !== undefined && maxFields !== null) {
+          formData.append('max_fields', maxFields.toString());
+        }
         const response = await api.post(`/public-data/datastore/${resourceId}/analyze`, formData, {
           headers: {
             'Content-Type': 'multipart/form-data',

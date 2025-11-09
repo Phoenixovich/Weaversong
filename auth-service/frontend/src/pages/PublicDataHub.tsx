@@ -62,6 +62,7 @@ export const PublicDataHub: React.FC = () => {
   const [chartType, setChartType] = useState<'bar' | 'line' | 'pie' | 'table'>('bar');
   const [chartField, setChartField] = useState('');
   const [autoVisualize, setAutoVisualize] = useState(true);
+  const [maxFields, setMaxFields] = useState<number | undefined>(5);
 
   // Social Aid state
   const [socialAidQuestion, setSocialAidQuestion] = useState('');
@@ -142,7 +143,7 @@ export const PublicDataHub: React.FC = () => {
     setVisualizationAnalysis(null);
 
     try {
-      const analysis = await publicDataAPI.analyzeDatastoreResource(resourceId, model);
+      const analysis = await publicDataAPI.analyzeDatastoreResource(resourceId, model, maxFields);
       setVisualizationAnalysis(analysis);
       // Update SQL query with recommended limit
       setSqlQuery(`SELECT * FROM "${resourceId}" LIMIT ${analysis.recommended_limit}`);
@@ -579,6 +580,39 @@ export const PublicDataHub: React.FC = () => {
                   
                   {/* Analysis Section */}
                   <div style={styles.analysisSection}>
+                    <div style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
+                      <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.9rem', color: '#333' }}>
+                        <span>Max Fields to Analyze:</span>
+                        <input
+                          type="number"
+                          min="1"
+                          max="50"
+                          value={maxFields || ''}
+                          onChange={(e) => {
+                            const value = e.target.value;
+                            if (value === '') {
+                              setMaxFields(undefined);
+                            } else {
+                              const numValue = parseInt(value, 10);
+                              if (!isNaN(numValue) && numValue >= 1 && numValue <= 50) {
+                                setMaxFields(numValue);
+                              }
+                            }
+                          }}
+                          style={{
+                            padding: '0.5rem',
+                            border: '1px solid #ddd',
+                            borderRadius: '4px',
+                            width: '80px',
+                            fontSize: '0.9rem'
+                          }}
+                          placeholder="5"
+                        />
+                      </label>
+                      <span style={{ fontSize: '0.85rem', color: '#666' }}>
+                        (Gemini will select the most relevant fields)
+                      </span>
+                    </div>
                     <button
                       onClick={handleAnalyzeResource}
                       disabled={analyzing}
@@ -882,7 +916,7 @@ export const PublicDataHub: React.FC = () => {
                                     fill="#8884d8"
                                     dataKey="value"
                                   >
-                                    {chartData.map((entry, index) => (
+                                    {chartData.map((_, index) => (
                                       <Cell key={`cell-${index}`} fill={`hsl(${index * 360 / chartData.length}, 70%, 50%)`} />
                                     ))}
                                   </Pie>
@@ -938,7 +972,7 @@ export const PublicDataHub: React.FC = () => {
                             fill="#8884d8"
                             dataKey="value"
                           >
-                            {getChartData().map((entry, index) => (
+                            {getChartData().map((_, index) => (
                               <Cell key={`cell-${index}`} fill={`hsl(${index * 360 / getChartData().length}, 70%, 50%)`} />
                             ))}
                           </Pie>

@@ -201,9 +201,13 @@ async def datastore_search_sql(sql_query: str) -> Dict:
         raise Exception(f"Error executing SQL query: {str(e)}")
 
 
-async def analyze_resource_for_visualization(resource_id: str, model_name: str = 'gemini-2.5-flash') -> Dict:
+async def analyze_resource_for_visualization(resource_id: str, model_name: str = 'gemini-2.5-flash', max_fields: Optional[int] = None) -> Dict:
     """
     Use Gemini to analyze resource data and recommend visualization fields and limits
+    Args:
+        resource_id: The resource ID to analyze
+        model_name: The Gemini model to use
+        max_fields: Maximum number of fields to return (None for no limit, Gemini will select the most relevant)
     """
     try:
         # First, get sample data from the resource
@@ -238,6 +242,10 @@ async def analyze_resource_for_visualization(resource_id: str, model_name: str =
         # Format fields list for display
         fields_list = ", ".join([f["id"] for f in fields])
         
+        max_fields_instruction = ""
+        if max_fields and max_fields > 0:
+            max_fields_instruction = f"\nIMPORTANT: Return ONLY the top {max_fields} MOST RELEVANT fields for visualization. Prioritize fields that are most useful for creating meaningful charts and visualizations."
+        
         prompt = f"""You are a data visualization expert. Analyze this datastore resource and recommend:
 
 1. **Visualizable Fields**: Which fields should be visualized? Skip:
@@ -245,6 +253,7 @@ async def analyze_resource_for_visualization(resource_id: str, model_name: str =
    - Fields with mostly unique values (like IDs)
    - Fields with only 1-2 distinct values (not informative)
    - Empty or mostly null fields
+   {max_fields_instruction}
 
 2. **Recommended Limits**: What's a good limit for querying this data? Consider:
    - Total records: {total}
@@ -306,6 +315,15 @@ Analysis:"""
         if "field_recommendations" not in analysis:
             analysis["field_recommendations"] = {}
         
+        # Limit fields if max_fields is specified
+        if max_fields and max_fields > 0 and len(analysis["visualizable_fields"]) > max_fields:
+            analysis["visualizable_fields"] = analysis["visualizable_fields"][:max_fields]
+            # Also limit field_recommendations to match
+            analysis["field_recommendations"] = {
+                k: v for k, v in analysis["field_recommendations"].items() 
+                if k in analysis["visualizable_fields"]
+            }
+        
         return analysis
     except json.JSONDecodeError as e:
         print(f"Error parsing Gemini JSON response: {str(e)}")
@@ -326,8 +344,10 @@ Analysis:"""
             ]
         else:
             visualizable_fields = []
+        # Limit fields if max_fields is specified
+        limited_fields = visualizable_fields[:max_fields] if (max_fields and max_fields > 0) else (visualizable_fields[:6] if visualizable_fields else [])
         return {
-            "visualizable_fields": visualizable_fields[:6] if visualizable_fields else [],
+            "visualizable_fields": limited_fields,
             "recommended_limit": min(500, max(100, total)) if 'total' in locals() else 100,
             "field_recommendations": {}
         }

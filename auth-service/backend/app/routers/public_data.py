@@ -171,6 +171,7 @@ async def get_datastore_resource(
 async def analyze_datastore_resource(
     resource_id: str,
     model: Optional[str] = Form('gemini-2.5-flash'),
+    max_fields: Optional[int] = Form(None),
     user_id: str = Depends(get_current_user_id)
 ):
     """
@@ -178,7 +179,7 @@ async def analyze_datastore_resource(
     """
     try:
         from app.services.data_gov_service import analyze_resource_for_visualization
-        analysis = await analyze_resource_for_visualization(resource_id, model_name=model)
+        analysis = await analyze_resource_for_visualization(resource_id, model_name=model, max_fields=max_fields)
         return analysis
     except Exception as e:
         raise HTTPException(
