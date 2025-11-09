@@ -123,7 +123,7 @@ export const PublicDataHub: React.FC = () => {
       setResourceInfo(info);
       setSqlQuery(`SELECT * FROM "${resourceId}" LIMIT 100`);
       // Set first field as default chart field
-      if (info.fields && info.fields.length > 0) {
+      if (info.fields && Array.isArray(info.fields) && info.fields.length > 0) {
         setChartField(info.fields[0].id);
       }
     } catch (err: any) {
@@ -165,7 +165,7 @@ export const PublicDataHub: React.FC = () => {
     }
 
     // Auto-select first visualizable field
-    if (visualizationAnalysis.visualizable_fields.length > 0) {
+    if (Array.isArray(visualizationAnalysis.visualizable_fields) && visualizationAnalysis.visualizable_fields.length > 0) {
       setChartField(visualizationAnalysis.visualizable_fields[0]);
       // Set chart type based on recommendation if available
       const firstField = visualizationAnalysis.visualizable_fields[0];
@@ -215,10 +215,12 @@ export const PublicDataHub: React.FC = () => {
   // Generate chart data from results
   const getChartData = (fieldName?: string) => {
     const field = fieldName || chartField;
-    if (!datastoreResults || !field || !datastoreResults.records.length) return [];
+    if (!datastoreResults || !field || !Array.isArray(datastoreResults.records) || !datastoreResults.records.length) return [];
 
     // Count occurrences or sum values by field
     const fieldData: Record<string, number> = {};
+    
+    if (!Array.isArray(datastoreResults.records)) return [];
     
     datastoreResults.records.forEach((record) => {
       const value = record[field];
@@ -236,16 +238,18 @@ export const PublicDataHub: React.FC = () => {
 
   // Get numeric fields that can be visualized
   const getVisualizableFields = () => {
-    if (!datastoreResults || !datastoreResults.fields || !datastoreResults.records.length) return [];
+    if (!datastoreResults || !Array.isArray(datastoreResults.fields) || !Array.isArray(datastoreResults.records) || !datastoreResults.records.length) return [];
     
     // Find fields that have numeric or categorical data
     const visualizableFields: Array<{ id: string; type: string; sampleValues: any[] }> = [];
     
+    if (!Array.isArray(datastoreResults.fields)) return [];
+    
     datastoreResults.fields.forEach((field) => {
-      const sampleValues = datastoreResults.records
+      const sampleValues = Array.isArray(datastoreResults.records) ? datastoreResults.records
         .slice(0, 10)
         .map(r => r[field.id])
-        .filter(v => v !== null && v !== undefined);
+        .filter(v => v !== null && v !== undefined) : [];
       
       if (sampleValues.length > 0) {
         visualizableFields.push({
@@ -261,7 +265,7 @@ export const PublicDataHub: React.FC = () => {
 
   // Auto-select first visualizable field when results load
   useEffect(() => {
-    if (datastoreResults && datastoreResults.fields && datastoreResults.fields.length > 0 && autoVisualize) {
+    if (datastoreResults && Array.isArray(datastoreResults.fields) && datastoreResults.fields.length > 0 && autoVisualize) {
       const visualizableFields = getVisualizableFields();
       if (visualizableFields.length > 0) {
         // Auto-select first field if none selected
@@ -308,7 +312,7 @@ export const PublicDataHub: React.FC = () => {
 
     try {
       const response = await publicDataAPI.listDatasets(searchQuery || undefined, 20);
-      setDatasets(response.datasets);
+      setDatasets(Array.isArray(response.datasets) ? response.datasets : []);
     } catch (err: any) {
       setError(err.response?.data?.detail || 'Failed to search datasets');
       console.error('Error:', err);
@@ -363,7 +367,7 @@ export const PublicDataHub: React.FC = () => {
   return (
     <div className="min-h-screen bg-background-light">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <header className="mb-8">
+        <header className={`mb-8 ${getHeaderClassName()}`}>
           <h1 className="text-4xl md:text-5xl font-bold mb-3 gradient-text">
             Public Data Hub
           </h1>
@@ -457,13 +461,13 @@ export const PublicDataHub: React.FC = () => {
                       className="selectField"
                     >
                       <option value="All">All Categories ({resourcesTotal || 0})</option>
-                      {Object.entries(categoryCounts)
+                      {categoryCounts && typeof categoryCounts === 'object' ? Object.entries(categoryCounts)
                         .sort((a, b) => b[1] - a[1])
                         .map(([cat, count]) => (
                           <option key={cat} value={cat}>
                             {cat} ({count})
                           </option>
-                        ))}
+                        )) : null}
                     </select>
                   </div>
                   <div className="filterField">
@@ -500,7 +504,7 @@ export const PublicDataHub: React.FC = () => {
                         className="resourceIdSelect"
                       >
                         <option value="">Select a resource from the list below...</option>
-                        {predefinedResources.map((resource) => (
+                        {Array.isArray(predefinedResources) ? predefinedResources.map((resource) => (
                           <option key={resource.id} value={resource.id}>
                             {resource.name} {resource.format ? `(${resource.format})` : ''} {resource.year ? `[${resource.year}]` : ''}
                           </option>
@@ -565,7 +569,7 @@ export const PublicDataHub: React.FC = () => {
                 <div className="resourceInfoBox">
                   <h3 className="resourceInfoTitle">Resource Information</h3>
                   <p><strong>Total Records:</strong> {resourceInfo.total_records.toLocaleString()}</p>
-                  <p><strong>Fields ({resourceInfo.fields.length}):</strong> {resourceInfo.fields.map(f => f.id).join(', ')}</p>
+                  <p><strong>Fields ({resourceInfo.fields?.length || 0}):</strong> {Array.isArray(resourceInfo.fields) ? resourceInfo.fields.map(f => f.id).join(', ') : ''}</p>
                   
                   {/* Analysis Section */}
                   <div className="analysisSection">
@@ -614,10 +618,10 @@ export const PublicDataHub: React.FC = () => {
                       <div className="analysisResults">
                         <h4 className="analysisTitle">📊 Analysis Results</h4>
                         <p><strong>Recommended Limit:</strong> {visualizationAnalysis.recommended_limit} records</p>
-                        <p><strong>Visualizable Fields:</strong> {visualizationAnalysis.visualizable_fields.join(', ')}</p>
+                        <p><strong>Visualizable Fields:</strong> {Array.isArray(visualizationAnalysis.visualizable_fields) ? visualizationAnalysis.visualizable_fields.join(', ') : 'N/A'}</p>
                         {visualizationAnalysis.field_recommendations && Object.keys(visualizationAnalysis.field_recommendations).length > 0 && (
                           <div className="recommendationsList">
-                            {Object.entries(visualizationAnalysis.field_recommendations).map(([field, rec]) => (
+                            {visualizationAnalysis.field_recommendations && Object.entries(visualizationAnalysis.field_recommendations).map(([field, rec]) => (
                               <div key={field} className="recommendationItem">
                                 <strong>{field}:</strong> {rec.chart_type} chart ({rec.data_type}) - {rec.reason}
                               </div>
@@ -686,7 +690,7 @@ export const PublicDataHub: React.FC = () => {
                             className="selectField"
                           >
                             <option value="">Select field...</option>
-                            {resourceInfo.fields.map((field) => (
+                            {Array.isArray(resourceInfo.fields) && resourceInfo.fields.map((field) => (
                               <option key={field.id} value={field.id}>
                                 {field.id} ({field.type})
                               </option>
@@ -792,7 +796,7 @@ export const PublicDataHub: React.FC = () => {
             {datastoreResults && (
               <div className="outputSection">
                 <h2 className="sectionTitle">
-                  Results ({datastoreResults.total?.toLocaleString() || datastoreResults.records.length} records)
+                  Results ({datastoreResults.total?.toLocaleString() || (Array.isArray(datastoreResults.records) ? datastoreResults.records.length : 0)} records)
                 </h2>
                 
                 {/* Dashboard Controls */}
@@ -840,7 +844,7 @@ export const PublicDataHub: React.FC = () => {
                 </div>
 
                 {/* Auto Visualizations - Show charts for recommended or all fields */}
-                {autoVisualize && chartType !== 'table' && datastoreResults.fields && datastoreResults.fields.length > 0 && (
+                {autoVisualize && chartType !== 'table' && Array.isArray(datastoreResults.fields) && datastoreResults.fields.length > 0 && (
                   <div className="autoChartsContainer">
                     <h3 className="autoChartsTitle">
                       📊 Automatic Visualizations
@@ -849,7 +853,7 @@ export const PublicDataHub: React.FC = () => {
                       )}
                     </h3>
                     <div className="chartsGrid">
-                      {(visualizationAnalysis?.visualizable_fields || datastoreResults.fields.slice(0, 6).map(f => f.id)).map((fieldId) => {
+                      {((Array.isArray(visualizationAnalysis?.visualizable_fields) ? visualizationAnalysis.visualizable_fields : null) || (Array.isArray(datastoreResults.fields) ? datastoreResults.fields.slice(0, 6).map(f => f.id) : [])).map((fieldId) => {
                         const field = datastoreResults.fields?.find(f => f.id === fieldId);
                         if (!field) return null;
                         
@@ -980,13 +984,13 @@ export const PublicDataHub: React.FC = () => {
                         </tr>
                       </thead>
                       <tbody>
-                        {datastoreResults.records.map((record, idx) => (
+                        {Array.isArray(datastoreResults.records) ? datastoreResults.records.map((record, idx) => (
                           <tr key={idx} className="tableRow">
-                            {datastoreResults.fields?.map((field) => (
+                            {Array.isArray(datastoreResults.fields) ? datastoreResults.fields.map((field) => (
                               <td key={field.id} className="tableCell">
                                 {String(record[field.id] ?? '')}
                               </td>
-                            ))}
+                            )) : null}
                           </tr>
                         ))}
                       </tbody>
@@ -1129,7 +1133,7 @@ export const PublicDataHub: React.FC = () => {
                       </div>
                     )}
                     
-                    {aggregatedView.structure && Object.keys(aggregatedView.structure).length > 0 && (
+                    {aggregatedView.structure && typeof aggregatedView.structure === 'object' && Object.keys(aggregatedView.structure).length > 0 && (
                       <div className="structureSection">
                         <h4 className="structureTitle">Data Structure</h4>
                         {aggregatedView.structure.headers && (

@@ -32,9 +32,10 @@ export default function ResponsesPage() {
   const fetchRequests = async () => {
     try {
       const res = await api.get<RequestItem[]>('/helpboard/requests');
-      setRequests(res.data);
+      setRequests(Array.isArray(res.data) ? res.data : []);
     } catch (error) {
       console.error('Failed to fetch requests:', error);
+      setRequests([]); // Ensure it's always an array
     }
   };
 
@@ -42,9 +43,10 @@ export default function ResponsesPage() {
     setLoading(true);
     try {
       const res = await api.get<ResponseItem[]>('/helpboard/responses');
-      setResponses(res.data);
+      setResponses(Array.isArray(res.data) ? res.data : []);
     } catch (error) {
       console.error('Failed to fetch responses:', error);
+      setResponses([]); // Ensure it's always an array
     } finally {
       setLoading(false);
     }
@@ -59,9 +61,9 @@ export default function ResponsesPage() {
   const getFilteredResponses = () => {
     if (!user) return [];
     const userRequestIds = new Set(
-      requests.filter(r => r.user_id === user.id).map(r => r._id)
+      Array.isArray(requests) ? requests.filter(r => r.user_id === user.id).map(r => r._id) : []
     );
-    return responses.filter(r => userRequestIds.has(r.request_id));
+    return Array.isArray(responses) ? responses.filter(r => userRequestIds.has(r.request_id)) : [];
   };
 
   const getStatusColor = (status?: string) => {

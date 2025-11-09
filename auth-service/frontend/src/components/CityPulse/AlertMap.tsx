@@ -182,9 +182,9 @@ export default function AlertMap({ alerts, selectedNeighborhood }: AlertMapProps
 
   // Filter alerts that have valid coordinates
   // For map view: show ALL alerts (don't filter by neighborhood - just zoom)
-  const alertsWithCoords = alerts.filter(
-    alert => alert.location.lat !== null && alert.location.lng !== null
-  )
+  const alertsWithCoords = Array.isArray(alerts) ? alerts.filter(
+    alert => alert && alert.location && alert.location.lat !== null && alert.location.lng !== null
+  ) : []
 
   // Default center (Bucharest)
   const defaultCenter: [number, number] = [44.4268, 26.1025]

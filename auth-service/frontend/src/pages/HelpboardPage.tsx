@@ -49,9 +49,10 @@ export default function HelpboardPage() {
     setLoading(true);
     try {
       const res = await api.get<RequestItem[]>('/helpboard/requests');
-      setRequests(res.data);
+      setRequests(Array.isArray(res.data) ? res.data : []);
     } catch (error) {
       console.error('Failed to fetch requests:', error);
+      setRequests([]); // Ensure it's always an array
     } finally {
       setLoading(false);
     }
@@ -61,9 +62,10 @@ export default function HelpboardPage() {
     setLoading(true);
     try {
       const res = await api.get<ResponseItem[]>('/helpboard/responses');
-      setResponses(res.data);
+      setResponses(Array.isArray(res.data) ? res.data : []);
     } catch (error) {
       console.error('Failed to fetch responses:', error);
+      setResponses([]); // Ensure it's always an array
     } finally {
       setLoading(false);
     }
@@ -92,11 +94,12 @@ export default function HelpboardPage() {
 
   const getResponsesForRequest = (requestId: string) => {
     // Only show responses if the current user owns the request
+    if (!Array.isArray(requests)) return [];
     const request = requests.find(r => r._id === requestId);
     if (!user || !request || request.user_id !== user.id) {
       return [];
     }
-    return responses.filter(r => r.request_id === requestId);
+    return Array.isArray(responses) ? responses.filter(r => r.request_id === requestId) : [];
   };
 
   const getResponseStatusColor = (status?: string) => {
@@ -186,7 +189,7 @@ export default function HelpboardPage() {
               </div>
             ) : (
               <div className="requestsGrid">
-                {requests.map((request) => (
+                {Array.isArray(requests) ? requests.map((request) => (
                   <div key={request._id} className="requestCard">
                     <div className="requestHeader">
                       <h3 className="requestTitle">{request.title}</h3>
@@ -293,7 +296,7 @@ export default function HelpboardPage() {
                       </div>
                     )}
                   </div>
-                ))}
+                )) : []}
               </div>
             )}
           </div>
@@ -311,7 +314,7 @@ export default function HelpboardPage() {
             </div>
           ) : (() => {
             const userRequestIds = new Set(
-              requests.filter(r => r.user_id === user.id).map(r => r._id)
+              Array.isArray(requests) ? requests.filter(r => r.user_id === user.id).map(r => r._id) : []
             );
             const filteredResponses = responses.filter(r => userRequestIds.has(r.request_id));
             return filteredResponses.length === 0 ? (
@@ -320,7 +323,7 @@ export default function HelpboardPage() {
               </div>
             ) : (
               <div className="responsesList">
-                {filteredResponses.map((response) => (
+                {Array.isArray(filteredResponses) ? filteredResponses.map((response) => (
                 <div key={response._id} className="responseCard">
                   <div className="responseHeader">
                     <div className="responseInfo">
@@ -343,7 +346,7 @@ export default function HelpboardPage() {
                     </div>
                   )}
                 </div>
-              ))}
+              )) : []}
             </div>
             );
           })()}

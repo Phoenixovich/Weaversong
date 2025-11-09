@@ -13,6 +13,10 @@ allowed_origins = [
     settings.cors_origin,
     "http://localhost:5173",
     "http://localhost:5174",
+    "http://localhost:3000",     # React local dev
+    "http://localhost:8888",     # Netlify CLI
+    "https://weaversong.netlify.app",  # ✅ your deployed frontend
+    "https://*.ngrok-free.app",        # ✅ wildcard for your ngrok URL
 ]
 
 # Add ngrok URL from environment if provided
@@ -23,7 +27,7 @@ if ngrok_url:
 # CORS middleware - allows localhost, configured CORS_ORIGIN, and any ngrok domain
 app.add_middleware(
     CORSMiddleware,
-    allow_origin_regex=r'https?://.*\.(ngrok\.io|ngrok-free\.app).*',  # Allow any ngrok domain
+    allow_origin_regex=r'https?://.*\.(ngrok\.io|ngrok-free\.app|ngrok-free\.dev|ngrok\.app).*',  # Allow any ngrok domain
     allow_origins=allowed_origins,  # Explicit origins (localhost, Netlify, etc.)
     allow_credentials=True,
     allow_methods=["*"],

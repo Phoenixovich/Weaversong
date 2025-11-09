@@ -43,7 +43,7 @@ const HelpboardLanding: React.FC = () => {
 
   // Get active requests (not closed)
   const getActiveRequests = () => {
-    return allRequests.filter((r) => r.status !== 'closed');
+    return Array.isArray(allRequests) ? allRequests.filter((r) => r.status !== 'closed') : [];
   };
 
 

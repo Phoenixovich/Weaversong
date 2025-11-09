@@ -69,7 +69,7 @@ export async function getPedestrianAnalytics(params?: {
     const response = await api.get(`/pedestrian/analytics?${queryParams.toString()}`, {
       headers: { Authorization: `Bearer ${token}` },
     });
-    return response.data;
+    return Array.isArray(response.data) ? response.data : [];
   } catch (error: any) {
     if (error.response?.status === 403) {
       throw new Error('This feature requires premium subscription or admin role');
@@ -102,7 +102,7 @@ export async function getPopularLocations(
     const response = await api.get(`/pedestrian/popular-locations?${queryParams.toString()}`, {
       headers: { Authorization: `Bearer ${token}` },
     });
-    return response.data;
+    return Array.isArray(response.data) ? response.data : [];
   } catch (error: any) {
     if (error.response?.status === 403) {
       throw new Error('This feature requires premium subscription or admin role');

@@ -204,17 +204,17 @@ export default function AlertList({ view, onViewChange }: AlertListProps) {
 
   // Get all neighborhoods as a flat list for searching
   const allNeighborhoods = neighborhoods ? [
-    ...neighborhoods.Sectors.map(n => ({ name: n, type: 'Sector' })),
-    ...neighborhoods.Areas.map(n => ({ name: n, type: 'Area' })),
-    ...neighborhoods.City.map(n => ({ name: n, type: 'City' }))
+    ...(Array.isArray(neighborhoods.Sectors) ? neighborhoods.Sectors.map(n => ({ name: n, type: 'Sector' })) : []),
+    ...(Array.isArray(neighborhoods.Areas) ? neighborhoods.Areas.map(n => ({ name: n, type: 'Area' })) : []),
+    ...(Array.isArray(neighborhoods.City) ? neighborhoods.City.map(n => ({ name: n, type: 'City' })) : [])
   ] : []
 
   // Filter neighborhoods based on search query
   const filteredNeighborhoods = areaSearchQuery.trim() === ''
     ? []
-    : allNeighborhoods.filter(n =>
-        n.name.toLowerCase().includes(areaSearchQuery.toLowerCase())
-      ).slice(0, 10) // Limit to 10 suggestions
+    : (Array.isArray(allNeighborhoods) ? allNeighborhoods.filter(n =>
+        n && n.name && n.name.toLowerCase().includes(areaSearchQuery.toLowerCase())
+      ).slice(0, 10) : []) // Limit to 10 suggestions
 
   // Handle area selection from search (add to selected neighborhoods)
   const handleAreaSelect = (areaName: string) => {

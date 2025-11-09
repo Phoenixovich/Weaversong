@@ -59,7 +59,7 @@ export const PedestrianAnalyzer: React.FC = () => {
         dateRange.end_date,
         timeframe || undefined
       );
-      setPopularLocations(popularLocs);
+      setPopularLocations(Array.isArray(popularLocs) ? popularLocs : []);
 
       // If we have popular locations, load analytics for them progressively
       if (popularLocs.length > 0) {
@@ -79,6 +79,7 @@ export const PedestrianAnalyzer: React.FC = () => {
             });
 
             // Add new analytics to the existing list
+            const analyticsArray = Array.isArray(analyticsData) ? analyticsData : [];
             setAnalytics(prev => {
               // Check if this location already exists in analytics
               const existingIndex = prev.findIndex(a => 
@@ -89,11 +90,11 @@ export const PedestrianAnalyzer: React.FC = () => {
               if (existingIndex >= 0) {
                 // Update existing
                 const updated = [...prev];
-                updated[existingIndex] = analyticsData[0] || prev[existingIndex];
+                updated[existingIndex] = analyticsArray[0] || prev[existingIndex];
                 return updated;
               } else {
                 // Add new
-                return [...prev, ...analyticsData];
+                return [...prev, ...analyticsArray];
               }
             });
           } catch (error: any) {
@@ -109,7 +110,7 @@ export const PedestrianAnalyzer: React.FC = () => {
           end_date: dateRange.end_date,
           timeframe: timeframe || undefined
         });
-        setAnalytics(analyticsData);
+        setAnalytics(Array.isArray(analyticsData) ? analyticsData : []);
       }
     } catch (error: any) {
       console.error('Failed to load analytics:', error);
@@ -213,14 +214,14 @@ export const PedestrianAnalyzer: React.FC = () => {
           <div className="section">
             <h2 className="sectionTitle">📍 Most Popular Locations</h2>
             <div className="locationsGrid">
-              {popularLocations.map((loc, index) => (
+              {Array.isArray(popularLocations) ? popularLocations.map((loc, index) => (
                 <div
                   key={index}
                   className="locationCard"
                   onClick={() => {
-                    const found = analytics.find(a => 
+                    const found = Array.isArray(analytics) ? analytics.find(a => 
                       Math.abs(a.lat - loc.lat) < 0.001 && Math.abs(a.lng - loc.lng) < 0.001
-                    );
+                    ) : undefined;
                     if (found) setSelectedLocation(found);
                   }}
                 >
@@ -232,7 +233,7 @@ export const PedestrianAnalyzer: React.FC = () => {
                     {loc.lat.toFixed(4)}, {loc.lng.toFixed(4)}
                   </p>
                 </div>
-              ))}
+              )) : []}
             </div>
           </div>
         )}
@@ -264,14 +265,14 @@ export const PedestrianAnalyzer: React.FC = () => {
                   </div>
                   <div className="statCard">
                     <div className="statValue">
-                      {selectedLocation.peak_hours.map(h => `${h}:00`).join(', ')}
+                      {Array.isArray(selectedLocation.peak_hours) ? selectedLocation.peak_hours.map(h => `${h}:00`).join(', ') : 'N/A'}
                     </div>
                     <div className="statLabel">Peak Hours</div>
                   </div>
                 </div>
 
                 {/* Business Suggestions */}
-                {selectedLocation.business_suggestions && selectedLocation.business_suggestions.length > 0 && (
+                {selectedLocation.business_suggestions && Array.isArray(selectedLocation.business_suggestions) && selectedLocation.business_suggestions.length > 0 && (
                   <div className="suggestionsCard">
                     <h4 className="suggestionsTitle">💡 Business Suggestions</h4>
                     <p className="suggestionsSubtitle">
@@ -329,7 +330,7 @@ export const PedestrianAnalyzer: React.FC = () => {
               </div>
             ) : (
               <div className="analyticsGrid">
-                {analytics.slice(0, 6).map((item, index) => {
+                {Array.isArray(analytics) ? analytics.slice(0, 6).map((item, index) => {
                   const locationKey = `${item.lat.toFixed(4)}_${item.lng.toFixed(4)}`;
                   const isLoading = loadingLocations.includes(locationKey);
                   
@@ -353,7 +354,7 @@ export const PedestrianAnalyzer: React.FC = () => {
                           <span className="analyticsStatLabel">Avg/Hour</span>
                         </div>
                       </div>
-                      {item.business_suggestions && item.business_suggestions.length > 0 && (
+                      {item.business_suggestions && Array.isArray(item.business_suggestions) && item.business_suggestions.length > 0 && (
                         <div className="quickSuggestions">
                           <div className="quickSuggestionsLabel">Suggestions:</div>
                           <div className="quickSuggestionsList">
@@ -379,7 +380,7 @@ export const PedestrianAnalyzer: React.FC = () => {
                       </button>
                     </div>
                   );
-                })}
+                }) : []}
               </div>
             )}
           </div>
