@@ -1,10 +1,11 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { UserBadge } from './UserBadge';
 import './Navbar.css';
 
 export const Navbar: React.FC = () => {
-  const { user, logout } = useAuth();
+  const { user, isAuthenticated, logout } = useAuth();
   const location = useLocation();
 
   const handleLogout = async () => {
@@ -19,35 +20,53 @@ export const Navbar: React.FC = () => {
     <nav className="navbar">
       <div className="navbar-container">
         <div className="navbar-brand">
-          <Link to="/dashboard"> Community Service Hub</Link>
+          <Link to="/citypulse"> Community Service Hub</Link>
         </div>
         
-            <div className="navbar-links">
+        <div className="navbar-links">
+          {/* Public pages - always visible */}
+          <Link to="/citypulse" className={isActive('/citypulse')}>
+            CityPulse
+          </Link>
+          <Link to="/public-data" className={isActive('/public-data')}>
+            Public Data
+          </Link>
+          <Link to="/clarifai" className={isActive('/clarifai')}>
+            ClarifAI
+          </Link>
+          <Link to="/helpboard/users" className={isActive('/helpboard/users')}>
+            Helpboard
+          </Link>
+          {/* Protected pages - only visible when authenticated */}
+          {isAuthenticated && (
+            <>
               <Link to="/dashboard" className={isActive('/dashboard')}>
                 Dashboard
               </Link>
-              <Link to="/clarifai" className={isActive('/clarifai')}>
-                ClarifAI
+              <Link to="/profile" className={isActive('/profile')}>
+                Profile
               </Link>
-              <Link to="/citypulse" className={isActive('/citypulse')}>
-                CityPulse
-              </Link>
-              <Link to="/public-data" className={isActive('/public-data')}>
-                Public Data
-              </Link>
-                    <Link to="/helpboard/users" className={isActive('/helpboard/users')}>
-                      Helpboard
-                    </Link>
-            </div>
+            </>
+          )}
+        </div>
 
         <div className="navbar-user">
-          {user && (
+          {isAuthenticated && user ? (
             <>
-              <span className="user-name">{user.name}</span>
+              <UserBadge user={user} showRole={true} size="medium" />
               <button onClick={handleLogout} className="logout-button">
                 Logout
               </button>
             </>
+          ) : (
+            <div className="navbar-auth-buttons">
+              <Link to="/login" className="login-button">
+                Login
+              </Link>
+              <Link to="/signup" className="signup-button">
+                Sign Up
+              </Link>
+            </div>
           )}
         </div>
       </div>

@@ -2,12 +2,27 @@ from pydantic import BaseModel, EmailStr, field_validator
 from typing import Optional
 from datetime import datetime
 from bson import ObjectId
+from enum import Enum
+
+
+class UserRole(str, Enum):
+    USER = "user"
+    TRUSTED_USER = "trusted_user"
+    MODERATOR = "moderator"
+    REPRESENTATIVE = "representative"
+    BUSINESS_OWNER = "business_owner"
+    ADMIN = "admin"
 
 
 class UserBase(BaseModel):
     email: EmailStr
     username: str
     name: str
+    is_premium: bool = False
+    role: UserRole = UserRole.USER
+    show_premium_badge: bool = True
+    default_phone: Optional[str] = None
+    default_other_contact: Optional[str] = None
 
 
 class UserCreate(UserBase):
@@ -41,6 +56,11 @@ class UserInDB(UserBase):
     id: ObjectId
     password_hash: str
     date_created: datetime
+    is_premium: bool = False
+    role: UserRole = UserRole.USER
+    show_premium_badge: bool = True
+    default_phone: Optional[str] = None
+    default_other_contact: Optional[str] = None
 
     class Config:
         from_attributes = True

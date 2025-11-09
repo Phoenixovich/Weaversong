@@ -6,15 +6,19 @@ export const CityPulse: React.FC = () => {
   const [view, setView] = useState<'list' | 'map'>('list')
 
   return (
-    <div className="citypulse-page container mx-auto p-4">
-      <h1 className="text-2xl font-bold mb-4">CityPulse</h1>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="md:col-span-3">
-          <AlertInput />
-          <div className="mt-4">
-            <AlertList view={view} onViewChange={(v) => setView(v)} />
-          </div>
-        </div>
+    <div className="min-h-screen bg-gray-50">
+      <div className="container mx-auto px-4 py-8 max-w-7xl">
+        <header className="mb-8">
+          <h1 className="text-4xl font-bold text-gray-900 mb-2">
+            CityPulse
+          </h1>
+          <p className="text-gray-600">
+            Community incident reporting platform for Bucharest
+          </p>
+        </header>
+
+        <AlertInput />
+        <AlertList view={view} onViewChange={setView} />
       </div>
     </div>
   )

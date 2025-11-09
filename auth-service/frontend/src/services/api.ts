@@ -86,6 +86,41 @@ export const authAPI = {
     const response = await api.get<User>('/auth/me');
     return response.data;
   },
+
+  updatePreferences: async (preferences: { show_premium_badge?: boolean }): Promise<User> => {
+    const response = await api.patch<User>('/auth/me/preferences', preferences);
+    return response.data;
+  },
+
+  getUserStats: async (): Promise<{
+    alerts: number;
+    requests: number;
+    responses: number;
+    reminders: number;
+    total: number;
+  }> => {
+    const response = await api.get('/auth/me/stats');
+    return response.data;
+  },
+
+  upgradeToPremium: async (): Promise<User> => {
+    const response = await api.post<User>('/auth/me/premium/upgrade');
+    return response.data;
+  },
+
+  cancelPremium: async (): Promise<User> => {
+    const response = await api.post<User>('/auth/me/premium/cancel');
+    return response.data;
+  },
+
+  updateProfile: async (profileData: {
+    username?: string;
+    default_phone?: string;
+    default_other_contact?: string;
+  }): Promise<User> => {
+    const response = await api.patch<User>('/auth/me/profile', profileData);
+    return response.data;
+  },
 };
 
 export default api;

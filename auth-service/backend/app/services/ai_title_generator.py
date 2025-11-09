@@ -6,15 +6,29 @@ import re
 from typing import Optional
 from app.config import settings
 
+def _looks_like_fragment(title: Optional[str]) -> bool:
+    if not title:
+        return True
+    stripped = title.strip()
+    if not stripped:
+        return True
+    lower = stripped.lower()
+    if lower.startswith(("in ", "in at", "at ")):
+        return True
+    if len(stripped.split()) < 3:
+        return True
+    return False
+
+
 async def generate_title(text: str, category: str, priority: str, location: Optional[str] = None) -> str:
     from app.services.title_extractor import extract_title_from_text
     library_title = extract_title_from_text(text, category)
-    if library_title:
+    if library_title and not _looks_like_fragment(library_title):
         return library_title
     google_api_key = getattr(settings, "google_api_key", None)
     if google_api_key:
         ai_title = await _generate_title_with_google_gemini(text, category, priority, location, google_api_key)
-        if ai_title:
+        if ai_title and not _looks_like_fragment(ai_title):
             return ai_title
     return _generate_title_smart(text, category, priority, location)
 
@@ -44,6 +58,8 @@ Return only the title, nothing else."""
                         if len(parts) > 0 and "text" in parts[0]:
                             title = parts[0]["text"].strip()
                             title = title.strip('"').strip("'")
+                            if _looks_like_fragment(title):
+                                return None
                             if ":" in title:
                                 title = title.split(":", 1)[-1].strip()
                             if len(title) > 60:

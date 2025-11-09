@@ -52,12 +52,14 @@ export default function AlertList({ view, onViewChange }: AlertListProps) {
   const [alerts, setAlerts] = useState<Alert[]>([]) // Filtered alerts for list view
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [selectedNeighborhood, setSelectedNeighborhood] = useState<string | null>(null)
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
-  const [selectedPriority, setSelectedPriority] = useState<string | null>(null)
+  const [selectedNeighborhoods, setSelectedNeighborhoods] = useState<string[]>([])
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([])
+  const [selectedPriorities, setSelectedPriorities] = useState<string[]>([])
+  const [selectedDateFilter, setSelectedDateFilter] = useState<string | null>(null)
   const [neighborhoods, setNeighborhoods] = useState<{ Sectors: string[]; Areas: string[]; City: string[] } | null>(null)
   const [areaSearchQuery, setAreaSearchQuery] = useState<string>('')
   const [showAreaSuggestions, setShowAreaSuggestions] = useState(false)
+  const [showFilters, setShowFilters] = useState(false)
 
   useEffect(() => {
     loadNeighborhoods()
@@ -69,7 +71,7 @@ export default function AlertList({ view, onViewChange }: AlertListProps) {
   useEffect(() => {
     loadAlerts()
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedNeighborhood, selectedCategory, selectedPriority])
+  }, [selectedNeighborhoods, selectedCategories, selectedPriorities, selectedDateFilter])
 
   const loadNeighborhoods = async () => {
     try {
@@ -102,7 +104,10 @@ export default function AlertList({ view, onViewChange }: AlertListProps) {
     try {
       setLoading(true)
       setError(null)
-      const data = await fetchAlerts(selectedNeighborhood, selectedCategory, selectedPriority)
+      const neighborhoods = selectedNeighborhoods.length > 0 ? selectedNeighborhoods : null
+      const categories = selectedCategories.length > 0 ? selectedCategories : null
+      const priorities = selectedPriorities.length > 0 ? selectedPriorities : null
+      const data = await fetchAlerts(neighborhoods, categories, priorities, selectedDateFilter)
       setAlerts(data)
     } catch (err) {
       setError('Failed to load alerts. Make sure the backend is running.')
@@ -127,17 +132,49 @@ export default function AlertList({ view, onViewChange }: AlertListProps) {
         n.name.toLowerCase().includes(areaSearchQuery.toLowerCase())
       ).slice(0, 10) // Limit to 10 suggestions
 
-  // Handle area selection from search
+  // Handle area selection from search (add to selected neighborhoods)
   const handleAreaSelect = (areaName: string) => {
-    setSelectedNeighborhood(areaName || null)
-    setAreaSearchQuery(areaName)
+    if (areaName && !selectedNeighborhoods.includes(areaName)) {
+      setSelectedNeighborhoods([...selectedNeighborhoods, areaName])
+    }
+    setAreaSearchQuery('')
     setShowAreaSuggestions(false)
   }
 
-  // Clear area search when dropdown is used
-  const handleDropdownChange = (value: string) => {
-    setSelectedNeighborhood(value || null)
-    setAreaSearchQuery(value || '')
+  // Toggle neighborhood selection
+  const toggleNeighborhood = (neighborhood: string) => {
+    if (selectedNeighborhoods.includes(neighborhood)) {
+      setSelectedNeighborhoods(selectedNeighborhoods.filter(n => n !== neighborhood))
+    } else {
+      setSelectedNeighborhoods([...selectedNeighborhoods, neighborhood])
+    }
+  }
+
+  // Toggle category selection
+  const toggleCategory = (category: string) => {
+    if (selectedCategories.includes(category)) {
+      setSelectedCategories(selectedCategories.filter(c => c !== category))
+    } else {
+      setSelectedCategories([...selectedCategories, category])
+    }
+  }
+
+  // Toggle priority selection
+  const togglePriority = (priority: string) => {
+    if (selectedPriorities.includes(priority)) {
+      setSelectedPriorities(selectedPriorities.filter(p => p !== priority))
+    } else {
+      setSelectedPriorities([...selectedPriorities, priority])
+    }
+  }
+
+  // Clear all filters
+  const clearAllFilters = () => {
+    setSelectedNeighborhoods([])
+    setSelectedCategories([])
+    setSelectedPriorities([])
+    setSelectedDateFilter(null)
+    setAreaSearchQuery('')
   }
 
   // Group alerts by category
@@ -240,9 +277,6 @@ export default function AlertList({ view, onViewChange }: AlertListProps) {
               onChange={(e) => {
                 setAreaSearchQuery(e.target.value)
                 setShowAreaSuggestions(true)
-                if (e.target.value === '') {
-                  setSelectedNeighborhood(null)
-                }
               }}
               onFocus={() => setShowAreaSuggestions(true)}
               onBlur={() => {
@@ -256,12 +290,11 @@ export default function AlertList({ view, onViewChange }: AlertListProps) {
                 <div
                   className="px-3 py-2 text-xs text-gray-500 border-b border-gray-200 cursor-pointer hover:bg-gray-50"
                   onClick={() => {
-                    setSelectedNeighborhood(null)
                     setAreaSearchQuery('')
                     setShowAreaSuggestions(false)
                   }}
                 >
-                  Clear filter
+                  Clear search
                 </div>
                 {filteredNeighborhoods.map((n) => (
                   <div
@@ -284,62 +317,189 @@ export default function AlertList({ view, onViewChange }: AlertListProps) {
             )}
           </div>
 
-          {/* Area Dropdown (Alternative) */}
-          <select
-            value={selectedNeighborhood || ''}
-            onChange={(e) => handleDropdownChange(e.target.value)}
-            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          {/* Filter Toggle Button */}
+          <button
+            onClick={() => setShowFilters(!showFilters)}
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
           >
-            <option value="">All Areas</option>
-            {neighborhoods && (
-              <>
-                <optgroup label="Sectors">
-                  {neighborhoods.Sectors.map((n) => (
-                    <option key={n} value={n}>{n}</option>
-                  ))}
-                </optgroup>
-                <optgroup label="Areas">
-                  {neighborhoods.Areas.map((n) => (
-                    <option key={n} value={n}>{n}</option>
-                  ))}
-                </optgroup>
-                <optgroup label="City">
-                  {neighborhoods.City.map((n) => (
-                    <option key={n} value={n}>{n}</option>
-                  ))}
-                </optgroup>
-              </>
+            🔍 Filters
+            {(selectedNeighborhoods.length > 0 || selectedCategories.length > 0 || selectedPriorities.length > 0 || selectedDateFilter) && (
+              <span className="bg-white text-blue-600 rounded-full px-2 py-0.5 text-xs font-semibold">
+                {selectedNeighborhoods.length + selectedCategories.length + selectedPriorities.length + (selectedDateFilter ? 1 : 0)}
+              </span>
             )}
-          </select>
-          
-          <select
-            value={selectedCategory || ''}
-            onChange={(e) => setSelectedCategory(e.target.value || null)}
-            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          >
-            <option value="">All Categories</option>
-            {categoryOrder.map((cat) => (
-              <option key={cat} value={cat}>{categoryLabels[cat]}</option>
-            ))}
-          </select>
-          
-          <select
-            value={selectedPriority || ''}
-            onChange={(e) => setSelectedPriority(e.target.value || null)}
-            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          >
-            <option value="">All Priorities</option>
-            <option value="Critical">🔴 Critical</option>
-            <option value="High">🟠 High</option>
-            <option value="Medium">🟡 Medium</option>
-            <option value="Low">🟢 Low</option>
-          </select>
+          </button>
         </div>
       </div>
+
+      {/* Advanced Filters Panel */}
+      {showFilters && (
+        <div className="bg-white rounded-lg shadow-md p-6 mb-6 border border-gray-200">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-semibold text-gray-900">Filter Alerts</h3>
+            <div className="flex gap-2">
+              {(selectedNeighborhoods.length > 0 || selectedCategories.length > 0 || selectedPriorities.length > 0 || selectedDateFilter) && (
+                <button
+                  onClick={clearAllFilters}
+                  className="px-3 py-1 text-sm text-red-600 hover:text-red-800 hover:bg-red-50 rounded transition-colors"
+                >
+                  Clear All
+                </button>
+              )}
+              <button
+                onClick={() => setShowFilters(false)}
+                className="px-3 py-1 text-sm text-gray-600 hover:text-gray-800 hover:bg-gray-50 rounded transition-colors"
+              >
+                ✕ Close
+              </button>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {/* Date Filter */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">📅 Time Period</label>
+              <select
+                value={selectedDateFilter || ''}
+                onChange={(e) => setSelectedDateFilter(e.target.value || null)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              >
+                <option value="">All Time</option>
+                <option value="today">Today</option>
+                <option value="past_3_days">Past 3 Days</option>
+                <option value="this_week">This Week</option>
+                <option value="this_month">This Month</option>
+              </select>
+            </div>
+
+            {/* Priority Filter */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Priority</label>
+              <div className="space-y-2 max-h-40 overflow-y-auto border border-gray-200 rounded-lg p-2">
+                {['Critical', 'High', 'Medium', 'Low'].map((pri) => (
+                  <label key={pri} className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 p-1 rounded">
+                    <input
+                      type="checkbox"
+                      checked={selectedPriorities.includes(pri)}
+                      onChange={() => togglePriority(pri)}
+                      className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                    />
+                    <span className="text-sm text-gray-700">
+                      {pri === 'Critical' && '🔴'} {pri === 'High' && '🟠'} {pri === 'Medium' && '🟡'} {pri === 'Low' && '🟢'} {pri}
+                    </span>
+                  </label>
+                ))}
+              </div>
+            </div>
+
+            {/* Category Filter */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Category</label>
+              <div className="space-y-2 max-h-40 overflow-y-auto border border-gray-200 rounded-lg p-2">
+                {categoryOrder.map((cat) => (
+                  <label key={cat} className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 p-1 rounded">
+                    <input
+                      type="checkbox"
+                      checked={selectedCategories.includes(cat)}
+                      onChange={() => toggleCategory(cat)}
+                      className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                    />
+                    <span className="text-sm text-gray-700">{categoryLabels[cat]}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+
+            {/* Neighborhood Filter */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Areas & Sectors</label>
+              <div className="space-y-2 max-h-40 overflow-y-auto border border-gray-200 rounded-lg p-2">
+                {neighborhoods && (
+                  <>
+                    {neighborhoods.Sectors.map((n) => (
+                      <label key={n} className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 p-1 rounded">
+                        <input
+                          type="checkbox"
+                          checked={selectedNeighborhoods.includes(n)}
+                          onChange={() => toggleNeighborhood(n)}
+                          className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                        />
+                        <span className="text-sm text-gray-700">{n}</span>
+                      </label>
+                    ))}
+                    {neighborhoods.Areas.map((n) => (
+                      <label key={n} className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 p-1 rounded">
+                        <input
+                          type="checkbox"
+                          checked={selectedNeighborhoods.includes(n)}
+                          onChange={() => toggleNeighborhood(n)}
+                          className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                        />
+                        <span className="text-sm text-gray-700">{n}</span>
+                      </label>
+                    ))}
+                  </>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Selected Filters Display */}
+          {(selectedNeighborhoods.length > 0 || selectedCategories.length > 0 || selectedPriorities.length > 0) && (
+            <div className="mt-4 pt-4 border-t border-gray-200">
+              <p className="text-sm font-medium text-gray-700 mb-2">Active Filters:</p>
+              <div className="flex flex-wrap gap-2">
+                {selectedNeighborhoods.map((n) => (
+                  <span
+                    key={n}
+                    className="inline-flex items-center gap-1 px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-medium"
+                  >
+                    📍 {n}
+                    <button
+                      onClick={() => toggleNeighborhood(n)}
+                      className="hover:text-blue-600"
+                    >
+                      ✕
+                    </button>
+                  </span>
+                ))}
+                {selectedCategories.map((c) => (
+                  <span
+                    key={c}
+                    className="inline-flex items-center gap-1 px-3 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium"
+                  >
+                    {categoryLabels[c as AlertCategory]}
+                    <button
+                      onClick={() => toggleCategory(c)}
+                      className="hover:text-green-600"
+                    >
+                      ✕
+                    </button>
+                  </span>
+                ))}
+                {selectedPriorities.map((p) => (
+                  <span
+                    key={p}
+                    className="inline-flex items-center gap-1 px-3 py-1 bg-orange-100 text-orange-800 rounded-full text-xs font-medium"
+                  >
+                    {p}
+                    <button
+                      onClick={() => togglePriority(p)}
+                      className="hover:text-orange-600"
+                    >
+                      ✕
+                    </button>
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
       
       {view === 'map' ? (
         allAlerts.length > 0 ? (
-          <AlertMap alerts={allAlerts} selectedNeighborhood={selectedNeighborhood} />
+          <AlertMap alerts={allAlerts} selectedNeighborhood={selectedNeighborhoods.length > 0 ? selectedNeighborhoods[0] : null} />
         ) : (
           <div className="text-center py-8 text-gray-600">
             No alerts found. Be the first to report something!
@@ -349,7 +509,7 @@ export default function AlertList({ view, onViewChange }: AlertListProps) {
         <>
           {alerts.length === 0 && (
             <div className="text-center py-8 text-gray-600">
-              No alerts found. {selectedNeighborhood || selectedCategory || selectedPriority ? 'Try adjusting your filters.' : 'Be the first to report something!'}
+              No alerts found. {(selectedNeighborhoods.length > 0 || selectedCategories.length > 0 || selectedPriorities.length > 0 || selectedDateFilter) ? 'Try adjusting your filters.' : 'Be the first to report something!'}
             </div>
           )}
       

@@ -8,6 +8,8 @@ import { Signup } from './pages/Signup';
 import { Dashboard } from './pages/Dashboard';
 import { ClarifAI } from './pages/ClarifAI';
 import { PublicDataHub } from './pages/PublicDataHub';
+import { Settings } from './pages/Settings';
+import { Profile } from './pages/Profile';
 import UsersPage from './pages/UsersPage';
 import RequestsPage from './pages/RequestsPage';
 import ResponsesPage from './pages/ResponsesPage';
@@ -15,14 +17,20 @@ import LoginCallback from './pages/LoginCallback';
 import CityPulse from './pages/CityPulse';
 
 const AppRoutes: React.FC = () => {
-  const { isAuthenticated } = useAuth();
-
   return (
     <>
-      {isAuthenticated && <Navbar />}
+      <Navbar />
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
+        {/* Public pages - accessible without login (view-only, create/edit requires auth) */}
+        <Route path="/citypulse" element={<CityPulse />} />
+        <Route path="/public-data" element={<PublicDataHub />} />
+        <Route path="/clarifai" element={<ClarifAI />} />
+        <Route path="/helpboard/users" element={<UsersPage />} />
+        <Route path="/helpboard/requests" element={<RequestsPage />} />
+        <Route path="/helpboard/responses" element={<ResponsesPage />} />
+        {/* Protected pages - require login */}
         <Route
           path="/dashboard"
           element={
@@ -32,55 +40,24 @@ const AppRoutes: React.FC = () => {
           }
         />
         <Route
-          path="/clarifai"
+          path="/settings"
           element={
             <ProtectedRoute>
-              <ClarifAI />
+              <Settings />
             </ProtectedRoute>
           }
         />
         <Route
-          path="/citypulse"
+          path="/profile"
           element={
             <ProtectedRoute>
-              <CityPulse />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/public-data"
-          element={
-            <ProtectedRoute>
-              <PublicDataHub />
-            </ProtectedRoute>
-          }
-        />
-        <Route path="/" element={<Navigate to="/dashboard" replace />} />
-        <Route
-          path="/helpboard/users"
-          element={
-            <ProtectedRoute>
-              <UsersPage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/helpboard/requests"
-          element={
-            <ProtectedRoute>
-              <RequestsPage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/helpboard/responses"
-          element={
-            <ProtectedRoute>
-              <ResponsesPage />
+              <Profile />
             </ProtectedRoute>
           }
         />
         <Route path="/helpboard/login" element={<LoginCallback />} />
+        {/* Default route - redirect to public page */}
+        <Route path="/" element={<Navigate to="/citypulse" replace />} />
       </Routes>
     </>
   );

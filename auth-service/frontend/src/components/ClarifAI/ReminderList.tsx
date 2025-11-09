@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { clarifyAPI } from '../../services/clarifyApi';
+import { useAuthGuard } from '../../hooks/useAuthGuard';
 
 interface Reminder {
   id: string;
@@ -9,6 +10,7 @@ interface Reminder {
 }
 
 export const ReminderList: React.FC = () => {
+  const { requireAuth } = useAuthGuard();
   const [reminders, setReminders] = useState<Reminder[]>([]);
   const [newReminder, setNewReminder] = useState('');
   const [loading, setLoading] = useState(false);
@@ -30,29 +32,35 @@ export const ReminderList: React.FC = () => {
     e.preventDefault();
     if (!newReminder.trim()) return;
 
-    setLoading(true);
-    try {
-      await clarifyAPI.createReminder(newReminder);
-      setNewReminder('');
-      await loadReminders();
-    } catch (error) {
-      console.error('Error creating reminder:', error);
-      alert('Failed to create reminder');
-    } finally {
-      setLoading(false);
-    }
+    // Require authentication for creating reminders
+    requireAuth(async () => {
+      setLoading(true);
+      try {
+        await clarifyAPI.createReminder(newReminder);
+        setNewReminder('');
+        await loadReminders();
+      } catch (error) {
+        console.error('Error creating reminder:', error);
+        alert('Failed to create reminder');
+      } finally {
+        setLoading(false);
+      }
+    });
   };
 
   const handleDeleteReminder = async (id: string) => {
     if (!confirm('Delete this reminder?')) return;
 
-    try {
-      await clarifyAPI.deleteReminder(id);
-      await loadReminders();
-    } catch (error) {
-      console.error('Error deleting reminder:', error);
-      alert('Failed to delete reminder');
-    }
+    // Require authentication for deleting reminders
+    requireAuth(async () => {
+      try {
+        await clarifyAPI.deleteReminder(id);
+        await loadReminders();
+      } catch (error) {
+        console.error('Error deleting reminder:', error);
+        alert('Failed to delete reminder');
+      }
+    });
   };
 
   return (

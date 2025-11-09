@@ -47,17 +47,19 @@ export interface AlertCreateInput {
 }
 
 export interface AlertAnalysisResult {
-  category: AlertCategory
-  priority: AlertPriority
-  title: string
-  description: string | null
-  location_mentions: string[]
-  suggestions: string[]
-  location: AlertLocation
-  location_hierarchy: LocationHierarchy
-  neighborhood: string | null
-  area_type: string | null
-  phone: string | null
-  email: string | null
-  other_contact: string | null
+  is_valid_alert: boolean
+  reason?: string  // Only present if is_valid_alert is false
+  category?: AlertCategory
+  priority?: AlertPriority
+  title?: string
+  description?: string | null
+  location_mentions?: string[]
+  suggestions?: string[]
+  location?: AlertLocation
+  location_hierarchy?: LocationHierarchy
+  neighborhood?: string | null
+  area_type?: string | null
+  phone?: string | null
+  email?: string | null
+  other_contact?: string | null
 }

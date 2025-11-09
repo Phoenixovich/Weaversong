@@ -1,27 +1,32 @@
 import { useState } from 'react';
 import api from '../services/api';
+import { useAuthGuard } from '../hooks/useAuthGuard';
 
 interface UserFormProps {
   onCreated?: () => void;
 }
 
 export default function UserForm({ onCreated }: UserFormProps) {
+  const { requireAuth } = useAuthGuard();
   const [form, setForm] = useState({ user_id: '', trade: '', experience_years: 1, availability: 'available' });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const payload = {
-      user_id: form.user_id,
-      location: { type: 'Point', coordinates: [12.4924, 41.8902] },
-      radius_km: 3,
-      trades: [{ name: form.trade, experience_years: form.experience_years }],
-      availability: form.availability,
-    };
+    // Require authentication for creating/editing user profiles
+    requireAuth(async () => {
+      const payload = {
+        user_id: form.user_id,
+        location: { type: 'Point', coordinates: [12.4924, 41.8902] },
+        radius_km: 3,
+        trades: [{ name: form.trade, experience_years: form.experience_years }],
+        availability: form.availability,
+      };
 
-    await api.post('/helpboard/users', payload);
-    setForm({ user_id: '', trade: '', experience_years: 1, availability: 'available' });
-    onCreated?.();
+      await api.post('/helpboard/users', payload);
+      setForm({ user_id: '', trade: '', experience_years: 1, availability: 'available' });
+      onCreated?.();
+    });
   };
 
   return (

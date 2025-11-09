@@ -4,6 +4,7 @@ AI Analysis service to extract structured data from user text
 import re
 import json
 import httpx
+from textwrap import dedent
 from typing import Dict, Any, Optional
 from app.models.citypulse_alert import AlertCategory, AlertPriority
 from app.config import settings
@@ -31,6 +32,89 @@ PRIORITY_KEYWORDS: Dict[AlertPriority, list] = {
     "Medium": [],
     "Low": ["minor", "small", "info", "update", "notice"]
 }
+
+VALID_CATEGORIES = list(CATEGORY_KEYWORDS.keys())
+VALID_PRIORITIES = list(PRIORITY_KEYWORDS.keys())
+
+_CATEGORY_LOOKUP: Dict[str, AlertCategory] = {}
+for cat in VALID_CATEGORIES:
+    lower = cat.lower()
+    _CATEGORY_LOOKUP[lower] = cat
+    _CATEGORY_LOOKUP[lower.replace(" ", "")] = cat
+    _CATEGORY_LOOKUP[lower.replace("-", "")] = cat
+    _CATEGORY_LOOKUP[lower.replace("_", "")] = cat
+
+_PRIORITY_LOOKUP: Dict[str, AlertPriority] = {}
+for prio in VALID_PRIORITIES:
+    lower = prio.lower()
+    _PRIORITY_LOOKUP[lower] = prio
+    _PRIORITY_LOOKUP[lower.replace(" ", "")] = prio
+
+_NULL_LIKE_VALUES = {"", "null", "none", "n/a", "na", "unknown"}
+
+
+def _sanitize_text(value: Any) -> Optional[str]:
+    if value is None:
+        return None
+    if isinstance(value, str):
+        cleaned = value.strip()
+        if not cleaned:
+            return None
+        if cleaned.lower() in _NULL_LIKE_VALUES:
+            return None
+        return cleaned
+    cleaned = str(value).strip()
+    if not cleaned:
+        return None
+    if cleaned.lower() in _NULL_LIKE_VALUES:
+        return None
+    return cleaned
+
+
+def _to_float(value: Any) -> Optional[float]:
+    if value is None:
+        return None
+    if isinstance(value, (int, float)):
+        return float(value)
+    if isinstance(value, str):
+        cleaned = value.strip()
+        if not cleaned:
+            return None
+        try:
+            return float(cleaned)
+        except ValueError:
+            return None
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return None
+
+
+def _normalize_category_value(value: Any) -> Optional[AlertCategory]:
+    text = _sanitize_text(value)
+    if not text:
+        return None
+    key_variants = {
+        text.lower(),
+        text.lower().replace(" ", ""),
+        text.lower().replace("-", ""),
+        text.lower().replace("_", "")
+    }
+    for key in key_variants:
+        if key in _CATEGORY_LOOKUP:
+            return _CATEGORY_LOOKUP[key]
+    return None
+
+
+def _normalize_priority_value(value: Any) -> Optional[AlertPriority]:
+    text = _sanitize_text(value)
+    if not text:
+        return None
+    key_variants = {text.lower(), text.lower().replace(" ", "")}
+    for key in key_variants:
+        if key in _PRIORITY_LOOKUP:
+            return _PRIORITY_LOOKUP[key]
+    return None
 
 def analyze_text_sync(text: str) -> Dict[str, Any]:
     text_lower = text.lower()
@@ -99,30 +183,21 @@ def analyze_text_sync(text: str) -> Dict[str, Any]:
     return {"location_mentions": location_mentions}
 
 async def analyze_text_with_ai(text: str, user_lat: Optional[float] = None, user_lng: Optional[float] = None, is_speech: bool = False) -> Dict[str, Any]:
-    if is_speech:
-        gemini_api_key = getattr(settings, "gemini_api_key", None)
-        if gemini_api_key:
-            result = await _analyze_with_google_gemini(text, user_lat, user_lng, gemini_api_key, is_speech=True)
-            if result:
-                return result
-        from app.services.location_library import find_location_in_text
-        library_location = find_location_in_text(text)
-        location_name = None
-        if library_location:
-            location_name, _ = library_location
-        return await analyze_text(text, location_name)
-    from app.services.location_library import find_location_in_text
-    from app.services.title_extractor import extract_title_from_text
-    library_location = find_location_in_text(text)
-    library_title = extract_title_from_text(text)
-    if library_location and library_title:
-        location_name, _ = library_location
-        return await analyze_text(text, location_name)
+    """
+    Analyze text using AI with our prompt template.
+    Always tries AI first (uses the prompt template in _analyze_with_google_gemini),
+    falls back to local analysis only if AI is unavailable.
+    """
+    # Always try AI first (this uses our prompt template defined in _analyze_with_google_gemini)
     gemini_api_key = getattr(settings, "gemini_api_key", None)
     if gemini_api_key:
-        result = await _analyze_with_google_gemini(text, user_lat, user_lng, gemini_api_key, is_speech=False)
+        result = await _analyze_with_google_gemini(text, user_lat, user_lng, gemini_api_key, is_speech=is_speech)
         if result:
             return result
+    
+    # Fallback to local analysis only if AI is not available
+    from app.services.location_library import find_location_in_text
+    library_location = find_location_in_text(text)
     location_name = None
     if library_location:
         location_name, _ = library_location
@@ -136,7 +211,71 @@ async def _analyze_with_google_gemini(text: str, user_lat: Optional[float], user
                 speech_instruction = """
 IMPORTANT: This input is from speech recognition. The transcript may contain filler words, repetitions and noise. Please clean and extract the core meaning.
 """
-            prompt = f"""Analyze this user alert text and extract structured data in JSON format. The alert is from Bucharest, Romania.\n{speech_instruction}\nUser text: \"{text}\"\nUser location (optional): {f'lat: {user_lat}, lng: {user_lng}' if user_lat and user_lng else 'Not provided'}\n\nExtract the following information and return ONLY valid JSON (no markdown, no code blocks):\n{{\n    \"title\": \"A concise, informative title (max 60 chars) - IMPROVE WORDING\",\n    \"description\": \"Full description or null if same as title\",\n    \"category\": \"One of: Road, Safety, Lost, Weather, Emergency, Event, Infrastructure, Environment, Traffic, Crime, PublicTransport, Construction, General\",\n    \"priority\": \"One of: Low, Medium, High, Critical\",\n    \"location_mentions\": [\"List of location names mentioned in text\"],\n    \"area\": \"Specific area/neighborhood name if mentioned\",\n    \"sector\": \"Sector number if mentioned or inferred\",\n    \"phone\": \"Phone number if mentioned, else null\",\n    \"email\": \"Email if mentioned, else null\",\n    \"other_contact\": \"Other contact info if mentioned, else null\"\n}}\n\nReturn only the JSON object, nothing else"""
+            prompt = dedent(f"""
+SYSTEM INSTRUCTIONS:
+You are a careful JSON generator for the CityPulse incident reporting platform in Bucharest, Romania. ONLY return valid JSON that matches the schema below. NEVER include Markdown, explanations, code fences or additional text.
+
+USER INPUT:
+{speech_instruction}
+{text}
+
+USER CONTEXT:
+User location (optional): {f'lat: {user_lat}, lng: {user_lng}' if user_lat and user_lng else 'Not provided'}
+
+TASK OVERVIEW:
+1. Decide if the text is a valid alert (incident/issue/event happening in Bucharest that community members should know about).
+2. If it is valid, extract structured data following the JSON schema.
+3. If it is not valid, explain briefly why it is invalid (inside the JSON).
+
+STRICT JSON SCHEMA (keys in snake_case):
+{{
+    "is_valid_alert": true/false,
+    "reason": string | null,
+    "title": string | null,
+    "description": string | null,
+    "category": string | null,
+    "priority": string | null,
+    "location": {{
+        "lat": float | null,
+        "lng": float | null,
+        "address": string | null
+    }},
+    "location_hierarchy": {{
+        "point": string | null,
+        "area": string | null,
+        "sector": string | null,
+        "city": string | null
+    }},
+    "location_mentions": [string, ...],
+    "contacts": {{
+        "phone": string | null,
+        "email": string | null,
+        "other": string | null
+    }}
+}}
+
+FIELD REQUIREMENTS:
+- "is_valid_alert": boolean ALWAYS present.
+- If "is_valid_alert" is false: fill "reason" with a short explanation and set all other fields to null/empty (lists empty).
+- If "is_valid_alert" is true:
+    * "title": REQUIRED. Write a complete sentence (subject + verb) describing WHAT happened and WHERE. Example: "Fire reported in apartment building on Bulevardul Magheru". Do NOT produce fragments like "In at ...".
+    * "category": choose exactly one from: Road, Traffic, Safety, Emergency, Crime, Lost, Weather, Environment, Infrastructure, PublicTransport, Construction, Event, General.
+    * "priority": choose exactly one from: Low, Medium, High, Critical.
+    * "location.lat" and "location.lng": best-effort floats. Use user location if provided, otherwise infer from text or leave null.
+    * "location_hierarchy.area": ONLY neighborhood/area names (e.g., "Herastrau", "Cotroceni"). DO NOT place street names here. Street names belong in "location.address".
+    * "location_hierarchy.sector": format "Sector X" when mentioned or inferred.
+    * "location_hierarchy.city": should be "Bucharest" when in Bucharest.
+    * "location_hierarchy.point": "lat,lng" string if coordinates available, otherwise null.
+    * "location_mentions": include every location reference found in the text (strings).
+    * "contacts": separate phone/email/other contact info as available (null if missing).
+- Trim whitespace; use null (not empty strings) when information is missing.
+
+VALIDATION SUMMARY:
+- Produce JSON that strictly follows the schema (order of keys does not matter).
+- No markdown/code fences.
+- All booleans lower case, null literal for missing fields.
+- Title MUST be a full descriptive sentence naming the incident and location.
+""")
             response = await client.post(
                 f"https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key={api_key}",
                 headers={"Content-Type": "application/json"},
@@ -156,6 +295,7 @@ IMPORTANT: This input is from speech recognition. The transcript may contain fil
                             result_text = result_text.strip()
                             try:
                                 result = json.loads(result_text)
+                                
                                 return _normalize_ai_result(result)
                             except json.JSONDecodeError:
                                 print(f"Failed to parse Gemini JSON: {result_text}")
@@ -165,43 +305,108 @@ IMPORTANT: This input is from speech recognition. The transcript may contain fil
         return None
     return None
 
-def _normalize_ai_result(result: Dict[str, Any]) -> Dict[str, Any]:
-    valid_categories = ["Road", "Safety", "Lost", "Weather", "Emergency", "Event", "Infrastructure", "Environment", "Traffic", "Crime", "PublicTransport", "Construction", "General"]
-    category = result.get("category", "General")
-    if category not in valid_categories:
-        category = "General"
-    valid_priorities = ["Low", "Medium", "High", "Critical"]
-    priority = result.get("priority", "Medium")
-    if priority not in valid_priorities:
-        priority = "Medium"
-    title = result.get("title", "").strip()
+def _normalize_ai_result(raw: Dict[str, Any]) -> Dict[str, Any]:
+    is_valid = raw.get("is_valid_alert")
+    if isinstance(is_valid, str):
+        is_valid = is_valid.strip().lower() in {"true", "1", "yes", "valid", "alert"}
+    if is_valid is False:
+        reason = _sanitize_text(raw.get("reason")) or "Input does not appear to describe a valid alert."
+        return {"is_valid_alert": False, "reason": reason}
+
+    title = _sanitize_text(raw.get("title"))
+    if not title:
+        return {"is_valid_alert": False, "reason": "AI response missing required title."}
     if len(title) > 60:
-        title = title[:57] + "..."
-    description = result.get("description")
-    if description:
-        description = description.strip()
-        if description == title or not description:
-            description = None
-    location_mentions = result.get("location_mentions", [])
-    if not isinstance(location_mentions, list):
-        location_mentions = []
-    area = result.get("area")
-    if area and isinstance(area, str) and area.lower() in ["null", "none", ""]:
-        area = None
-    sector = result.get("sector")
-    if sector and isinstance(sector, str) and sector.lower() in ["null", "none", ""]:
-        sector = None
-    phone = result.get("phone")
-    if phone and isinstance(phone, str) and phone.lower() in ["null", "none", ""]:
-        phone = None
-    email = result.get("email")
-    if email and isinstance(email, str) and email.lower() in ["null", "none", ""]:
-        email = None
-    other_contact = result.get("other_contact")
-    if other_contact and isinstance(other_contact, str) and other_contact.lower() in ["null", "none", ""]:
-        other_contact = None
-    suggestions = _generate_suggestions(category, priority)
-    return {"category": category, "priority": priority, "title": title, "description": description, "location_mentions": location_mentions, "area": area, "sector": sector, "suggestions": suggestions, "phone": phone, "email": email, "other_contact": other_contact}
+        title = title[:60].strip()
+
+    description = _sanitize_text(raw.get("description"))
+    if description == title:
+        description = None
+
+    category = _normalize_category_value(raw.get("category")) or "General"
+    priority = _normalize_priority_value(raw.get("priority")) or "Medium"
+
+    location_dict = raw.get("location") if isinstance(raw.get("location"), dict) else {}
+    lat = _to_float(location_dict.get("lat"))
+    lng = _to_float(location_dict.get("lng"))
+    address = _sanitize_text(location_dict.get("address"))
+    location = {"lat": lat, "lng": lng, "address": address}
+
+    area = _sanitize_text(raw.get("area"))
+    sector = _sanitize_text(raw.get("sector"))
+    location_hierarchy = raw.get("location_hierarchy") if isinstance(raw.get("location_hierarchy"), dict) else {}
+    if area and not location_hierarchy.get("area"):
+        location_hierarchy["area"] = area
+    if sector:
+        if not sector.lower().startswith("sector"):
+            sector = f"Sector {sector}".strip()
+        if not location_hierarchy.get("sector"):
+            location_hierarchy["sector"] = sector
+
+    contacts_raw = raw.get("contacts") if isinstance(raw.get("contacts"), dict) else {}
+    phone = _sanitize_text(contacts_raw.get("phone") or raw.get("phone"))
+    email = _sanitize_text(contacts_raw.get("email") or raw.get("email"))
+    other_contact = _sanitize_text(
+        contacts_raw.get("other")
+        or contacts_raw.get("other_contact")
+        or raw.get("other_contact")
+        or raw.get("other")
+    )
+    contacts = {"phone": phone, "email": email, "other": other_contact}
+
+    raw_suggestions = raw.get("suggestions")
+    suggestions: list[str] = []
+    if isinstance(raw_suggestions, list):
+        for item in raw_suggestions:
+            text = _sanitize_text(item)
+            if text:
+                suggestions.append(text)
+    elif isinstance(raw_suggestions, str):
+        text = _sanitize_text(raw_suggestions)
+        if text:
+            suggestions.append(text)
+    if not suggestions:
+        suggestions = _generate_suggestions(category, priority)
+
+    raw_mentions = raw.get("location_mentions")
+    location_mentions: list[str] = []
+    if isinstance(raw_mentions, list):
+        for item in raw_mentions:
+            text = _sanitize_text(item)
+            if text:
+                location_mentions.append(text)
+    elif isinstance(raw_mentions, str):
+        text = _sanitize_text(raw_mentions)
+        if text:
+            location_mentions.append(text)
+
+    normalized: Dict[str, Any] = {
+        "is_valid_alert": True,
+        "reason": None,
+        "title": title,
+        "description": description,
+        "category": category,
+        "priority": priority,
+        "location": location,
+        "area": area,
+        "sector": sector,
+        "location_hierarchy": location_hierarchy,
+        "location_mentions": location_mentions,
+        "contacts": contacts,
+        "phone": phone,
+        "email": email,
+        "other_contact": other_contact,
+        "suggestions": suggestions,
+        "neighborhood": area,
+        "area_type": "area" if area else ("sector" if sector else None),
+    }
+
+    if lat is not None and lng is not None:
+        location_hierarchy.setdefault("point", f"{lat},{lng}")
+    if (area or sector) and not location_hierarchy.get("city"):
+        location_hierarchy["city"] = "Bucharest"
+
+    return normalized
 
 async def analyze_text(text: str, location: Optional[str] = None) -> Dict[str, Any]:
     text_lower = text.lower()
@@ -318,8 +523,35 @@ async def analyze_text(text: str, location: Optional[str] = None) -> Dict[str, A
                 break
     if phone and not other_contact and 'whatsapp' in text_lower:
         other_contact = f"WhatsApp: {phone}"
+
     description = text.strip() if text.strip() != title else None
-    return {"category": category, "priority": priority, "title": title, "description": description, "location_mentions": location_mentions, "suggestions": _generate_suggestions(category, priority), "phone": phone, "email": email, "other_contact": other_contact}
+
+    raw_result: Dict[str, Any] = {
+        "is_valid_alert": True,
+        "title": title or text.strip()[:60],
+        "description": description,
+        "category": category,
+        "priority": priority,
+        "location": {
+            "lat": matched_location_data.get("lat") if matched_location_data else None,
+            "lng": matched_location_data.get("lng") if matched_location_data else None,
+            "address": matched_location_data.get("address") if matched_location_data else None,
+        },
+        "area": matched_location_data.get("area") if matched_location_data and matched_location_data.get("area") else matched_location,
+        "sector": matched_location_data.get("sector") if matched_location_data else None,
+        "location_mentions": location_mentions,
+        "contacts": {
+            "phone": phone,
+            "email": email,
+            "other": other_contact,
+        },
+        "phone": phone,
+        "email": email,
+        "other_contact": other_contact,
+        "suggestions": _generate_suggestions(category, priority),
+    }
+
+    return _normalize_ai_result(raw_result)
 
 def _generate_suggestions(category: AlertCategory, priority: AlertPriority) -> list[str]:
     suggestions = []

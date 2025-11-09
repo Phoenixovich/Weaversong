@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import api from '../services/api';
+import { useAuthGuard } from '../hooks/useAuthGuard';
 
 interface ResponseFormProps {
   request_id: string;
@@ -7,21 +8,25 @@ interface ResponseFormProps {
 }
 
 export default function ResponseForm({ request_id, onCreated }: ResponseFormProps) {
+  const { requireAuth } = useAuthGuard();
   const [form, setForm] = useState({ responder_id: '', message: '' });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const payload = {
-      request_id,
-      responder_id: form.responder_id,
-      message: form.message,
-      status: 'pending',
-    };
+    // Require authentication for creating responses
+    requireAuth(async () => {
+      const payload = {
+        request_id,
+        responder_id: form.responder_id,
+        message: form.message,
+        status: 'pending',
+      };
 
-    await api.post('/helpboard/responses', payload);
-    setForm({ responder_id: '', message: '' });
-    onCreated?.();
+      await api.post('/helpboard/responses', payload);
+      setForm({ responder_id: '', message: '' });
+      onCreated?.();
+    });
   };
 
   return (

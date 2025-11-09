@@ -3,14 +3,36 @@ import type { Alert, AlertCreateInput, AlertAnalysisResult } from '../types/city
 const API_BASE_URL = '/citypulse'
 
 export async function fetchAlerts(
-  neighborhood?: string | null,
-  category?: string | null,
-  priority?: string | null
+  neighborhood?: string[] | string | null,
+  category?: string[] | string | null,
+  priority?: string[] | string | null,
+  dateFilter?: string | null
 ): Promise<Alert[]> {
   const params = new URLSearchParams()
-  if (neighborhood) params.append('neighborhood', neighborhood)
-  if (category) params.append('category', category)
-  if (priority) params.append('priority', priority)
+  
+  // Handle arrays or single values for multiple selections
+  if (neighborhood) {
+    if (Array.isArray(neighborhood)) {
+      neighborhood.forEach(n => params.append('neighborhood', n))
+    } else {
+      params.append('neighborhood', neighborhood)
+    }
+  }
+  if (category) {
+    if (Array.isArray(category)) {
+      category.forEach(c => params.append('category', c))
+    } else {
+      params.append('category', category)
+    }
+  }
+  if (priority) {
+    if (Array.isArray(priority)) {
+      priority.forEach(p => params.append('priority', p))
+    } else {
+      params.append('priority', priority)
+    }
+  }
+  if (dateFilter) params.append('date_filter', dateFilter)
   
   const url = `${API_BASE_URL}/alerts${params.toString() ? `?${params.toString()}` : ''}`
   const response = await fetch(url, {
@@ -23,8 +45,8 @@ export async function fetchAlerts(
 }
 
 export async function fetchNeighborhoods(): Promise<{ Sectors: string[]; Areas: string[]; City: string[] }> {
-  // The backend exposes sectors/areas at /citypulse/sectors
-  const response = await fetch(`${API_BASE_URL.replace('/alerts','')}/sectors`, {
+  // The backend exposes sectors/areas at /citypulse/sectors/neighborhoods for filter dropdowns
+  const response = await fetch(`${API_BASE_URL}/sectors/neighborhoods`, {
     signal: AbortSignal.timeout(10000) // 10 second timeout
   })
   if (!response.ok) {
@@ -136,16 +158,44 @@ export async function createAlert(alert: AlertCreateInput): Promise<Alert> {
     let errorMessage = `Failed to create alert (${response.status}). `
     try {
       const errorData = await response.json()
-      if (errorData.detail) {
-        errorMessage += errorData.detail
+      
+      // Handle FastAPI validation errors (422)
+      if (response.status === 422 && errorData.detail) {
+        if (Array.isArray(errorData.detail)) {
+          // Pydantic validation errors come as an array
+          const validationErrors = errorData.detail.map((err: any) => {
+            const field = err.loc ? err.loc.join('.') : 'field'
+            const msg = err.msg || 'Invalid value'
+            return `${field}: ${msg}`
+          }).join('; ')
+          errorMessage += `Validation errors: ${validationErrors}`
+        } else if (typeof errorData.detail === 'string') {
+          errorMessage += errorData.detail
+        } else {
+          errorMessage += JSON.stringify(errorData.detail)
+        }
+      } else if (errorData.detail) {
+        if (typeof errorData.detail === 'string') {
+          errorMessage += errorData.detail
+        } else if (Array.isArray(errorData.detail)) {
+          errorMessage += errorData.detail.map((e: any) => 
+            typeof e === 'string' ? e : JSON.stringify(e)
+          ).join('; ')
+        } else {
+          errorMessage += JSON.stringify(errorData.detail)
+        }
       } else if (errorData.message) {
         errorMessage += errorData.message
+      } else {
+        errorMessage += JSON.stringify(errorData)
       }
-    } catch {
+    } catch (parseError) {
       if (response.status === 500) {
         errorMessage += 'Server error. The backend may be experiencing issues.'
       } else if (response.status === 400) {
         errorMessage += 'Invalid data. Please check your alert information.'
+      } else if (response.status === 422) {
+        errorMessage += 'Validation error. Please check all required fields are filled correctly.'
       }
     }
     const error = new Error(errorMessage)
