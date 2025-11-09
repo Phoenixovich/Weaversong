@@ -57,27 +57,50 @@ NGROK_URL=https://your-ngrok-url.ngrok-free.app
 
 ## Step 4: Deploy to Netlify
 
-### Option A: Deploy via Netlify Dashboard
+### Option A: Deploy via Netlify Dashboard (Manual Upload)
 
 1. Go to [Netlify](https://app.netlify.com)
 2. Click "Add new site" → "Deploy manually"
 3. Drag and drop the `auth-service/frontend/dist` folder
 4. Your site will be deployed!
 
-### Option B: Deploy via Netlify CLI
+### Option B: Deploy via Netlify Dashboard (Git Integration)
+
+1. Go to [Netlify](https://app.netlify.com)
+2. Click "Add new site" → "Import an existing project"
+3. Connect your Git repository
+4. Configure build settings:
+   - **Base directory:** `auth-service/frontend` (or leave empty if deploying from root)
+   - **Build command:** `npm run build`
+   - **Publish directory:** `dist` (relative to base directory)
+5. Add environment variable:
+   - **Key:** `VITE_API_URL`
+   - **Value:** `https://your-ngrok-url.ngrok-free.app`
+6. Click "Deploy site"
+
+**Note:** The `netlify.toml` file in the frontend directory will automatically configure these settings if you're using Git integration.
+
+### Option C: Deploy via Netlify CLI
 
 1. Install Netlify CLI:
    ```bash
    npm install -g netlify-cli
    ```
 
-2. Navigate to the dist folder:
+2. Navigate to the frontend directory:
    ```bash
-   cd auth-service/frontend/dist
+   cd auth-service/frontend
    ```
 
-3. Deploy:
+3. Login to Netlify:
    ```bash
+   netlify login
+   ```
+
+4. Initialize and deploy:
+   ```bash
+   netlify init
+   # Follow the prompts, or use:
    netlify deploy --prod
    ```
 
@@ -103,7 +126,49 @@ Or add it to the `allowed_origins` list in `app/main.py`.
 
 ## Troubleshooting
 
-- **CORS errors**: Make sure your ngrok URL is accessible and the backend is running
-- **404 errors on routes**: Ensure the `_redirects` file is in your `dist` folder
-- **API not connecting**: Verify `VITE_API_URL` matches your current ngrok URL
+### Build Command Errors
+
+If you see errors like `'remix' is not recognized` or wrong build commands:
+
+1. **Check Netlify Build Settings:**
+   - Go to Site settings → Build & deploy → Build settings
+   - **Base directory:** Should be `auth-service/frontend` (or empty if deploying from root)
+   - **Build command:** Should be `npm run build`
+   - **Publish directory:** Should be `dist` (relative to base directory)
+
+2. **Or use the `netlify.toml` file:**
+   - The `netlify.toml` file in `auth-service/frontend/` automatically configures these settings
+   - Make sure it's committed to your repository if using Git integration
+
+### CORS Errors (Frontend trying to connect to localhost)
+
+If you see errors like:
+```
+Cross-Origin Request Blocked: The Same Origin Policy disallows reading the remote resource at http://localhost:8000/...
+```
+
+**This means the frontend was built with `VITE_API_URL=http://localhost:8000` instead of your ngrok URL.**
+
+**Solution:**
+
+1. **If using Netlify Git Integration:**
+   - Go to Netlify Dashboard → Your Site → Site settings → Environment variables
+   - Add/Update: `VITE_API_URL` = `https://your-ngrok-url.ngrok-free.app`
+   - Trigger a new deploy (Deploys → Trigger deploy → Clear cache and deploy site)
+
+2. **If using Manual Deploy:**
+   - Update `auth-service/frontend/.env` with your ngrok URL:
+     ```env
+     VITE_API_URL=https://your-ngrok-url.ngrok-free.app
+     ```
+   - Rebuild: `cd auth-service/frontend && npm run build`
+   - Redeploy the `dist` folder to Netlify
+
+**Important:** Vite embeds environment variables at build time, so you MUST rebuild after changing `VITE_API_URL`.
+
+### Other Issues
+
+- **404 errors on routes**: Ensure the `_redirects` file is in your `dist` folder (it's automatically included via `public/_redirects`)
+- **Build fails**: Make sure Node.js version is set correctly in Netlify (should be 16+)
+- **Backend not accessible**: Make sure ngrok is running and the URL is correct
 

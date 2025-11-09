@@ -1,5 +1,4 @@
 import React from 'react';
-import { useAuth } from '../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import './UpgradeModal.css';
 
@@ -9,7 +8,6 @@ interface UpgradeModalProps {
 }
 
 export const UpgradeModal: React.FC<UpgradeModalProps> = ({ isOpen, onClose }) => {
-  const { user } = useAuth();
   const navigate = useNavigate();
 
   if (!isOpen) return null;

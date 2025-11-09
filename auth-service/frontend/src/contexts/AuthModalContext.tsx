@@ -1,5 +1,4 @@
 import React, { createContext, useContext, useState, useCallback, ReactNode } from 'react';
-import { useAuth } from './AuthContext';
 
 interface AuthModalContextType {
   showLoginModal: () => void;

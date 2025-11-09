@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { authAPI } from '../services/api';
 import { UserBadge } from '../components/UserBadge';
-import { useNavigate } from 'react-router-dom';
 import { Link } from 'react-router-dom';
 import './Profile.css';
 
@@ -16,7 +15,6 @@ interface UserStats {
 
 export const Profile: React.FC = () => {
   const { user, setUser } = useAuth();
-  const navigate = useNavigate();
   const [stats, setStats] = useState<UserStats | null>(null);
   const [loading, setLoading] = useState(false);
   const [upgrading, setUpgrading] = useState(false);

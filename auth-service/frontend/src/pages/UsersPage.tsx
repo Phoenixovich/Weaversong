@@ -40,7 +40,7 @@ export default function UsersPage() {
           setUsers(res.data);
           setLoading(false);
         },
-        (err) => {
+        () => {
           setError('Failed to get location. Please enable location services.');
           setLoading(false);
         }
@@ -66,7 +66,7 @@ export default function UsersPage() {
           setUsers(res.data);
           setLoading(false);
         },
-        (err) => {
+        () => {
           setError('Failed to get location. Please enable location services.');
           setLoading(false);
         }

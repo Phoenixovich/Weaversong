@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { createAlert, analyzeAlertText } from '../../services/citypulseApi'
 import type { AlertAnalysisResult, AlertCategory, AlertPriority } from '../../types/citypulse'
 import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet'
-import { Icon } from 'leaflet'
+import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import { useAuthGuard } from '../../hooks/useAuthGuard'
 import { useAuth } from '../../contexts/AuthContext'
@@ -69,7 +69,7 @@ function MapLocationSelector({ onLocationSelect, initialLocation }: { onLocation
 
   function LocationMarker() {
     const map = useMapEvents({
-      click(e) {
+      click(e: L.LeafletMouseEvent | any) {
         const { lat, lng } = e.latlng
         setPosition([lat, lng])
         onLocationSelect(lat, lng)
@@ -82,29 +82,28 @@ function MapLocationSelector({ onLocationSelect, initialLocation }: { onLocation
       }
     }, [initialLocation, map])
 
+    const markerIcon = new L.Icon({
+      iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png',
+      shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+      iconSize: [25, 41],
+      iconAnchor: [12, 41],
+      popupAnchor: [1, -34],
+      shadowSize: [41, 41],
+    })
+
     return position ? (
-      <Marker
-        position={position}
-        icon={new Icon({
-          iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png',
-          shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
-          iconSize: [25, 41],
-          iconAnchor: [12, 41],
-          popupAnchor: [1, -34],
-          shadowSize: [41, 41],
-        })}
-      />
+      <Marker position={position} {...({ icon: markerIcon } as any)} />
     ) : null
   }
 
   return (
     <MapContainer
-      center={position || [44.4268, 26.1025]}
+      {...({ center: position || [44.4268, 26.1025] } as any)}
       zoom={13}
       style={{ height: '100%', width: '100%' }}
     >
       <TileLayer
-        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        {...({ attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors' } as any)}
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
       />
       <LocationMarker />
@@ -483,6 +482,13 @@ export default function AlertInput() {
     setMessage(null)
 
     try {
+      // Validate analysis exists
+      if (!analysis) {
+        setMessage({ type: 'error', text: 'Analysis is required. Please analyze your text first.' })
+        setLoading(false)
+        return
+      }
+
       // Use map-selected location, user location, or analysis location (in that priority order)
       const finalLocation = mapSelectedLocation || userLocation || analysis.location
       
@@ -920,7 +926,7 @@ export default function AlertInput() {
                   onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                   placeholder="Phone number"
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  disabled={allowContacting && user?.default_phone}
+                  disabled={!!(allowContacting && user?.default_phone)}
                 />
               </div>
               
@@ -953,7 +959,7 @@ export default function AlertInput() {
                   className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
                     emailError ? 'border-red-500' : 'border-gray-300'
                   }`}
-                  disabled={allowContacting && user?.email}
+                  disabled={!!(allowContacting && user?.email)}
                 />
                 {emailError && (
                   <p className="mt-1 text-sm text-red-600">{emailError}</p>
@@ -970,7 +976,7 @@ export default function AlertInput() {
                   onChange={(e) => setFormData({ ...formData, other_contact: e.target.value })}
                   placeholder="WhatsApp, Telegram, etc."
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  disabled={allowContacting && user?.default_other_contact}
+                  disabled={!!(allowContacting && user?.default_other_contact)}
                 />
               </div>
             </div>
@@ -1092,13 +1098,13 @@ export default function AlertInput() {
             <div>
               <span className="text-sm text-gray-600">Category:</span>
               <div className="font-semibold text-gray-900">
-                {categoryEmojis[analysis.category]} {analysis.category}
+                {analysis.category && categoryEmojis[analysis.category] ? categoryEmojis[analysis.category] : ''} {analysis.category}
               </div>
             </div>
             <div>
               <span className="text-sm text-gray-600">Priority:</span>
               <div className={`inline-block px-3 py-1 rounded-full text-sm font-semibold border-2 ${
-                priorityColors[analysis.priority]
+                analysis.priority && priorityColors[analysis.priority] ? priorityColors[analysis.priority] : ''
               }`}>
                 {analysis.priority}
               </div>

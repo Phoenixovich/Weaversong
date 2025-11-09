@@ -4,7 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 import './Welcome.css';
 
 export const Welcome: React.FC = () => {
-  const { user, isAuthenticated } = useAuth();
+  const { isAuthenticated } = useAuth();
 
   return (
     <div className="container">

@@ -1,10 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useAuthGuard } from '../hooks/useAuthGuard';
 import api, { helpdeskAPI } from '../services/api';
 import RequestForm from '../components/RequestForm';
 import ResponseForm from '../components/ResponseForm';
-import { UserBadge } from '../components/UserBadge';
 import { canAcceptResponse } from '../utils/permissions';
 import './HelpboardPage.css';
 
@@ -36,7 +35,6 @@ export default function HelpboardPage() {
   const [responses, setResponses] = useState<ResponseItem[]>([]);
   const [activeTab, setActiveTab] = useState<'requests' | 'responses'>('requests');
   const [loading, setLoading] = useState(false);
-  const [selectedRequest, setSelectedRequest] = useState<string | null>(null);
 
   useEffect(() => {
     if (activeTab === 'requests') {
@@ -77,12 +75,6 @@ export default function HelpboardPage() {
     });
   };
 
-  const handleCreateResponse = (requestId: string) => {
-    requireAuth(() => {
-      setSelectedRequest(requestId);
-      fetchResponses();
-    });
-  };
 
   const handleAcceptResponse = async (responseId: string, requestId: string, status: 'accepted' | 'declined') => {
     try {

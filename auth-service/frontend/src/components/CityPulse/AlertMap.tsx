@@ -1,5 +1,5 @@
 import { MapContainer, TileLayer, Marker, Popup, useMap, Polygon, Tooltip } from 'react-leaflet'
-import { DivIcon } from 'leaflet'
+import L from 'leaflet'
 import { useEffect, useState } from 'react'
 import type { Alert, AlertCategory, AlertPriority } from '../../types/citypulse'
 import { fetchSectors, type Sector } from '../../services/citypulseApi'
@@ -123,13 +123,13 @@ function ZoomToNeighborhood({ neighborhood, sectors }: { neighborhood: string | 
 }
 
 // Create custom marker icon based on category and priority
-const createMarkerIcon = (category: AlertCategory, priority: AlertPriority): DivIcon => {
+const createMarkerIcon = (category: AlertCategory, priority: AlertPriority) => {
   const color = categoryMarkerColors[category]
   const emoji = categoryEmojis[category]
   const size = prioritySizes[priority]
   const fontSize = Math.max(12, size * 0.4) // Emoji size scales with marker size
   
-  return new DivIcon({
+  return new L.DivIcon({
     className: 'custom-marker',
     html: `
       <div style="
@@ -228,13 +228,13 @@ export default function AlertMap({ alerts, selectedNeighborhood }: AlertMapProps
   return (
     <div className="w-full h-[500px] rounded-lg overflow-hidden border border-gray-300 shadow-lg">
       <MapContainer
-        center={defaultCenter}
+        {...({ center: defaultCenter } as any)}
         zoom={defaultZoom}
         style={{ height: '100%', width: '100%' }}
         scrollWheelZoom={true}
       >
         <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+          {...({ attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors' } as any)}
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
         {/* Render sector polygons as colored overlays from MongoDB */}
@@ -262,7 +262,7 @@ export default function AlertMap({ alerts, selectedNeighborhood }: AlertMapProps
                 opacity: 0.7,
               }}
             >
-              <Tooltip permanent={false} direction="center">
+              <Tooltip>
                 <div className="font-semibold text-sm">{sector.sector}</div>
               </Tooltip>
             </Polygon>
@@ -276,7 +276,7 @@ export default function AlertMap({ alerts, selectedNeighborhood }: AlertMapProps
             <Marker
               key={alert.id}
               position={[alert.location.lat!, alert.location.lng!]}
-              icon={icon}
+              {...({ icon } as any)}
             >
               <Popup>
                 <div className="p-2 min-w-[200px]">
