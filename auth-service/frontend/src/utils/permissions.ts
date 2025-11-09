@@ -44,21 +44,15 @@ export function canDeleteAlert(user: User | null, alertUserId: string): boolean 
 export function canEditRequest(user: User | null, requestUserId: string): boolean {
   if (!user) return false;
   
-  // User can always edit their own content
-  if (user.id === requestUserId) return true;
+  // Only the request owner can edit their request
+  return user.id === requestUserId;
+}
+
+export function canAcceptResponse(user: User | null, requestUserId: string): boolean {
+  if (!user) return false;
   
-  // Trusted users and above can edit any request
-  if (user.role && [
-    UserRole.TRUSTED_USER,
-    UserRole.MODERATOR,
-    UserRole.REPRESENTATIVE,
-    UserRole.BUSINESS_OWNER,
-    UserRole.ADMIN
-  ].includes(user.role)) {
-    return true;
-  }
-  
-  return false;
+  // Only the request owner can accept/decline responses
+  return user.id === requestUserId;
 }
 
 export function canDeleteRequest(user: User | null, requestUserId: string): boolean {

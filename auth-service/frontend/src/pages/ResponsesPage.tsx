@@ -1,5 +1,8 @@
 import { useState, useEffect } from 'react';
-import api from '../services/api';
+import { useNavigate } from 'react-router-dom';
+import api, { helpdeskAPI } from '../services/api';
+import { useAuth } from '../contexts/AuthContext';
+import { canEditResponse, canDeleteResponse } from '../utils/permissions';
 
 interface ResponseItem {
   _id: string;
@@ -10,11 +13,27 @@ interface ResponseItem {
   date_created?: string;
 }
 
+interface RequestItem {
+  _id: string;
+  user_id?: string;
+}
+
 export default function ResponsesPage() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [responses, setResponses] = useState<ResponseItem[]>([]);
+  const [requests, setRequests] = useState<RequestItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+
+  const fetchRequests = async () => {
+    try {
+      const res = await api.get<RequestItem[]>('/helpboard/requests');
+      setRequests(res.data);
+    } catch (error) {
+      console.error('Failed to fetch requests:', error);
+    }
+  };
 
   const fetchResponses = async () => {
     setLoading(true);
@@ -29,8 +48,18 @@ export default function ResponsesPage() {
   };
 
   useEffect(() => {
+    fetchRequests();
     fetchResponses();
   }, []);
+
+  // Filter responses to only show those for requests owned by the current user
+  const getFilteredResponses = () => {
+    if (!user) return [];
+    const userRequestIds = new Set(
+      requests.filter(r => r.user_id === user.id).map(r => r._id)
+    );
+    return responses.filter(r => userRequestIds.has(r.request_id));
+  };
 
   const getStatusColor = (status?: string) => {
     switch (status?.toLowerCase()) {
@@ -66,36 +95,50 @@ export default function ResponsesPage() {
   };
 
   return (
-    <div style={styles.container}>
+    <div className="helpboard-page">
       <div style={styles.header}>
-        <h1 style={styles.title}>💬 Responses</h1>
-        <p style={styles.subtitle}>View all responses to help requests</p>
+        <h1 style={styles.headerTitle}>💬 Responses</h1>
+        <p style={styles.headerSubtitle}>
+          View all responses to help requests
+        </p>
+        <div style={styles.controlsRow}>
+          <button
+            onClick={() => navigate('/helpboard')}
+            style={styles.tabButton}
+          >
+            ← Back to Helpboard
+          </button>
+        </div>
       </div>
 
       <div style={styles.content}>
         <div style={styles.statsBar}>
           <div style={styles.statItem}>
-            <strong>Total Responses:</strong> {responses.length}
+            <strong>Total Responses:</strong> {getFilteredResponses().length}
           </div>
           <div style={styles.statItem}>
             <strong>Pending:</strong>{' '}
-            {responses.filter((r) => r.status === 'pending').length}
+            {getFilteredResponses().filter((r) => r.status === 'pending').length}
           </div>
           <div style={styles.statItem}>
             <strong>Accepted:</strong>{' '}
-            {responses.filter((r) => r.status === 'accepted').length}
+            {getFilteredResponses().filter((r) => r.status === 'accepted').length}
           </div>
         </div>
 
         {loading ? (
           <p style={styles.loading}>Loading responses...</p>
-        ) : responses.length === 0 ? (
+        ) : !user ? (
           <div style={styles.emptyState}>
-            <p>No responses yet.</p>
+            <p>Please log in to see responses to your requests.</p>
+          </div>
+        ) : getFilteredResponses().length === 0 ? (
+          <div style={styles.emptyState}>
+            <p>No responses to your requests yet.</p>
           </div>
         ) : (
           <div style={styles.responsesList}>
-            {responses.map((response) => (
+            {getFilteredResponses().map((response) => (
               <div key={response._id} style={styles.responseCard}>
                 <div style={styles.responseHeader}>
                   <div style={styles.responseInfo}>
@@ -161,26 +204,49 @@ export default function ResponsesPage() {
 }
 
 const styles: { [key: string]: React.CSSProperties } = {
-  container: {
-    maxWidth: '1200px',
-    margin: '0 auto',
-    padding: '2rem 1rem',
-  },
   header: {
+    color: 'white',
+    padding: '2rem',
     textAlign: 'center',
-    marginBottom: '2rem',
+    backgroundColor: '#20c997',
   },
-  title: {
+  headerTitle: {
+    margin: 0,
     fontSize: '2.5rem',
-    marginBottom: '0.5rem',
-    color: '#333',
+    fontWeight: 'bold',
   },
-  subtitle: {
+  headerSubtitle: {
+    margin: '0.5rem 0 1rem 0',
     fontSize: '1.1rem',
-    color: '#666',
+    opacity: 0.9,
+  },
+  controlsRow: {
+    display: 'flex',
+    gap: '1rem',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: '1rem',
+    flexWrap: 'wrap',
+  },
+  tabButton: {
+    padding: '0.75rem 1.5rem',
+    border: '2px solid white',
+    backgroundColor: 'transparent',
+    color: 'white',
+    borderRadius: '4px',
+    cursor: 'pointer',
+    fontSize: '1rem',
+    fontWeight: '600',
+    transition: 'all 0.3s',
+    textDecoration: 'none',
+    display: 'inline-block',
   },
   content: {
-    marginTop: '2rem',
+    minHeight: 'calc(100vh - 200px)',
+    padding: '2rem 1rem',
+    maxWidth: '1200px',
+    margin: '0 auto',
+    backgroundColor: '#f0fdfa',
   },
   statsBar: {
     display: 'flex',
