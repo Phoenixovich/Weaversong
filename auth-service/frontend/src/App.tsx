@@ -16,6 +16,8 @@ import ResponsesPage from './pages/ResponsesPage';
 import LoginCallback from './pages/LoginCallback';
 import CityPulse from './pages/CityPulse';
 import { PedestrianAnalyzer } from './pages/PedestrianAnalyzer';
+import HelpboardLanding from './pages/HelpboardLanding';
+import MyTrades from './pages/MyTrades';
 
 const AppRoutes: React.FC = () => {
   return (
@@ -28,6 +30,15 @@ const AppRoutes: React.FC = () => {
         <Route path="/citypulse" element={<CityPulse />} />
         <Route path="/public-data" element={<PublicDataHub />} />
         <Route path="/clarifai" element={<ClarifAI />} />
+        <Route path="/helpboard" element={<HelpboardLanding />} /> {/*need to do the login/not logged in functionality*/}
+        <Route
+          path="/helpboard/my-trades"
+          element={
+            <ProtectedRoute>
+              <MyTrades />
+            </ProtectedRoute>
+          }
+        />
         <Route path="/helpboard/users" element={<UsersPage />} />
         <Route path="/helpboard/requests" element={<RequestsPage />} />
         <Route path="/helpboard/responses" element={<ResponsesPage />} />

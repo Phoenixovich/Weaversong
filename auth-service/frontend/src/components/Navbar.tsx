@@ -35,7 +35,7 @@ export const Navbar: React.FC = () => {
           <Link to="/clarifai" className={isActive('/clarifai')}>
             ClarifAI
           </Link>
-          <Link to="/helpboard/users" className={isActive('/helpboard/users')}>
+          <Link to="/helpboard" className={isActive('/helpboard')}>
             Helpboard
           </Link>
           {/* Protected pages - only visible when authenticated */}
