@@ -7,7 +7,7 @@ from app.models.helpboard_response import HelpboardResponse
 from app.utils.serializers import convert_objectids
 from app.middleware.auth import get_current_user
 from app.models.user import UserInDB
-from app.utils.permissions import can_edit_response, can_delete_response
+from app.utils.permissions import can_edit_response, can_delete_response, can_accept_response
 
 router = APIRouter()
 
@@ -53,7 +53,7 @@ async def update_response_status(
     status: str,
     current_user: UserInDB = Depends(get_current_user)
 ):
-    """Accept or decline a response."""
+    """Accept or decline a response. Only the request owner can do this."""
     if status not in ["pending", "accepted", "declined"]:
         raise HTTPException(status_code=400, detail="Invalid status value")
 
@@ -63,6 +63,34 @@ async def update_response_status(
         raise HTTPException(status_code=400, detail="Invalid response ID format")
 
     db = get_database()
+    
+    # Get the response to find the associated request
+    response = await db["Helpboard_Responses"].find_one({"_id": oid})
+    if not response:
+        raise HTTPException(status_code=404, detail="Response not found")
+    
+    # Get the request to check ownership
+    request_id = response.get("request_id")
+    if not request_id:
+        raise HTTPException(status_code=400, detail="Response is not associated with a request")
+    
+    try:
+        request_oid = ObjectId(request_id)
+    except Exception:
+        raise HTTPException(status_code=400, detail="Invalid request ID format")
+    
+    request = await db["Helpboard_Requests"].find_one({"_id": request_oid})
+    if not request:
+        raise HTTPException(status_code=404, detail="Associated request not found")
+    
+    # Check if current user is the request owner
+    request_user_id = request.get("user_id", "")
+    if not can_accept_response(current_user, request_user_id):
+        raise HTTPException(
+            status_code=403,
+            detail="Only the request owner can accept or decline responses"
+        )
+    
     res = await db["Helpboard_Responses"].update_one(
         {"_id": oid}, {"$set": {"status": status, "date_updated": datetime.utcnow()}}
     )

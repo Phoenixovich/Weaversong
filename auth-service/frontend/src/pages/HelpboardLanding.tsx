@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import api from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 import { Link } from 'react-router-dom';
+import RequestForm from '../components/RequestForm';
+import ResponseForm from '../components/ResponseForm';
 
 interface RequestItem {
   _id: string;
@@ -22,6 +24,8 @@ const HelpboardLanding: React.FC = () => {
   const [tradeMatches, setTradeMatches] = useState<RequestItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showRequestForm, setShowRequestForm] = useState(false);
+  const [expandedRequests, setExpandedRequests] = useState<Set<string>>(new Set());
 
   const fetchAll = async () => {
     setLoading(true);
@@ -77,85 +81,455 @@ const HelpboardLanding: React.FC = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [allRequests, user]);
 
+  const getStatusColor = (status?: string) => {
+    switch (status?.toLowerCase()) {
+      case 'open':
+        return '#28a745';
+      case 'closed':
+        return '#6c757d';
+      case 'pending':
+        return '#ffc107';
+      case 'accepted':
+        return '#17a2b8';
+      default:
+        return '#6c757d';
+    }
+  };
+
+  const getUrgencyColor = (urgency?: string) => {
+    switch (urgency?.toLowerCase()) {
+      case 'high':
+        return '#dc3545';
+      case 'medium':
+        return '#ffc107';
+      case 'low':
+        return '#28a745';
+      default:
+        return '#6c757d';
+    }
+  };
+
+  const toggleRequest = (requestId: string) => {
+    setExpandedRequests((prev) => {
+      const next = new Set(prev);
+      if (next.has(requestId)) {
+        next.delete(requestId);
+      } else {
+        next.add(requestId);
+      }
+      return next;
+    });
+  };
+
+  const handleResponseCreated = (requestId: string) => {
+    fetchAll();
+    setExpandedRequests((prev) => {
+      const next = new Set(prev);
+      next.delete(requestId);
+      return next;
+    });
+  };
+
   return (
-    <div style={styles.container}>
+    <div className="helpboard-page">
       <div style={styles.header}>
-        <h1 style={styles.title}>Welcome to Helpboard</h1>
-        <p style={styles.subtitle}>Find local help, post requests, and connect with skilled neighbours.</p>
+        <h1 style={styles.headerTitle}>💼 Helpboard</h1>
+        <p style={styles.headerSubtitle}>
+          Find local help, post requests, and connect with skilled neighbours.
+        </p>
+        <div style={styles.controlsRow}>
+          <button
+            onClick={() => setShowRequestForm((s) => !s)}
+            style={{
+              ...styles.tabButton,
+              ...(showRequestForm ? styles.tabButtonActive : {}),
+            }}
+          >
+            {showRequestForm ? '✕ Close Form' : '+ Submit Request'}
+          </button>
+          {user && (
+            <Link to="/helpboard/my-trades" style={styles.tabButton}>
+              👷 My Trades
+            </Link>
+          )}
+          <Link to="/helpboard/requests" style={styles.tabButton}>
+            📣 All Requests
+          </Link>
+        </div>
       </div>
 
-      {error && <div style={styles.error}>{error}</div>}
+      <div style={styles.content}>
+        {error && (
+          <div style={styles.errorBanner}>
+            ⚠️ {error}
+          </div>
+        )}
+
+      {showRequestForm && (
+        <div style={styles.formSection}>
+          <RequestForm onCreated={() => { setShowRequestForm(false); fetchAll(); }} />
+        </div>
+      )}
 
       <div style={styles.grid}>
-        <div style={{ marginBottom: '1rem', gridColumn: '1 / -1', textAlign: 'right' }}>
-          <Link to="/helpboard/my-trades" style={styles.ctaButton}>My Trades</Link>
-        </div>
         <section style={styles.card}>
-          <h2 style={styles.sectionTitle}>My Requests</h2>
+          <h2 style={styles.sectionTitle}>📋 My Requests</h2>
           {!user ? (
-            <p>Please log in to see your requests.</p>
+            <div style={styles.emptyState}>
+              <p>Please log in to see your requests.</p>
+            </div>
           ) : loading ? (
-            <p>Loading…</p>
+            <div style={styles.loading}>
+              <p>Loading requests…</p>
+            </div>
           ) : myRequests.length === 0 ? (
-            <p>You don't have any active requests. Create one on the Requests page.</p>
+            <div style={styles.emptyState}>
+              <p>You don't have any active requests yet.</p>
+              <p style={styles.emptyHint}>Create one using the form above!</p>
+            </div>
           ) : (
-            myRequests.map((r) => (
-              <div key={r._id} style={styles.requestItem}>
-                <div style={styles.requestHeader}>
-                  <strong>{r.title}</strong>
-                  <span style={styles.meta}>{r.date_created ? new Date(r.date_created).toLocaleDateString() : ''}</span>
+            <div style={styles.requestsList}>
+              {myRequests.map((r) => (
+                <div key={r._id} style={styles.requestCard}>
+                  <div style={styles.requestHeader}>
+                    <h3 style={styles.requestTitle}>{r.title}</h3>
+                    <div style={styles.badges}>
+                      {r.status && (
+                        <span
+                          style={{
+                            ...styles.badge,
+                            backgroundColor: getStatusColor(r.status),
+                            color: 'white',
+                          }}
+                        >
+                          {r.status}
+                        </span>
+                      )}
+                      {r.urgency && (
+                        <span
+                          style={{
+                            ...styles.badge,
+                            backgroundColor: getUrgencyColor(r.urgency),
+                            color: 'white',
+                          }}
+                        >
+                          {r.urgency}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  {r.description && (
+                    <p style={styles.requestDescription}>{r.description}</p>
+                  )}
+                  <div style={styles.requestDetails}>
+                    {r.trade_needed && (
+                      <div style={styles.detailItem}>
+                        <strong>Trade:</strong> {r.trade_needed}
+                      </div>
+                    )}
+                    {r.budget !== undefined && r.budget > 0 && (
+                      <div style={styles.detailItem}>
+                        <strong>Budget:</strong> ${r.budget}
+                      </div>
+                    )}
+                    {r.date_created && (
+                      <div style={styles.detailItem}>
+                        <strong>Created:</strong> {new Date(r.date_created).toLocaleDateString()}
+                      </div>
+                    )}
+                  </div>
+                  {user && (
+                    <button
+                      onClick={() => toggleRequest(r._id)}
+                      style={styles.expandButton}
+                    >
+                      {expandedRequests.has(r._id) ? '▼ Hide Response Form' : '▶ Add Response'}
+                    </button>
+                  )}
+                  {expandedRequests.has(r._id) && user && (
+                    <div style={styles.responseSection}>
+                      <ResponseForm
+                        request_id={r._id}
+                        onCreated={() => handleResponseCreated(r._id)}
+                      />
+                    </div>
+                  )}
                 </div>
-                {r.description && <div style={styles.description}>{r.description}</div>}
-                {r.trade_needed && <div style={styles.badge}>{r.trade_needed}</div>}
-              </div>
-            ))
+              ))}
+            </div>
           )}
         </section>
 
         <section style={styles.card}>
-          <h2 style={styles.sectionTitle}>Requests for Your Trade</h2>
+          <h2 style={styles.sectionTitle}>🎯 Requests for Your Trade</h2>
           {!user ? (
-            <p>Please log in to see requests relevant to your trades.</p>
+            <div style={styles.emptyState}>
+              <p>Please log in to see requests relevant to your trades.</p>
+              <p style={styles.emptyHint}>Set up your trades in <Link to="/helpboard/my-trades" style={styles.inlineLink}>My Trades</Link> to get matched!</p>
+            </div>
           ) : loading ? (
-            <p>Loading…</p>
+            <div style={styles.loading}>
+              <p>Loading matches…</p>
+            </div>
           ) : tradeMatches.length === 0 ? (
-            <p>No open requests match your listed trades right now.</p>
+            <div style={styles.emptyState}>
+              <p>No open requests match your listed trades right now.</p>
+              <p style={styles.emptyHint}>Check back later or browse <Link to="/helpboard/requests" style={styles.inlineLink}>all requests</Link>.</p>
+            </div>
           ) : (
-            tradeMatches.map((r) => (
-              <div key={r._id} style={styles.requestItem}>
-                <div style={styles.requestHeader}>
-                  <strong>{r.title}</strong>
-                  <span style={styles.meta}>{r.date_created ? new Date(r.date_created).toLocaleDateString() : ''}</span>
+            <div style={styles.requestsList}>
+              {tradeMatches.map((r) => (
+                <div key={r._id} style={styles.requestCard}>
+                  <div style={styles.requestHeader}>
+                    <h3 style={styles.requestTitle}>{r.title}</h3>
+                    <div style={styles.badges}>
+                      {r.status && (
+                        <span
+                          style={{
+                            ...styles.badge,
+                            backgroundColor: getStatusColor(r.status),
+                            color: 'white',
+                          }}
+                        >
+                          {r.status}
+                        </span>
+                      )}
+                      {r.urgency && (
+                        <span
+                          style={{
+                            ...styles.badge,
+                            backgroundColor: getUrgencyColor(r.urgency),
+                            color: 'white',
+                          }}
+                        >
+                          {r.urgency}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  {r.description && (
+                    <p style={styles.requestDescription}>{r.description}</p>
+                  )}
+                  <div style={styles.requestDetails}>
+                    {r.trade_needed && (
+                      <div style={styles.detailItem}>
+                        <strong>Trade:</strong> {r.trade_needed}
+                      </div>
+                    )}
+                    {r.budget !== undefined && r.budget > 0 && (
+                      <div style={styles.detailItem}>
+                        <strong>Budget:</strong> ${r.budget}
+                      </div>
+                    )}
+                    {r.date_created && (
+                      <div style={styles.detailItem}>
+                        <strong>Created:</strong> {new Date(r.date_created).toLocaleDateString()}
+                      </div>
+                    )}
+                  </div>
+                  {user && (
+                    <button
+                      onClick={() => toggleRequest(r._id)}
+                      style={styles.expandButton}
+                    >
+                      {expandedRequests.has(r._id) ? '▼ Hide Response Form' : '▶ Add Response'}
+                    </button>
+                  )}
+                  {expandedRequests.has(r._id) && user && (
+                    <div style={styles.responseSection}>
+                      <ResponseForm
+                        request_id={r._id}
+                        onCreated={() => handleResponseCreated(r._id)}
+                      />
+                    </div>
+                  )}
                 </div>
-                {r.description && <div style={styles.description}>{r.description}</div>}
-                <div style={styles.requestFooter}>
-                  {r.trade_needed && <div style={styles.badge}>{r.trade_needed}</div>}
-                  {r.budget !== undefined && <div style={styles.meta}>${r.budget}</div>}
-                </div>
-              </div>
-            ))
+              ))}
+            </div>
           )}
         </section>
+      </div>
       </div>
     </div>
   );
 };
 
-const styles: { [k: string]: React.CSSProperties } = {
-  container: { maxWidth: 1100, margin: '2rem auto', padding: '0 1rem' },
-  header: { textAlign: 'center', marginBottom: '1.5rem' },
-  title: { fontSize: '2rem', margin: 0 },
-  subtitle: { color: '#666' },
-  grid: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' },
-  card: { background: 'white', padding: '1rem', borderRadius: 8, boxShadow: '0 2px 8px rgba(0,0,0,0.06)' },
-  sectionTitle: { marginTop: 0, marginBottom: '0.75rem' },
-  requestItem: { padding: '0.6rem 0', borderBottom: '1px solid #eee' },
-  requestHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center' },
-  meta: { color: '#888', fontSize: '0.85rem' },
-  description: { color: '#555', marginTop: '0.4rem' },
-  badge: { display: 'inline-block', marginTop: '0.5rem', background: '#f1f1f1', padding: '0.25rem 0.5rem', borderRadius: 6, fontSize: '0.85rem' },
-  requestFooter: { display: 'flex', gap: '0.5rem', marginTop: '0.5rem', alignItems: 'center' },
-  error: { padding: '0.6rem', background: '#ffebeb', color: '#8a1f1f', borderRadius: 6, marginBottom: '1rem' },
+const styles: { [key: string]: React.CSSProperties } = {
+  header: {
+    color: 'white',
+    padding: '2rem',
+    textAlign: 'center',
+    backgroundColor: '#20c997',
+  },
+  headerTitle: {
+    margin: 0,
+    fontSize: '2.5rem',
+    fontWeight: 'bold',
+  },
+  headerSubtitle: {
+    margin: '0.5rem 0 1rem 0',
+    fontSize: '1.1rem',
+    opacity: 0.9,
+  },
+  controlsRow: {
+    display: 'flex',
+    gap: '1rem',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: '1rem',
+    flexWrap: 'wrap',
+  },
+  tabButton: {
+    padding: '0.75rem 1.5rem',
+    border: '2px solid white',
+    backgroundColor: 'transparent',
+    color: 'white',
+    borderRadius: '4px',
+    cursor: 'pointer',
+    fontSize: '1rem',
+    fontWeight: '600',
+    transition: 'all 0.3s',
+    textDecoration: 'none',
+    display: 'inline-block',
+  },
+  tabButtonActive: {
+    backgroundColor: 'white',
+    color: '#20c997',
+  },
+  content: {
+    minHeight: 'calc(100vh - 200px)',
+    padding: '2rem 1rem',
+    maxWidth: '1200px',
+    margin: '0 auto',
+    backgroundColor: '#f0fdfa',
+  },
+  errorBanner: {
+    padding: '1rem',
+    backgroundColor: '#ffebee',
+    color: '#c62828',
+    borderRadius: '8px',
+    marginBottom: '1.5rem',
+    border: '1px solid #ef5350',
+  },
+  formSection: {
+    backgroundColor: 'white',
+    padding: '1.5rem',
+    borderRadius: '8px',
+    marginBottom: '2rem',
+    boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
+  },
+  grid: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))',
+    gap: '1.5rem',
+    marginTop: '1rem',
+  },
+  card: {
+    backgroundColor: 'white',
+    padding: '1.5rem',
+    borderRadius: '8px',
+    boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
+    border: '1px solid #e9ecef',
+  },
+  sectionTitle: {
+    fontSize: '1.5rem',
+    marginBottom: '1rem',
+    color: '#333',
+    borderBottom: '2px solid #e9ecef',
+    paddingBottom: '0.5rem',
+  },
+  requestsList: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '1rem',
+  },
+  requestCard: {
+    padding: '1rem',
+    backgroundColor: '#f8f9fa',
+    borderRadius: '8px',
+    border: '1px solid #e9ecef',
+    transition: 'transform 0.2s, box-shadow 0.2s',
+  },
+  requestHeader: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: '0.75rem',
+    gap: '1rem',
+  },
+  requestTitle: {
+    margin: 0,
+    fontSize: '1.1rem',
+    color: '#333',
+    flex: 1,
+  },
+  badges: {
+    display: 'flex',
+    gap: '0.5rem',
+    flexWrap: 'wrap',
+  },
+  badge: {
+    padding: '0.25rem 0.75rem',
+    borderRadius: '12px',
+    fontSize: '0.75rem',
+    fontWeight: '500',
+  },
+  requestDescription: {
+    color: '#666',
+    marginBottom: '0.75rem',
+    lineHeight: '1.5',
+  },
+  requestDetails: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '0.4rem',
+    paddingTop: '0.75rem',
+    borderTop: '1px solid #e9ecef',
+  },
+  detailItem: {
+    fontSize: '0.9rem',
+    color: '#666',
+  },
+  loading: {
+    textAlign: 'center',
+    padding: '2rem',
+    color: '#666',
+  },
+  emptyState: {
+    textAlign: 'center',
+    padding: '2rem',
+    backgroundColor: '#f8f9fa',
+    borderRadius: '8px',
+    color: '#666',
+  },
+  emptyHint: {
+    marginTop: '0.5rem',
+    fontSize: '0.9rem',
+    color: '#999',
+  },
+  inlineLink: {
+    color: '#007bff',
+    textDecoration: 'none',
+    fontWeight: '500',
+  },
+  expandButton: {
+    marginTop: '0.75rem',
+    padding: '0.5rem 1rem',
+    backgroundColor: '#20c997',
+    color: 'white',
+    border: 'none',
+    borderRadius: '6px',
+    cursor: 'pointer',
+    fontSize: '0.9rem',
+    fontWeight: '500',
+    transition: 'background-color 0.3s',
+    width: '100%',
+  },
+  responseSection: {
+    marginTop: '1rem',
+    paddingTop: '1rem',
+    borderTop: '1px solid #e9ecef',
+  },
 };
 
 export default HelpboardLanding;

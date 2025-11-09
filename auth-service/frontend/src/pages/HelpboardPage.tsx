@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useAuthGuard } from '../hooks/useAuthGuard';
-import api from '../services/api';
+import api, { helpdeskAPI } from '../services/api';
 import RequestForm from '../components/RequestForm';
 import ResponseForm from '../components/ResponseForm';
 import { UserBadge } from '../components/UserBadge';
+import { canAcceptResponse } from '../utils/permissions';
 
 interface RequestItem {
   _id: string;
@@ -39,6 +40,7 @@ export default function HelpboardPage() {
   useEffect(() => {
     if (activeTab === 'requests') {
       fetchRequests();
+      fetchResponses(); // Also fetch responses to show them on requests
     } else {
       fetchResponses();
     }
@@ -81,6 +83,38 @@ export default function HelpboardPage() {
     });
   };
 
+  const handleAcceptResponse = async (responseId: string, status: 'accepted' | 'declined') => {
+    try {
+      await helpdeskAPI.updateResponseStatus(responseId, status);
+      fetchResponses();
+      fetchRequests(); // Refresh to update request status if needed
+    } catch (error: any) {
+      alert(`Failed to ${status === 'accepted' ? 'accept' : 'decline'} response: ${error.message}`);
+    }
+  };
+
+  const getResponsesForRequest = (requestId: string) => {
+    // Only show responses if the current user owns the request
+    const request = requests.find(r => r._id === requestId);
+    if (!user || !request || request.user_id !== user.id) {
+      return [];
+    }
+    return responses.filter(r => r.request_id === requestId);
+  };
+
+  const getResponseStatusColor = (status?: string) => {
+    switch (status?.toLowerCase()) {
+      case 'accepted':
+        return '#28a745';
+      case 'declined':
+        return '#dc3545';
+      case 'pending':
+        return '#ffc107';
+      default:
+        return '#6c757d';
+    }
+  };
+
   const getStatusColor = (status?: string) => {
     switch (status?.toLowerCase()) {
       case 'open':
@@ -110,36 +144,40 @@ export default function HelpboardPage() {
   };
 
   return (
-    <div style={styles.container}>
+    <div className="helpboard-page">
       <div style={styles.header}>
-        <h1 style={styles.title}>💼 Helpboard</h1>
-        <p style={styles.subtitle}>Connect with local helpers and offer your services</p>
+        <h1 style={styles.headerTitle}>💼 Helpboard</h1>
+        <p style={styles.headerSubtitle}>
+          Connect with local helpers and offer your services
+        </p>
+        <div style={styles.controlsRow}>
+          <div style={styles.tabSelector}>
+            <button
+              style={{
+                ...styles.tabButton,
+                ...(activeTab === 'requests' ? styles.tabButtonActive : {}),
+              }}
+              onClick={() => setActiveTab('requests')}
+            >
+              📣 Requests ({requests.length})
+            </button>
+            <button
+              style={{
+                ...styles.tabButton,
+                ...(activeTab === 'responses' ? styles.tabButtonActive : {}),
+              }}
+              onClick={() => setActiveTab('responses')}
+            >
+              💬 Responses ({responses.length})
+            </button>
+          </div>
+        </div>
       </div>
 
-      <div style={styles.tabs}>
-        <button
-          style={{
-            ...styles.tab,
-            ...(activeTab === 'requests' ? styles.activeTab : {}),
-          }}
-          onClick={() => setActiveTab('requests')}
-        >
-          📣 Requests ({requests.length})
-        </button>
-        <button
-          style={{
-            ...styles.tab,
-            ...(activeTab === 'responses' ? styles.activeTab : {}),
-          }}
-          onClick={() => setActiveTab('responses')}
-        >
-          💬 Responses ({responses.length})
-        </button>
-      </div>
-
-      {activeTab === 'requests' && (
-        <div style={styles.content}>
-          <div style={styles.createSection}>
+      <div style={styles.content}>
+        {activeTab === 'requests' && (
+          <div>
+            <div style={styles.createSection}>
             <h2 style={styles.sectionTitle}>Create a Request</h2>
             <RequestForm onCreated={handleCreateRequest} />
           </div>
@@ -204,6 +242,50 @@ export default function HelpboardPage() {
                         </div>
                       )}
                     </div>
+                    {/* Responses Section */}
+                    {getResponsesForRequest(request._id).length > 0 && (
+                      <div style={styles.responsesSection}>
+                        <h4 style={styles.responsesTitle}>Responses ({getResponsesForRequest(request._id).length})</h4>
+                        {getResponsesForRequest(request._id).map((response) => (
+                          <div key={response._id} style={styles.responseItem}>
+                            <div style={styles.responseHeader}>
+                              <p style={styles.responseMessage}>{response.message}</p>
+                              <span
+                                style={{
+                                  ...styles.badge,
+                                  backgroundColor: getResponseStatusColor(response.status),
+                                  color: 'white',
+                                }}
+                              >
+                                {response.status}
+                              </span>
+                            </div>
+                            {response.date_created && (
+                              <div style={styles.responseDate}>
+                                {new Date(response.date_created).toLocaleString()}
+                              </div>
+                            )}
+                            {/* Accept/Decline buttons - only for request owner */}
+                            {request.user_id && canAcceptResponse(user, request.user_id) && response.status === 'pending' && (
+                              <div style={styles.responseActions}>
+                                <button
+                                  onClick={() => handleAcceptResponse(response._id, 'accepted')}
+                                  style={styles.acceptButton}
+                                >
+                                  ✅ Accept
+                                </button>
+                                <button
+                                  onClick={() => handleAcceptResponse(response._id, 'declined')}
+                                  style={styles.declineButton}
+                                >
+                                  ❌ Decline
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    )}
                     <div style={styles.responseSection}>
                       <ResponseForm
                         request_id={request._id}
@@ -218,21 +300,30 @@ export default function HelpboardPage() {
               </div>
             )}
           </div>
-        </div>
-      )}
+          </div>
+        )}
 
-      {activeTab === 'responses' && (
-        <div style={styles.content}>
-          <h2 style={styles.sectionTitle}>All Responses</h2>
+        {activeTab === 'responses' && (
+          <div>
+            <h2 style={styles.sectionTitle}>All Responses</h2>
           {loading ? (
             <p style={styles.loading}>Loading responses...</p>
-          ) : responses.length === 0 ? (
+          ) : !user ? (
             <div style={styles.emptyState}>
-              <p>No responses yet.</p>
+              <p>Please log in to see responses to your requests.</p>
             </div>
-          ) : (
-            <div style={styles.responsesList}>
-              {responses.map((response) => (
+          ) : (() => {
+            const userRequestIds = new Set(
+              requests.filter(r => r.user_id === user.id).map(r => r._id)
+            );
+            const filteredResponses = responses.filter(r => userRequestIds.has(r.request_id));
+            return filteredResponses.length === 0 ? (
+              <div style={styles.emptyState}>
+                <p>No responses to your requests yet.</p>
+              </div>
+            ) : (
+              <div style={styles.responsesList}>
+                {filteredResponses.map((response) => (
                 <div key={response._id} style={styles.responseCard}>
                   <div style={styles.responseHeader}>
                     <div style={styles.responseInfo}>
@@ -257,61 +348,72 @@ export default function HelpboardPage() {
                 </div>
               ))}
             </div>
-          )}
+            );
+          })()}
         </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }
 
 const styles: { [key: string]: React.CSSProperties } = {
-  container: {
-    maxWidth: '1200px',
-    margin: '0 auto',
-    padding: '2rem 1rem',
-  },
   header: {
+    color: 'white',
+    padding: '2rem',
     textAlign: 'center',
-    marginBottom: '2rem',
+    backgroundColor: '#20c997',
   },
-  title: {
+  headerTitle: {
+    margin: 0,
     fontSize: '2.5rem',
-    marginBottom: '0.5rem',
-    color: '#333',
+    fontWeight: 'bold',
   },
-  subtitle: {
+  headerSubtitle: {
+    margin: '0.5rem 0 1rem 0',
     fontSize: '1.1rem',
-    color: '#666',
+    opacity: 0.9,
   },
-  tabs: {
+  controlsRow: {
+    display: 'flex',
+    gap: '2rem',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: '1rem',
+    flexWrap: 'wrap',
+  },
+  tabSelector: {
     display: 'flex',
     gap: '1rem',
-    marginBottom: '2rem',
-    borderBottom: '2px solid #e0e0e0',
   },
-  tab: {
-    padding: '0.75rem 1.5rem',
+  tabButton: {
+    padding: '0.75rem 2rem',
+    border: '2px solid white',
     backgroundColor: 'transparent',
-    border: 'none',
-    borderBottom: '3px solid transparent',
+    color: 'white',
+    borderRadius: '4px',
     cursor: 'pointer',
     fontSize: '1rem',
-    fontWeight: '500',
-    color: '#666',
+    fontWeight: '600',
     transition: 'all 0.3s',
   },
-  activeTab: {
-    color: '#007bff',
-    borderBottomColor: '#007bff',
+  tabButtonActive: {
+    backgroundColor: 'white',
+    color: '#20c997',
   },
   content: {
-    marginTop: '2rem',
+    minHeight: 'calc(100vh - 200px)',
+    padding: '2rem 1rem',
+    maxWidth: '1200px',
+    margin: '0 auto',
+    backgroundColor: '#f0fdfa',
   },
   createSection: {
-    backgroundColor: '#f8f9fa',
+    backgroundColor: 'white',
     padding: '1.5rem',
     borderRadius: '8px',
     marginBottom: '2rem',
+    boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
   },
   listSection: {
     marginTop: '2rem',
@@ -422,6 +524,67 @@ const styles: { [key: string]: React.CSSProperties } = {
     fontSize: '0.85rem',
     color: '#999',
     marginTop: '0.5rem',
+  },
+  responsesSection: {
+    marginTop: '1rem',
+    paddingTop: '1rem',
+    borderTop: '1px solid #e9ecef',
+  },
+  responsesTitle: {
+    fontSize: '1rem',
+    fontWeight: '600',
+    marginBottom: '0.75rem',
+    color: '#333',
+  },
+  responseItem: {
+    padding: '0.75rem',
+    backgroundColor: '#f8f9fa',
+    borderRadius: '6px',
+    marginBottom: '0.75rem',
+    border: '1px solid #e9ecef',
+  },
+  responseHeader: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    gap: '1rem',
+    marginBottom: '0.5rem',
+  },
+  responseMessage: {
+    flex: 1,
+    margin: 0,
+    color: '#333',
+    fontSize: '0.9rem',
+    lineHeight: '1.5',
+  },
+  responseActions: {
+    display: 'flex',
+    gap: '0.5rem',
+    marginTop: '0.75rem',
+    paddingTop: '0.75rem',
+    borderTop: '1px solid #e9ecef',
+  },
+  acceptButton: {
+    padding: '0.5rem 1rem',
+    backgroundColor: '#28a745',
+    color: 'white',
+    border: 'none',
+    borderRadius: '4px',
+    cursor: 'pointer',
+    fontSize: '0.85rem',
+    fontWeight: '500',
+    transition: 'background-color 0.3s',
+  },
+  declineButton: {
+    padding: '0.5rem 1rem',
+    backgroundColor: '#dc3545',
+    color: 'white',
+    border: 'none',
+    borderRadius: '4px',
+    cursor: 'pointer',
+    fontSize: '0.85rem',
+    fontWeight: '500',
+    transition: 'background-color 0.3s',
   },
 };
 

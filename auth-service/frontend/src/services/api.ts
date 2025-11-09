@@ -139,6 +139,13 @@ export const helpdeskAPI = {
     return response.data;
   },
 
+  updateResponseStatus: async (responseId: string, status: 'pending' | 'accepted' | 'declined'): Promise<any> => {
+    const response = await api.put(`/helpboard/responses/${responseId}/status`, null, {
+      params: { status }
+    });
+    return response.data;
+  },
+
   deleteResponse: async (responseId: string): Promise<void> => {
     await api.delete(`/helpboard/responses/${responseId}`);
   },
