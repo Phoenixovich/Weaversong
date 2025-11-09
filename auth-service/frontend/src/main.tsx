@@ -6,6 +6,7 @@ import './index.css'
 import { AuthProvider } from './contexts/AuthContext'
 import { AuthModalProvider } from './contexts/AuthModalContext'
 import { AuthModalProvider as AuthModalProviderComponent } from './components/AuthModalProvider'
+import { AccessibilityProvider } from './contexts/AccessibilityContext'
 import { usePedestrianTracking } from './hooks/usePedestrianTracking'
 
 // Component to initialize pedestrian tracking
@@ -18,12 +19,14 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <BrowserRouter>
       <AuthProvider>
-        <AuthModalProvider>
-          <AuthModalProviderComponent>
-            <PedestrianTrackingInit />
-            <App />
-          </AuthModalProviderComponent>
-        </AuthModalProvider>
+        <AccessibilityProvider>
+          <AuthModalProvider>
+            <AuthModalProviderComponent>
+              <PedestrianTrackingInit />
+              <App />
+            </AuthModalProviderComponent>
+          </AuthModalProvider>
+        </AccessibilityProvider>
       </AuthProvider>
     </BrowserRouter>
   </React.StrictMode>,
