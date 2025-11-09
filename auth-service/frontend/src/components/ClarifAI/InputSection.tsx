@@ -95,10 +95,18 @@ export const InputSection: React.FC<InputSectionProps> = ({
     <div className={containerClassName}>
       <form onSubmit={handleSubmit} className="form">
         <div className="fileInput">
-          <div className="fileInputHeader">
-            <label htmlFor="file-upload" className="fileLabel">
-              📄 Upload PDF or Image
-            </label>
+          <label htmlFor="file-upload" className="fileLabel">
+            📄 Upload PDF or Image
+          </label>
+          <div className="fileInputRow">
+            <input
+              ref={fileInputRef}
+              id="file-upload"
+              type="file"
+              accept=".pdf,.jpg,.jpeg,.png,.gif,.bmp,.webp"
+              onChange={handleFileChange}
+              className="fileInputField"
+            />
             <button
               type="button"
               onClick={handlePasteFromClipboard}
@@ -108,14 +116,6 @@ export const InputSection: React.FC<InputSectionProps> = ({
               📋 Paste Image
             </button>
           </div>
-          <input
-            ref={fileInputRef}
-            id="file-upload"
-            type="file"
-            accept=".pdf,.jpg,.jpeg,.png,.gif,.bmp,.webp"
-            onChange={handleFileChange}
-            className="fileInputField"
-          />
           {file && (
             <div className="fileInfo">
               <p className="fileName">Selected: {file.name}</p>

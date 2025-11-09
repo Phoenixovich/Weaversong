@@ -45,27 +45,19 @@ export const ClarifAI: React.FC = () => {
     }
   };
 
-  const headerClassName = mode === 'medical'
-    ? 'header medicalHeader'
-    : 'header legalHeader';
-
-  const contentClassName = mode === 'medical'
-    ? 'content medicalContent'
-    : 'content legalContent';
-
   return (
     <div className="clarifai-page">
-      <div className={headerClassName}>
-        <h1 className="headerTitle">ClarifAI</h1>
-        <p className="headerSubtitle">
+      <div className={`clarifai-header ${mode}`}>
+        <h1 className="header-title">ClarifAI</h1>
+        <p className="header-subtitle">
           {mode === 'medical' 
             ? 'Turn complex medical instructions into clear, simple steps'
             : 'Turn complex legal documents into clear, simple steps'}
         </p>
-        <div className="controlsRow">
-          <div className="tabSelector">
+        <div className="clarifai-controls">
+          <div className="tab-selector">
             <button
-              className={`tabButton ${mode === 'medical' ? 'tabButtonActiveMedical' : ''}`}
+              className={`tab-button ${mode === 'medical' ? 'active-medical' : ''}`}
               onClick={() => {
                 setMode('medical');
                 setResult('');
@@ -75,7 +67,7 @@ export const ClarifAI: React.FC = () => {
               🏥 Medical
             </button>
             <button
-              className={`tabButton ${mode === 'legal' ? 'tabButtonActiveLegal' : ''}`}
+              className={`tab-button ${mode === 'legal' ? 'active-legal' : ''}`}
               onClick={() => {
                 setMode('legal');
                 setResult('');
@@ -86,15 +78,15 @@ export const ClarifAI: React.FC = () => {
             </button>
           </div>
           
-          <div className="modelSelector">
-            <label htmlFor="model-select" className="modelLabel">
+          <div className="model-selector">
+            <label htmlFor="model-select" className="model-label">
               Model:
             </label>
             <select
               id="model-select"
               value={model}
               onChange={(e) => setModel(e.target.value)}
-              className="modelSelect"
+              className="model-select"
             >
               <option value="gemini-2.5-flash">gemini-2.5-flash</option>
               <option value="gemini-2.5-pro">gemini-2.5-pro</option>
@@ -102,15 +94,15 @@ export const ClarifAI: React.FC = () => {
             </select>
           </div>
           
-          <div className="styleSelector">
-            <label htmlFor="style-select" className="styleLabel">
+          <div className="style-selector">
+            <label htmlFor="style-select" className="style-label">
               Style:
             </label>
             <select
               id="style-select"
               value={style}
               onChange={(e) => setStyle(e.target.value)}
-              className="styleSelect"
+              className="style-select"
             >
               <option value="default">Default</option>
               <option value="shorter">Shorter</option>
@@ -120,7 +112,7 @@ export const ClarifAI: React.FC = () => {
         </div>
       </div>
 
-      <div className={contentClassName}>
+      <div className={`clarifai-content ${mode}`}>
         <InputSection
           onMedical={handleMedical}
           onLegal={handleLegal}
@@ -131,7 +123,7 @@ export const ClarifAI: React.FC = () => {
         />
 
         {error && (
-          <div className="error">
+          <div className="clarifai-error">
             ⚠️ {error}
           </div>
         )}
@@ -148,5 +140,3 @@ export const ClarifAI: React.FC = () => {
     </div>
   );
 };
-
-

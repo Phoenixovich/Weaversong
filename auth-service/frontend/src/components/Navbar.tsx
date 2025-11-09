@@ -22,11 +22,7 @@ export const Navbar: React.FC = () => {
     <nav className={`navbar ${isAccessibilityMode ? 'accessibility-mode' : ''}`}>
       <div className="navbar-container">
         <div className="navbar-brand">
-<<<<<<< HEAD
           <Link to="/"> Community Service Hub</Link>
-=======
-          <Link to="/citypulse">CivicLink</Link>
->>>>>>> 2de0f415ae3781fe18af9789abc810e0ac729987
         </div>
         
         <div className="navbar-links">
@@ -57,15 +53,6 @@ export const Navbar: React.FC = () => {
               <Link to="/profile" className={isActive('/profile')}>
                 Profile
               </Link>
-<<<<<<< HEAD
-=======
-              {/* Premium/Admin features - hidden in accessibility mode */}
-              {!isAccessibilityMode && (user?.is_premium || user?.role === UserRole.ADMIN) && (
-                <Link to="/pedestrian-analyzer" className={isActive('/pedestrian-analyzer')}>
-                  🚶 PedestrianAnalyzer
-                </Link>
-              )}
->>>>>>> 2de0f415ae3781fe18af9789abc810e0ac729987
             </>
           )}
         </div>

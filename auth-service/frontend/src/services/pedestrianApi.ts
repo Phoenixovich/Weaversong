@@ -48,6 +48,7 @@ export async function getPedestrianAnalytics(params?: {
   radius?: number;
   start_date?: string;
   end_date?: string;
+  timeframe?: string;
 }): Promise<PedestrianAnalytics[]> {
   const token = localStorage.getItem('access_token');
   if (!token) {
@@ -63,25 +64,48 @@ export async function getPedestrianAnalytics(params?: {
     });
   }
 
-  const response = await api.get(`/pedestrian/analytics?${queryParams.toString()}`, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
-  return response.data;
+  try {
+    const response = await api.get(`/pedestrian/analytics?${queryParams.toString()}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    return response.data;
+  } catch (error: any) {
+    if (error.response?.status === 403) {
+      throw new Error('This feature requires premium subscription or admin role');
+    }
+    throw new Error('Failed to fetch analytics');
+  }
 }
 
 /**
  * Get popular locations (requires premium or admin)
  */
-export async function getPopularLocations(limit: number = 10): Promise<PopularLocation[]> {
+export async function getPopularLocations(
+  limit: number = 10,
+  start_date?: string,
+  end_date?: string,
+  timeframe?: string
+): Promise<PopularLocation[]> {
   const token = localStorage.getItem('access_token');
   if (!token) {
     throw new Error('Authentication required');
   }
 
-  const response = await api.get(`/pedestrian/popular-locations?limit=${limit}`, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
-  return response.data;
+  const queryParams = new URLSearchParams();
+  queryParams.append('limit', limit.toString());
+  if (start_date) queryParams.append('start_date', start_date);
+  if (end_date) queryParams.append('end_date', end_date);
+  if (timeframe) queryParams.append('timeframe', timeframe);
+
+  try {
+    const response = await api.get(`/pedestrian/popular-locations?${queryParams.toString()}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    return response.data;
+  } catch (error: any) {
+    if (error.response?.status === 403) {
+      throw new Error('This feature requires premium subscription or admin role');
+    }
+    throw new Error('Failed to fetch popular locations');
+  }
 }
-
-

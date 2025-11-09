@@ -1,0 +1,114 @@
+.forbidden-page {
+  min-height: 100vh;
+  background-color: #f5f9ff;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.forbidden-header {
+  color: white;
+  text-align: center;
+  padding: 2rem;
+  background-color: #ff9800;
+}
+
+.header-title {
+  margin: 0;
+  font-size: 2.5rem;
+  font-weight: bold;
+}
+
+.header-subtitle {
+  margin: 0.5rem 0 1rem 0;
+  font-size: 1.1rem;
+  opacity: 0.9;
+}
+
+.forbidden-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  padding: 2rem 3rem;
+  width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
+  box-sizing: border-box;
+  flex: 1;
+}
+
+.forbidden-container {
+  margin: 0 auto;
+  padding: 3rem 2rem;
+  background-color: white;
+  border-radius: 10px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 600px;
+  box-sizing: border-box;
+  text-align: center;
+}
+
+.error-icon {
+  font-size: 5rem;
+  margin-bottom: 1rem;
+}
+
+.error-title {
+  margin: 0 0 1rem 0;
+  font-size: 2rem;
+  color: #333;
+  font-weight: bold;
+}
+
+.error-message {
+  margin: 0 0 2rem 0;
+  font-size: 1.1rem;
+  color: #666;
+  line-height: 1.6;
+}
+
+.error-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.home-button,
+.dashboard-button {
+  padding: 0.75rem 2rem;
+  border: none;
+  border-radius: 6px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-block;
+  transition: all 0.3s ease;
+}
+
+.home-button {
+  background-color: #2196f3;
+  color: white;
+}
+
+.home-button:hover {
+  background-color: #1976d2;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(33, 150, 243, 0.3);
+}
+
+.dashboard-button {
+  background-color: #20c997;
+  color: white;
+}
+
+.dashboard-button:hover {
+  background-color: #1aa179;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(32, 201, 151, 0.3);
+}
+

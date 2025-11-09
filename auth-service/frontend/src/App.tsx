@@ -21,6 +21,8 @@ import MyTrades from './pages/MyTrades';
 import MyResponsesPage from './pages/MyResponsesPage';
 import MyRequestsPage from './pages/MyRequestsPage';
 import { Welcome } from './pages/Welcome';
+import { NotFound } from './pages/NotFound';
+import { Forbidden } from './pages/Forbidden';
 
 const AppRoutes: React.FC = () => {
   return (
@@ -95,8 +97,12 @@ const AppRoutes: React.FC = () => {
           }
         />
         <Route path="/helpboard/login" element={<LoginCallback />} />
+        {/* Error pages */}
+        <Route path="/forbidden" element={<Forbidden />} />
         {/* Welcome page - default route */}
         <Route path="/" element={<Welcome />} />
+        {/* Catch-all route for 404 */}
+        <Route path="*" element={<NotFound />} />
       </Routes>
     </>
   );

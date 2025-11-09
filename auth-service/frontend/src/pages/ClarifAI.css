@@ -1,56 +1,67 @@
-.header {
-  color: white;
-  padding: 2rem;
-  text-align: center;
+.clarifai-page {
+  background-color: #f5f9ff;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
-.medicalHeader {
+.clarifai-header {
+  color: white;
+  text-align: center;
+  padding: 2rem;
+}
+
+.clarifai-header.medical {
   background-color: #2196f3;
 }
 
-.legalHeader {
+.clarifai-header.legal {
   background-color: #ff9800;
 }
 
-.headerTitle {
+.header-title {
   margin: 0;
   font-size: 2.5rem;
   font-weight: bold;
 }
 
-.headerSubtitle {
+.header-subtitle {
   margin: 0.5rem 0 1rem 0;
   font-size: 1.1rem;
   opacity: 0.9;
 }
 
-.controlsRow {
+.clarifai-controls {
   display: flex;
-  gap: 2rem;
   justify-content: center;
-  align-items: center;
-  margin-top: 1rem;
+  gap: 2rem;
   flex-wrap: wrap;
+  margin-top: 1rem;
 }
 
-.tabSelector {
+.tab-selector {
   display: flex;
   gap: 1rem;
 }
 
-.modelSelector {
+.model-selector,
+.style-selector {
   display: flex;
   align-items: center;
   gap: 0.5rem;
 }
 
-.modelLabel {
+.model-label,
+.style-label {
   color: white;
   font-size: 0.9rem;
   font-weight: 500;
 }
 
-.modelSelect {
+.model-select,
+.style-select {
   padding: 0.5rem 1rem;
   border-radius: 4px;
   border: 2px solid white;
@@ -61,70 +72,77 @@
   font-weight: 500;
 }
 
-.styleSelector {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.styleLabel {
-  color: white;
-  font-size: 0.9rem;
-  font-weight: 500;
-}
-
-.styleSelect {
-  padding: 0.5rem 1rem;
-  border-radius: 4px;
-  border: 2px solid white;
-  background-color: white;
-  color: #333;
-  font-size: 0.9rem;
-  cursor: pointer;
-  font-weight: 500;
-}
-
-.tabButton {
+.tab-button {
   padding: 0.75rem 2rem;
   border: 2px solid white;
   background-color: transparent;
   color: white;
-  border-radius: 4px;
+  border-radius: 6px;
   cursor: pointer;
-  font-size: 1rem;
   font-weight: 600;
-  transition: all 0.3s;
+  transition: all 0.3s ease;
 }
 
-.tabButtonActiveMedical {
+.tab-button.active-medical {
   background-color: white;
   color: #2196f3;
 }
 
-.tabButtonActiveLegal {
+.tab-button.active-legal {
   background-color: white;
   color: #ff9800;
 }
 
-.content {
-  min-height: calc(100vh - 200px);
-  padding: 2rem 1rem;
+.clarifai-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  padding: 2rem 3rem;
+  width: 100%;
+  max-width: 1400px;  /* ✅ lock the same width as when DevTools is open */
+  margin: 0 auto;
+  box-sizing: border-box;
 }
 
-.medicalContent {
+.clarifai-content.medical {
   background-color: #f5f9ff;
 }
 
-.legalContent {
+.clarifai-content.legal {
   background-color: #fffaf5;
 }
 
-.error {
-  max-width: 800px;
-  margin: 1rem auto;
-  padding: 1rem;
+.clarifai-left, .clarifai-right {
+  background: #ffffff;
+  border-radius: 10px;
+  padding: 2rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.clarifai-error {
+  margin-top: 1rem;
   background-color: #fee;
   color: #c33;
-  border-radius: 4px;
   border: 1px solid #fcc;
+  padding: 1rem;
+  border-radius: 6px;
 }
+
+@media (min-width: 1400px) {
+  .clarifai-content {
+    padding: 0.5rem 2.5rem;
+  }
+}
+
+@media (min-width: 1920px) {
+  .clarifai-content {
+    padding: 0.5rem 3rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .clarifai-content {
+    padding: 0.5rem 1rem;
+  }
+}
+

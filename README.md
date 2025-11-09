@@ -91,42 +91,6 @@ The app will be available at `http://localhost:3000`
 ## Project Structure
 
 ```
-<<<<<<< HEAD
-.
-├── backend/
-│   ├── main.py                 # FastAPI application entry point
-│   ├── db.py                   # Database connection and settings
-│   ├── models/                 # Pydantic models
-│   │   └── alert.py           # Alert data models
-│   ├── routes/                 # API routes
-│   │   ├── alerts.py          # Alert CRUD and analysis endpoints
-│   │   └── sectors.py         # Sector polygon data endpoint
-│   ├── services/               # Business logic services
-│   │   ├── ai_analysis.py     # AI-powered text analysis (Google Gemini)
-│   │   ├── ai_title_generator.py  # AI title generation
-│   │   ├── geocoding.py       # Address geocoding and reverse geocoding
-│   │   ├── location_library.py    # Bucharest location library
-│   │   ├── location_hierarchy.py  # Location hierarchy (point/area/sector/city)
-│   │   ├── location_clustering.py # Location clustering for map
-│   │   ├── title_extractor.py     # Pattern-based title extraction
-│   │   └── neighborhoods.py       # Neighborhood/sector detection
-│   ├── data/                   # Static data
-│   │   └── bucharest_locations.py # Bucharest location coordinates
-│   └── scripts/                # Utility scripts
-│       └── export_sectors_to_mongodb.py  # KML to MongoDB export
-│
-└── frontend/
-    └── src/
-        ├── App.tsx             # Main application component
-        ├── components/          # React components
-        │   ├── AlertInput.tsx  # Alert input form (text/voice)
-        │   ├── AlertList.tsx   # Alert list and filtering
-        │   └── AlertMap.tsx    # Map visualization
-        ├── services/           # API service layer
-        │   └── api.ts          # Backend API client
-        └── types/              # TypeScript type definitions
-            └── index.ts
-=======
 Weaversong/
 ├── auth-service/
 │   ├── backend/          # FastAPI backend
@@ -172,67 +136,10 @@ GEMINI_API_KEY=your_gemini_api_key
 ### Frontend (.env)
 ```
 VITE_API_URL=http://localhost:8000
->>>>>>> 7ce85900c84b148bbd05a1ce02335fe54f08f55c
 ```
 
 ## API Endpoints
 
-<<<<<<< HEAD
-### Alerts
-
-- `GET /api/alerts` - Get all alerts (with optional filtering by neighborhood and category)
-- `POST /api/alerts` - Create a new alert
-- `POST /api/alerts/analyze` - Analyze user text and extract structured data
-  - Request body: `{ text: string, user_lat?: number, user_lng?: number, is_speech?: boolean }`
-  - Returns: Analysis with category, priority, title, location, etc.
-
-### Sectors
-
-- `GET /api/sectors` - Get all sector polygon boundaries for map visualization
-
-## How It Works
-
-### Alert Analysis Flow
-
-1. **Library-Based Extraction** (Fast, No AI)
-   - Checks if location is in the Bucharest location library
-   - Extracts title using pattern matching
-   - If both found, uses library-based analysis (no AI call)
-
-2. **AI Analysis** (Google Gemini)
-   - If library extraction fails, uses Google Gemini API
-   - Extracts: category, priority, title, description, location, area, sector, contacts
-   - For speech input, always uses AI to clean and structure the transcript
-
-3. **Fallback** (Keyword-Based)
-   - If AI is unavailable, falls back to keyword-based category/priority detection
-
-### Location Processing
-
-1. **Location Detection**: Extracts location mentions from text
-2. **Geocoding**: Converts location names to coordinates (uses library first, then Google Geocoding API)
-3. **Clustering**: Applies small offsets to coordinates if multiple events exist at the same location
-4. **Hierarchy**: Determines location hierarchy (point → area → sector → city)
-5. **Sector Mapping**: Maps areas to Bucharest sectors (1-6)
-
-## Development
-
-### Backend Logs
-
-Backend logs appear in the terminal where `uvicorn` is running. Errors include full tracebacks for debugging.
-
-### Adding New Locations
-
-Edit `backend/services/location_library.py` to add new Bucharest locations with their coordinates and sectors.
-
-### Adding Test Data
-
-Use `backend/test_data.json` as a reference for alert structure. Import into MongoDB using MongoDB Compass or `mongoimport`.
-
-## License
-
-[Add your license here]
-=======
 ### Authentication
 - `POST /auth/signup` - Register new user
 - `POST /auth/login` - Login and get access token
@@ -258,4 +165,3 @@ Use `backend/test_data.json` as a reference for alert structure. Import into Mon
 ## License
 
 MIT
->>>>>>> 7ce85900c84b148bbd05a1ce02335fe54f08f55c

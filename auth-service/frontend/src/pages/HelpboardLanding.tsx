@@ -109,6 +109,8 @@ const HelpboardLanding: React.FC = () => {
         <p className="headerSubtitle">
           Find local help, post requests, and connect with skilled neighbours.
         </p>
+      </div>
+      <div className="headerButtons">
         <div className="controlsRow">
           <button
             onClick={() => setShowRequestForm((s) => !s)}

@@ -7,11 +7,21 @@ import './Dashboard.css';
 
 export const Dashboard: React.FC = () => {
   const { user } = useAuth();
-  const [expandedSection, setExpandedSection] = useState<string | null>(null);
+  const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set());
 
   const toggleSection = (section: string) => {
-    setExpandedSection(expandedSection === section ? null : section);
+    setExpandedSections(prev => {
+      const next = new Set(prev);
+      if (next.has(section)) {
+        next.delete(section);
+      } else {
+        next.add(section);
+      }
+      return next;
+    });
   };
+
+  const isExpanded = (section: string) => expandedSections.has(section);
 
   const getRoleDisplayName = (role?: UserRole): string => {
     if (!role) return 'User';
@@ -94,7 +104,16 @@ export const Dashboard: React.FC = () => {
 
         {/* Role Permissions Table */}
         <div className="section">
-          <h2 className="sectionTitle">📋 Role Permissions Guide</h2>
+          <div 
+            className="guideHeader"
+            onClick={() => toggleSection('role-permissions')}
+          >
+            <h2 className="sectionTitle">📋 Role Permissions Guide</h2>
+            <span className="expandIcon">
+              {isExpanded('role-permissions') ? '▼' : '▶'}
+            </span>
+          </div>
+          {isExpanded('role-permissions') && (
           <div className="tableContainer">
             <table className="permissionsTable">
               <thead>
@@ -291,11 +310,22 @@ export const Dashboard: React.FC = () => {
             </table>
             <p className="tableNote">*Admins have access to all features regardless of premium status</p>
           </div>
+          )}
         </div>
 
         {/* Tutorials and Guides */}
         <div className="section">
-          <h2 className="sectionTitle">📚 Tutorials & Guides</h2>
+          <div 
+            className="guideHeader"
+            onClick={() => toggleSection('tutorials')}
+          >
+            <h2 className="sectionTitle">📚 Tutorials & Guides</h2>
+            <span className="expandIcon">
+              {isExpanded('tutorials') ? '▼' : '▶'}
+            </span>
+          </div>
+          {isExpanded('tutorials') && (
+          <div>
           
           {/* How to Create an Alert */}
           <div className="guideCard">
@@ -305,10 +335,10 @@ export const Dashboard: React.FC = () => {
             >
               <h3 className="guideTitle">🚨 How to Create an Alert</h3>
               <span className="expandIcon">
-                {expandedSection === 'create-alert' ? '▼' : '▶'}
+                {isExpanded('create-alert') ? '▼' : '▶'}
               </span>
             </div>
-            {expandedSection === 'create-alert' && (
+            {isExpanded('create-alert') && (
               <div className="guideContent">
                 <ol className="stepsList">
                   <li>Go to <Link to="/citypulse">CityPulse</Link> page</li>
@@ -345,10 +375,10 @@ export const Dashboard: React.FC = () => {
             >
               <h3 className="guideTitle">✏️ How to Edit or Delete Content</h3>
               <span className="expandIcon">
-                {expandedSection === 'edit-delete' ? '▼' : '▶'}
+                {isExpanded('edit-delete') ? '▼' : '▶'}
               </span>
             </div>
-            {expandedSection === 'edit-delete' && (
+            {isExpanded('edit-delete') && (
               <div className="guideContent">
                 <h4 className="subTitle">Edit Permissions:</h4>
                 <ul className="stepsList">
@@ -385,10 +415,10 @@ export const Dashboard: React.FC = () => {
             >
               <h3 className="guideTitle">👷 How to Use Helpboard</h3>
               <span className="expandIcon">
-                {expandedSection === 'helpboard' ? '▼' : '▶'}
+                {isExpanded('helpboard') ? '▼' : '▶'}
               </span>
             </div>
-            {expandedSection === 'helpboard' && (
+            {isExpanded('helpboard') && (
               <div className="guideContent">
                 <h4 className="subTitle">Creating a Request:</h4>
                 <ol className="stepsList">
@@ -429,10 +459,10 @@ export const Dashboard: React.FC = () => {
             >
               <h3 className="guideTitle">👤 Profile Management</h3>
               <span className="expandIcon">
-                {expandedSection === 'profile' ? '▼' : '▶'}
+                {isExpanded('profile') ? '▼' : '▶'}
               </span>
             </div>
-            {expandedSection === 'profile' && (
+            {isExpanded('profile') && (
               <div className="guideContent">
                 <h4 className="subTitle">Editing Your Profile:</h4>
                 <ol className="stepsList">
@@ -470,10 +500,10 @@ export const Dashboard: React.FC = () => {
             >
               <h3 className="guideTitle">⭐ Premium Features</h3>
               <span className="expandIcon">
-                {expandedSection === 'premium' ? '▼' : '▶'}
+                {isExpanded('premium') ? '▼' : '▶'}
               </span>
             </div>
-            {expandedSection === 'premium' && (
+            {isExpanded('premium') && (
               <div className="guideContent">
                 <h4 className="subTitle">Premium Benefits:</h4>
                 <ul className="stepsList">
@@ -499,48 +529,69 @@ export const Dashboard: React.FC = () => {
               </div>
             )}
           </div>
+          </div>
+          )}
         </div>
 
         {/* Role Information */}
         <div className="section">
-          <h2 className="sectionTitle">🎭 Understanding Roles</h2>
-          <div className="rolesGrid">
-            <div className="roleCard">
-              <div className="roleIcon">👤</div>
-              <h3>User</h3>
-              <p>Standard account with basic permissions. Can create and manage own content.</p>
-            </div>
-            <div className="roleCard">
-              <div className="roleIcon">✓</div>
-              <h3>Trusted User</h3>
-              <p>Verified community member. Can edit any content but can only delete own content.</p>
-            </div>
-            <div className="roleCard">
-              <div className="roleIcon">🛡️</div>
-              <h3>Moderator</h3>
-              <p>Content moderator with delete permissions. Can edit and delete any content.</p>
-            </div>
-            <div className="roleCard">
-              <div className="roleIcon">🏛️</div>
-              <h3>Representative</h3>
-              <p>Official representative with special privileges for official announcements.</p>
-            </div>
-            <div className="roleCard">
-              <div className="roleIcon">🏢</div>
-              <h3>Business Owner</h3>
-              <p>Business account with promotional features and business analytics.</p>
-            </div>
-            <div className="roleCard">
-              <div className="roleIcon">👑</div>
-              <h3>Admin</h3>
-              <p>System administrator with full access including user management.</p>
-            </div>
+          <div 
+            className="guideHeader"
+            onClick={() => toggleSection('understanding-roles')}
+          >
+            <h2 className="sectionTitle">🎭 Understanding Roles</h2>
+            <span className="expandIcon">
+              {isExpanded('understanding-roles') ? '▼' : '▶'}
+            </span>
           </div>
+          {isExpanded('understanding-roles') && (
+            <div className="rolesGrid">
+              <div className="roleCard">
+                <div className="roleIcon">👤</div>
+                <h3>User</h3>
+                <p>Standard account with basic permissions. Can create and manage own content.</p>
+              </div>
+              <div className="roleCard">
+                <div className="roleIcon">✓</div>
+                <h3>Trusted User</h3>
+                <p>Verified community member. Can edit any content but can only delete own content.</p>
+              </div>
+              <div className="roleCard">
+                <div className="roleIcon">🛡️</div>
+                <h3>Moderator</h3>
+                <p>Content moderator with delete permissions. Can edit and delete any content.</p>
+              </div>
+              <div className="roleCard">
+                <div className="roleIcon">🏛️</div>
+                <h3>Representative</h3>
+                <p>Official representative with special privileges for official announcements.</p>
+              </div>
+              <div className="roleCard">
+                <div className="roleIcon">🏢</div>
+                <h3>Business Owner</h3>
+                <p>Business account with promotional features and business analytics.</p>
+              </div>
+              <div className="roleCard">
+                <div className="roleIcon">👑</div>
+                <h3>Admin</h3>
+                <p>System administrator with full access including user management.</p>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Tips and Best Practices */}
         <div className="section">
-          <h2 className="sectionTitle">💡 Tips & Best Practices</h2>
+          <div 
+            className="guideHeader"
+            onClick={() => toggleSection('tips')}
+          >
+            <h2 className="sectionTitle">💡 Tips & Best Practices</h2>
+            <span className="expandIcon">
+              {isExpanded('tips') ? '▼' : '▶'}
+            </span>
+          </div>
+          {isExpanded('tips') && (
           <div className="tipsGrid">
             <div className="tipCard">
               <h4>📝 Creating Effective Alerts</h4>
@@ -579,11 +630,21 @@ export const Dashboard: React.FC = () => {
               </ul>
             </div>
           </div>
+          )}
         </div>
 
         {/* Feature Reference Table */}
         <div className="section">
-          <h2 className="sectionTitle">📖 Feature Reference</h2>
+          <div 
+            className="guideHeader"
+            onClick={() => toggleSection('feature-reference')}
+          >
+            <h2 className="sectionTitle">📖 Feature Reference</h2>
+            <span className="expandIcon">
+              {isExpanded('feature-reference') ? '▼' : '▶'}
+            </span>
+          </div>
+          {isExpanded('feature-reference') && (
           <div className="tableContainer">
             <table className="featureTable">
               <thead>
@@ -637,11 +698,21 @@ export const Dashboard: React.FC = () => {
               </tbody>
             </table>
           </div>
+          )}
         </div>
 
         {/* Quick Reference */}
         <div className="section">
-          <h2 className="sectionTitle">🔍 Quick Reference</h2>
+          <div 
+            className="guideHeader"
+            onClick={() => toggleSection('quick-reference')}
+          >
+            <h2 className="sectionTitle">🔍 Quick Reference</h2>
+            <span className="expandIcon">
+              {isExpanded('quick-reference') ? '▼' : '▶'}
+            </span>
+          </div>
+          {isExpanded('quick-reference') && (
           <div className="referenceGrid">
             <div className="referenceCard">
               <h4>Need Help?</h4>
@@ -660,6 +731,7 @@ export const Dashboard: React.FC = () => {
               <p>Review the permissions table and role descriptions above</p>
             </div>
           </div>
+          )}
         </div>
       </div>
     </div>
