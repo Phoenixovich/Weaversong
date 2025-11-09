@@ -1,0 +1,72 @@
+[
+  {
+    "name": "fire_magheru",
+    "description": "Critical emergency involving a fire in an apartment building on Bulevardul Magheru.",
+    "text": "URGENT: Fire reported in apartment building on Bulevardul Magheru. Fire department on scene. Evacuate immediately if in the area.",
+    "metadata": {
+      "category": "Emergency",
+      "priority": "Critical",
+      "tags": ["fire", "evacuation", "sector 1"]
+    }
+  },
+  {
+    "name": "lost_dog_herastrau",
+    "description": "Missing pet alert near Herăstrău Park with contact information.",
+    "text": "Lost golden retriever near Herăstrău Park. Friendly dog wearing a blue collar. Please call 0700-123-456 if found.",
+    "metadata": {
+      "category": "Lost",
+      "priority": "Medium",
+      "tags": ["pet", "contact", "sector 1"]
+    }
+  },
+  {
+    "name": "road_closure_victoriei",
+    "description": "Road closure notice on Calea Victoriei due to overnight construction work.",
+    "text": "Heads up: Road closure on Calea Victoriei between Universitate and Piața Romană tonight from 22:00 to 05:00 for construction. Expect delays and use alternative routes.",
+    "metadata": {
+      "category": "Road",
+      "priority": "High",
+      "tags": ["construction", "traffic", "sector 1"]
+    }
+  },
+  {
+    "name": "environmental_smoke",
+    "description": "Report of heavy smoke in a residential area indicating potential fire or pollution.",
+    "text": "Heavy smoke reported drifting over Drumul Taberei near Parc Moghioroș. Smell of burning plastic. Residents advised to keep windows closed.",
+    "metadata": {
+      "category": "Environment",
+      "priority": "High",
+      "tags": ["smoke", "air quality", "sector 6"]
+    }
+  },
+  {
+    "name": "safety_suspicious_person",
+    "description": "Suspicious activity alert in a neighborhood with a warning to residents.",
+    "text": "Warning: Suspicious individual seen loitering near Strada Matei Basarab, Sector 3, trying car door handles late at night. Police have been notified.",
+    "metadata": {
+      "category": "Safety",
+      "priority": "High",
+      "tags": ["suspicious", "police", "sector 3"]
+    }
+  },
+  {
+    "name": "public_transport_delay",
+    "description": "Public transport disruption affecting commuters on the metro line.",
+    "text": "Metro Line M2 experiencing 20-minute delays between Piața Unirii and Pipera due to signal issues. Expect overcrowding during rush hour.",
+    "metadata": {
+      "category": "PublicTransport",
+      "priority": "Medium",
+      "tags": ["metro", "delay", "rush hour"]
+    }
+  },
+  {
+    "name": "non_alert_question",
+    "description": "Example of user input that should be rejected as not an alert.",
+    "text": "Does anyone know a good pizza place in Bucharest?",
+    "metadata": {
+      "category": "General",
+      "priority": "Low",
+      "tags": ["non_alert", "discussion"]
+    }
+  }
+]
