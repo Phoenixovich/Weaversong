@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { publicDataAPI, Dataset } from '../services/publicDataApi';
+import { useAccessibility } from '../contexts/AccessibilityContext';
 import ReactMarkdown from 'react-markdown';
 import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import './PublicDataHub.css';
@@ -7,6 +8,7 @@ import './PublicDataHub.css';
 type Tab = 'datastore' | 'social-aid' | 'explorer';
 
 export const PublicDataHub: React.FC = () => {
+  const { isAccessibilityMode } = useAccessibility();
   const [activeTab, setActiveTab] = useState<Tab>('datastore');
   const [model, setModel] = useState<string>('gemini-2.5-flash');
   const [loading, setLoading] = useState(false);
@@ -358,20 +360,6 @@ export const PublicDataHub: React.FC = () => {
     }
   };
 
-  const getSubmitButtonClassName = () => {
-    const baseClass = 'submitButton';
-    switch (activeTab) {
-      case 'datastore':
-        return `${baseClass} datastoreButton`;
-      case 'social-aid':
-        return `${baseClass} socialAidButton`;
-      case 'explorer':
-        return `${baseClass} explorerButton`;
-      default:
-        return baseClass;
-    }
-  };
-
   return (
     <div className="public-data-hub-page">
       <div className={getHeaderClassName()}>
@@ -412,21 +400,23 @@ export const PublicDataHub: React.FC = () => {
             </button>
           </div>
 
-          <div className="modelSelector">
-            <label htmlFor="model-select" className="modelLabel">
-              Model:
-            </label>
-            <select
-              id="model-select"
-              value={model}
-              onChange={(e) => setModel(e.target.value)}
-              className="modelSelect"
-            >
-              <option value="gemini-2.5-pro">gemini-2.5-pro</option>
-              <option value="gemini-2.5-flash-lite">gemini-2.5-flash-lite</option>
-              <option value="gemini-2.5-flash">gemini-2.5-flash</option>
-            </select>
-          </div>
+          {!isAccessibilityMode && (
+            <div className="modelSelector">
+              <label htmlFor="model-select" className="modelLabel">
+                Model:
+              </label>
+              <select
+                id="model-select"
+                value={model}
+                onChange={(e) => setModel(e.target.value)}
+                className="modelSelect"
+              >
+                <option value="gemini-2.5-pro">gemini-2.5-pro</option>
+                <option value="gemini-2.5-flash-lite">gemini-2.5-flash-lite</option>
+                <option value="gemini-2.5-flash">gemini-2.5-flash</option>
+              </select>
+            </div>
+          )}
         </div>
       </div>
 
@@ -538,10 +528,7 @@ export const PublicDataHub: React.FC = () => {
                               }
                             }}
                             disabled={resourcesOffset + resourcesLimit >= resourcesTotal}
-                            style={{
-                              ...styles.paginationButton,
-                              ...(resourcesOffset + resourcesLimit >= resourcesTotal ? styles.paginationButtonDisabled : {}),
-                            }}
+                            className={`paginationButton ${resourcesOffset + resourcesLimit >= resourcesTotal ? 'paginationButtonDisabled' : ''}`}
                           >
                             Next →
                           </button>
