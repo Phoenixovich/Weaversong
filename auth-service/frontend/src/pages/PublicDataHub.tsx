@@ -336,7 +336,7 @@ export const PublicDataHub: React.FC = () => {
   return (
     <div className="min-h-screen bg-background-light">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <header className={`mb-8 ${getHeaderClassName()}`}>
+        <header className="mb-8 header">
           <h1 className="text-4xl md:text-5xl font-bold mb-3 gradient-text">
             Public Data Hub
           </h1>
@@ -477,7 +477,7 @@ export const PublicDataHub: React.FC = () => {
                           <option key={resource.id} value={resource.id}>
                             {resource.name} {resource.format ? `(${resource.format})` : ''} {resource.year ? `[${resource.year}]` : ''}
                           </option>
-                        ))}
+                        )) : null}
                       </select>
                     </>
                   )}
@@ -847,7 +847,7 @@ export const PublicDataHub: React.FC = () => {
                               </td>
                             )) : null}
                           </tr>
-                        ))}
+                        )) : null}
                       </tbody>
                     </table>
                   </div>
