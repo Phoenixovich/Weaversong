@@ -123,5 +123,26 @@ export const authAPI = {
   },
 };
 
+// Helpdesk Requests API
+export const helpdeskAPI = {
+  updateRequest: async (requestId: string, updateData: any): Promise<any> => {
+    const response = await api.put(`/helpboard/requests/${requestId}`, updateData);
+    return response.data;
+  },
+
+  deleteRequest: async (requestId: string): Promise<void> => {
+    await api.delete(`/helpboard/requests/${requestId}`);
+  },
+
+  updateResponse: async (responseId: string, updateData: any): Promise<any> => {
+    const response = await api.patch(`/helpboard/responses/${responseId}`, updateData);
+    return response.data;
+  },
+
+  deleteResponse: async (responseId: string): Promise<void> => {
+    await api.delete(`/helpboard/responses/${responseId}`);
+  },
+};
+
 export default api;
 

@@ -11,8 +11,10 @@ interface ResponseItem {
 }
 
 export default function ResponsesPage() {
+  const { user } = useAuth();
   const [responses, setResponses] = useState<ResponseItem[]>([]);
   const [loading, setLoading] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const fetchResponses = async () => {
     setLoading(true);
@@ -42,6 +44,24 @@ export default function ResponsesPage() {
         return '#17a2b8';
       default:
         return '#6c757d';
+    }
+  };
+
+  const handleDelete = async (response: ResponseItem) => {
+    if (!response.responder_id) return;
+    if (!confirm(`Are you sure you want to delete this response?`)) {
+      return;
+    }
+
+    setDeletingId(response._id);
+    try {
+      await helpdeskAPI.deleteResponse(response._id);
+      fetchResponses();
+      alert('Response deleted successfully!');
+    } catch (error: any) {
+      alert(`Failed to delete response: ${error.message}`);
+    } finally {
+      setDeletingId(null);
     }
   };
 
@@ -104,6 +124,32 @@ export default function ResponsesPage() {
                       </div>
                     )}
                   </div>
+
+                  {/* Edit/Delete Buttons */}
+                  {response.responder_id && (canEditResponse(user, response.responder_id) || canDeleteResponse(user, response.responder_id)) && (
+                    <div style={styles.actionButtons}>
+                      {canEditResponse(user, response.responder_id) && (
+                        <button
+                          onClick={() => {
+                            // TODO: Implement edit modal/form
+                            alert('Edit functionality coming soon!');
+                          }}
+                          style={styles.editButton}
+                        >
+                          ✏️ Edit
+                        </button>
+                      )}
+                      {canDeleteResponse(user, response.responder_id) && (
+                        <button
+                          onClick={() => handleDelete(response)}
+                          disabled={deletingId === response._id}
+                          style={styles.deleteButton}
+                        >
+                          {deletingId === response._id ? 'Deleting...' : '🗑️ Delete'}
+                        </button>
+                      )}
+                    </div>
+                  )}
                 </div>
               </div>
             ))}
@@ -210,5 +256,34 @@ const styles: { [key: string]: React.CSSProperties } = {
   metaItem: {
     fontSize: '0.9rem',
     color: '#666',
+  },
+  actionButtons: {
+    display: 'flex',
+    gap: '0.5rem',
+    marginTop: '1rem',
+    paddingTop: '1rem',
+    borderTop: '1px solid #e9ecef',
+  },
+  editButton: {
+    padding: '0.5rem 1rem',
+    backgroundColor: '#007bff',
+    color: 'white',
+    border: 'none',
+    borderRadius: '4px',
+    cursor: 'pointer',
+    fontSize: '0.9rem',
+    fontWeight: '500',
+    transition: 'background-color 0.3s',
+  },
+  deleteButton: {
+    padding: '0.5rem 1rem',
+    backgroundColor: '#dc3545',
+    color: 'white',
+    border: 'none',
+    borderRadius: '4px',
+    cursor: 'pointer',
+    fontSize: '0.9rem',
+    fontWeight: '500',
+    transition: 'background-color 0.3s',
   },
 };

@@ -1,13 +1,17 @@
 import re
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, HTTPException, Query, Depends
 from typing import List, Optional
 from datetime import datetime, timedelta
+from bson import ObjectId
 
 from app.database import get_database
-from app.models.citypulse_alert import AlertCreate, AlertResponse, AlertAnalysisRequest
+from app.models.citypulse_alert import AlertCreate, AlertResponse, AlertAnalysisRequest, LocationSearchRequest
 from app.services import ai_analysis
 from app.services.ai_analysis import VALID_CATEGORIES, VALID_PRIORITIES
 from app.services.ai_title_generator import generate_title
+from app.middleware.auth import get_current_user, get_current_user_optional
+from app.models.user import UserInDB
+from app.utils.permissions import can_edit_alert, can_delete_alert
 
 router = APIRouter(prefix="/citypulse/alerts", tags=["citypulse"])
 
@@ -118,12 +122,18 @@ async def get_alerts(
 
 
 @router.post("", response_model=AlertResponse, status_code=201)
-async def create_alert(alert: AlertCreate):
+async def create_alert(
+	alert: AlertCreate,
+	current_user: Optional[UserInDB] = Depends(get_current_user_optional)
+):
 	"""Create a CityPulse alert and persist to MongoDB when available."""
 	try:
 		db = get_database()
 	except Exception:
 		raise HTTPException(status_code=503, detail="Database not connected")
+
+	# Use authenticated user ID if available, otherwise use username or empty string
+	user_id = str(current_user.id) if current_user else (alert.username or "")
 
 	doc = {
 		"title": alert.title,
@@ -135,7 +145,7 @@ async def create_alert(alert: AlertCreate):
 		"neighborhood": alert.neighborhood,
 		"area_type": alert.area_type,
 		"timestamp": int(datetime.now().timestamp()),
-		"user_id": alert.username or "",
+		"user_id": user_id,
 		"phone": alert.phone,
 		"email": alert.email,
 		"other_contact": alert.other_contact,
@@ -160,6 +170,130 @@ async def create_alert(alert: AlertCreate):
 		email=created.get("email"),
 		other_contact=created.get("other_contact"),
 	)
+
+
+@router.post("/location/geocode", response_model=dict)
+async def geocode_location(lat: float = Query(...), lng: float = Query(...)):
+	"""Get location hierarchy (area, sector, address) from coordinates. Only for Bucharest."""
+	from app.services.location_hierarchy import get_location_hierarchy
+	from app.services.geocoding import reverse_geocode_with_sector
+	
+	# Bucharest bounds check
+	BUCHAREST_BOUNDS = {
+		"min_lat": 44.35,
+		"max_lat": 44.55,
+		"min_lng": 25.95,
+		"max_lng": 26.25
+	}
+	
+	if not (BUCHAREST_BOUNDS["min_lat"] <= lat <= BUCHAREST_BOUNDS["max_lat"] and
+			BUCHAREST_BOUNDS["min_lng"] <= lng <= BUCHAREST_BOUNDS["max_lng"]):
+		raise HTTPException(
+			status_code=400,
+			detail="Location must be within Bucharest bounds"
+		)
+	
+	try:
+		# Get location hierarchy
+		hierarchy = await get_location_hierarchy(lat=lat, lng=lng)
+		
+		# Get address
+		geocode_result = await reverse_geocode_with_sector(lat, lng)
+		address = geocode_result.get("address") if geocode_result else None
+		
+		return {
+			"lat": lat,
+			"lng": lng,
+			"address": address,
+			"location_hierarchy": hierarchy,
+			"area": hierarchy.get("area"),
+			"sector": hierarchy.get("sector"),
+			"city": hierarchy.get("city", "Bucharest")
+		}
+	except Exception as e:
+		raise HTTPException(
+			status_code=500,
+			detail=f"Failed to geocode location: {str(e)}"
+		)
+
+
+@router.post("/location/search", response_model=dict)
+async def search_location(request: LocationSearchRequest):
+	"""Search for locations in Bucharest by name."""
+	from app.services.geocoding import geocode_address
+	from app.services.location_hierarchy import get_location_hierarchy
+	
+	query = request.query.strip()
+	if not query:
+		return {
+			"results": [],
+			"message": "Query parameter is required"
+		}
+	
+	try:
+		print(f"Searching for location: {query}")
+		# Geocode the search query
+		geocode = await geocode_address(query)
+		if not geocode:
+			print(f"No geocode result for: {query}")
+			return {
+				"results": [],
+				"message": f"No locations found for '{query}'. Try searching for a specific area in Bucharest (e.g., 'Herastrau', 'Piata Unirii', 'Sector 1')."
+			}
+		
+		print(f"Geocode result: {geocode}")
+		lat = geocode.get("lat")
+		lng = geocode.get("lng")
+		address = geocode.get("address")
+		
+		if not lat or not lng:
+			print(f"Missing coordinates in geocode result: {geocode}")
+			return {
+				"results": [],
+				"message": "Could not determine coordinates for this location"
+			}
+		
+		# Check if within Bucharest bounds
+		BUCHAREST_BOUNDS = {
+			"min_lat": 44.35,
+			"max_lat": 44.55,
+			"min_lng": 25.95,
+			"max_lng": 26.25
+		}
+		
+		if not (BUCHAREST_BOUNDS["min_lat"] <= lat <= BUCHAREST_BOUNDS["max_lat"] and
+				BUCHAREST_BOUNDS["min_lng"] <= lng <= BUCHAREST_BOUNDS["max_lng"]):
+			print(f"Location outside Bucharest bounds: lat={lat}, lng={lng}")
+			return {
+				"results": [],
+				"message": f"Location '{query}' is outside Bucharest. Please search for locations within Bucharest only."
+			}
+		
+		# Get location hierarchy
+		hierarchy = await get_location_hierarchy(lat=lat, lng=lng, address=address)
+		print(f"Location hierarchy: {hierarchy}")
+		
+		result = {
+			"results": [{
+				"lat": lat,
+				"lng": lng,
+				"address": address,
+				"location_hierarchy": hierarchy,
+				"area": hierarchy.get("area"),
+				"sector": hierarchy.get("sector"),
+				"city": hierarchy.get("city", "Bucharest")
+			}]
+		}
+		print(f"Returning search result: {result}")
+		return result
+	except Exception as e:
+		print(f"Error searching location: {e}")
+		import traceback
+		traceback.print_exc()
+		raise HTTPException(
+			status_code=500,
+			detail=f"Failed to search location: {str(e)}"
+		)
 
 
 @router.post("/analyze", response_model=dict)
@@ -386,4 +520,110 @@ async def analyze_alert_text(request: AlertAnalysisRequest):
 	alert["is_valid_alert"] = True
 
 	return alert
+
+
+@router.patch("/{alert_id}", response_model=AlertResponse)
+async def update_alert(
+	alert_id: str,
+	update_data: dict,
+	current_user: UserInDB = Depends(get_current_user)
+):
+	"""Update an alert. Requires permission to edit."""
+	try:
+		db = get_database()
+	except Exception:
+		raise HTTPException(status_code=503, detail="Database not connected")
+	
+	try:
+		oid = ObjectId(alert_id)
+	except Exception:
+		raise HTTPException(status_code=400, detail="Invalid alert ID format")
+	
+	# Get the alert
+	alert = await db.alerts.find_one({"_id": oid})
+	if not alert:
+		raise HTTPException(status_code=404, detail="Alert not found")
+	
+	# Check permissions
+	alert_user_id = alert.get("user_id", "")
+	if not can_edit_alert(current_user, alert_user_id):
+		raise HTTPException(
+			status_code=403,
+			detail="You don't have permission to edit this alert"
+		)
+	
+	# Prepare update data (only allow updating specific fields)
+	allowed_fields = ["title", "description", "category", "priority", "phone", "email", "other_contact"]
+	update_dict = {}
+	
+	for field in allowed_fields:
+		if field in update_data:
+			update_dict[field] = update_data[field]
+	
+	if not update_dict:
+		raise HTTPException(status_code=400, detail="No valid fields to update")
+	
+	# Update the alert
+	await db.alerts.update_one(
+		{"_id": oid},
+		{"$set": update_dict}
+	)
+	
+	# Get updated alert
+	updated = await db.alerts.find_one({"_id": oid})
+	
+	return AlertResponse(
+		id=str(updated.get("_id")),
+		title=updated.get("title"),
+		description=updated.get("description"),
+		category=updated.get("category"),
+		priority=updated.get("priority", "Medium"),
+		location=updated.get("location", {}),
+		location_hierarchy=updated.get("location_hierarchy"),
+		neighborhood=updated.get("neighborhood"),
+		area_type=updated.get("area_type"),
+		timestamp=updated.get("timestamp", 0),
+		user_id=updated.get("user_id", ""),
+		phone=updated.get("phone"),
+		email=updated.get("email"),
+		other_contact=updated.get("other_contact"),
+	)
+
+
+@router.delete("/{alert_id}")
+async def delete_alert(
+	alert_id: str,
+	current_user: UserInDB = Depends(get_current_user)
+):
+	"""Delete an alert. Requires permission to delete."""
+	try:
+		db = get_database()
+	except Exception:
+		raise HTTPException(status_code=503, detail="Database not connected")
+	
+	try:
+		oid = ObjectId(alert_id)
+	except Exception:
+		raise HTTPException(status_code=400, detail="Invalid alert ID format")
+	
+	# Get the alert
+	alert = await db.alerts.find_one({"_id": oid})
+	if not alert:
+		raise HTTPException(status_code=404, detail="Alert not found")
+	
+	# Check permissions
+	alert_user_id = alert.get("user_id", "")
+	if not can_delete_alert(current_user, alert_user_id):
+		raise HTTPException(
+			status_code=403,
+			detail="You don't have permission to delete this alert"
+		)
+	
+	# Delete the alert
+	result = await db.alerts.delete_one({"_id": oid})
+	
+	if result.deleted_count == 0:
+		raise HTTPException(status_code=404, detail="Alert not found")
+	
+	return {"message": "Alert deleted successfully"}
 

@@ -2,6 +2,7 @@ import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { UserBadge } from './UserBadge';
+import { UserRole } from '../types/auth';
 import './Navbar.css';
 
 export const Navbar: React.FC = () => {
@@ -46,6 +47,12 @@ export const Navbar: React.FC = () => {
               <Link to="/profile" className={isActive('/profile')}>
                 Profile
               </Link>
+              {/* Premium/Admin features */}
+              {(user?.is_premium || user?.role === UserRole.ADMIN) && (
+                <Link to="/pedestrian-analyzer" className={isActive('/pedestrian-analyzer')}>
+                  🚶 Pedestrian Analyzer
+                </Link>
+              )}
             </>
           )}
         </div>

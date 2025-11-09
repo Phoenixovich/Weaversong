@@ -1,7 +1,10 @@
 import { useEffect, useState } from 'react'
 import type { Alert, AlertCategory } from '../../types/citypulse'
-import { fetchAlerts, fetchNeighborhoods } from '../../services/citypulseApi'
+import { fetchAlerts, fetchNeighborhoods, updateAlert, deleteAlert } from '../../services/citypulseApi'
 import AlertMap from './AlertMap'
+import LocationPicker from './LocationPicker'
+import { useAuth } from '../../contexts/AuthContext'
+import { canEditAlert, canDeleteAlert } from '../../utils/permissions'
 
 interface AlertListProps {
   view: 'list' | 'map'
@@ -48,6 +51,7 @@ const priorityColors: Record<string, string> = {
 }
 
 export default function AlertList({ view, onViewChange }: AlertListProps) {
+  const { user } = useAuth()
   const [allAlerts, setAllAlerts] = useState<Alert[]>([]) // All alerts for map view (no filters)
   const [alerts, setAlerts] = useState<Alert[]>([]) // Filtered alerts for list view
   const [loading, setLoading] = useState(true)
@@ -60,6 +64,10 @@ export default function AlertList({ view, onViewChange }: AlertListProps) {
   const [areaSearchQuery, setAreaSearchQuery] = useState<string>('')
   const [showAreaSuggestions, setShowAreaSuggestions] = useState(false)
   const [showFilters, setShowFilters] = useState(false)
+  const [editingId, setEditingId] = useState<string | null>(null)
+  const [editData, setEditData] = useState<Partial<Alert>>({})
+  const [deletingId, setDeletingId] = useState<string | null>(null)
+  const [showLocationPicker, setShowLocationPicker] = useState(false)
 
   useEffect(() => {
     loadNeighborhoods()
@@ -115,6 +123,82 @@ export default function AlertList({ view, onViewChange }: AlertListProps) {
       setAlerts([]) // Set empty array on error
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleEdit = (alert: Alert) => {
+    setEditingId(alert.id)
+    setEditData({
+      title: alert.title,
+      description: alert.description || '',
+      category: alert.category,
+      priority: alert.priority,
+      phone: alert.phone || '',
+      email: alert.email || '',
+      other_contact: alert.other_contact || '',
+      location: alert.location,
+      location_hierarchy: alert.location_hierarchy,
+    })
+    setShowLocationPicker(false)
+  }
+
+  const handleSaveEdit = async (alertId: string) => {
+    try {
+      await updateAlert(alertId, editData)
+      setEditingId(null)
+      setEditData({})
+      loadAlerts()
+      loadAllAlerts()
+      window.alert('Alert updated successfully!')
+    } catch (error: any) {
+      window.alert(`Failed to update alert: ${error.message}`)
+    }
+  }
+
+  const handleCancelEdit = () => {
+    setEditingId(null)
+    setEditData({})
+    setShowLocationPicker(false)
+  }
+
+  const handleLocationSelect = (location: {
+    lat: number
+    lng: number
+    address: string | null
+    area: string | null
+    sector: string | null
+  }) => {
+    setEditData({
+      ...editData,
+      location: {
+        lat: location.lat,
+        lng: location.lng,
+        address: location.address || null,
+      },
+      location_hierarchy: {
+        point: `${location.lat},${location.lng}`,
+        area: location.area || null,
+        sector: location.sector || null,
+        city: 'Bucharest',
+      },
+    })
+  }
+
+  const handleDelete = async (alert: Alert) => {
+    if (!window.confirm(`Are you sure you want to delete "${alert.title}"?`)) {
+      return
+    }
+
+    setDeletingId(alert.id)
+    try {
+      await deleteAlert(alert.id)
+      loadAlerts()
+      loadAllAlerts()
+      window.alert('Alert deleted successfully!')
+    } catch (error: any) {
+      window.alert(`Failed to delete alert: ${error.message}`)
+    } finally {
+      setDeletingId(null)
     }
   }
 
@@ -602,6 +686,105 @@ export default function AlertList({ view, onViewChange }: AlertListProps) {
                           )}
                         </div>
                       </div>
+                    )}
+
+                    {/* Edit/Delete Buttons */}
+                    {editingId === alert.id ? (
+                      <div className="pt-2 border-t border-gray-200 mt-2">
+                        <div className="space-y-2">
+                          <input
+                            type="text"
+                            value={editData.title || ''}
+                            onChange={(e) => setEditData({ ...editData, title: e.target.value })}
+                            className="w-full px-2 py-1 text-sm border rounded"
+                            placeholder="Title"
+                          />
+                          <textarea
+                            value={editData.description || ''}
+                            onChange={(e) => setEditData({ ...editData, description: e.target.value })}
+                            className="w-full px-2 py-1 text-sm border rounded"
+                            placeholder="Description"
+                            rows={2}
+                          />
+                          <select
+                            value={editData.priority || 'Medium'}
+                            onChange={(e) => setEditData({ ...editData, priority: e.target.value as any })}
+                            className="w-full px-2 py-1 text-sm border rounded"
+                          >
+                            <option value="Low">Low</option>
+                            <option value="Medium">Medium</option>
+                            <option value="High">High</option>
+                            <option value="Critical">Critical</option>
+                          </select>
+                          
+                          {/* Location Picker */}
+                          <div className="mt-2">
+                            <button
+                              type="button"
+                              onClick={() => setShowLocationPicker(!showLocationPicker)}
+                              className="w-full px-3 py-2 text-sm bg-green-500 text-white rounded hover:bg-green-600"
+                            >
+                              {showLocationPicker ? '▼ Hide Location Picker' : '📍 Change Location'}
+                            </button>
+                            {showLocationPicker && (
+                              <div className="mt-2 p-3 bg-gray-50 border border-gray-200 rounded">
+                                <LocationPicker
+                                  initialLat={editData.location?.lat || null}
+                                  initialLng={editData.location?.lng || null}
+                                  onLocationSelect={handleLocationSelect}
+                                />
+                              </div>
+                            )}
+                            {editData.location_hierarchy && (
+                              <div className="mt-2 text-xs text-gray-600">
+                                {editData.location_hierarchy.area && (
+                                  <span>🏘️ {editData.location_hierarchy.area}</span>
+                                )}
+                                {editData.location_hierarchy.sector && (
+                                  <span className="ml-2">🏛️ {editData.location_hierarchy.sector}</span>
+                                )}
+                              </div>
+                            )}
+                          </div>
+
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() => handleSaveEdit(alert.id)}
+                              className="flex-1 px-3 py-1 text-xs bg-blue-500 text-white rounded hover:bg-blue-600"
+                            >
+                              Save
+                            </button>
+                            <button
+                              onClick={handleCancelEdit}
+                              className="flex-1 px-3 py-1 text-xs bg-gray-500 text-white rounded hover:bg-gray-600"
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    ) : (
+                      (canEditAlert(user, alert.user_id) || canDeleteAlert(user, alert.user_id)) && (
+                        <div className="pt-2 border-t border-gray-200 mt-2 flex gap-2">
+                          {canEditAlert(user, alert.user_id) && (
+                            <button
+                              onClick={() => handleEdit(alert)}
+                              className="flex-1 px-3 py-1 text-xs bg-blue-500 text-white rounded hover:bg-blue-600"
+                            >
+                              ✏️ Edit
+                            </button>
+                          )}
+                          {canDeleteAlert(user, alert.user_id) && (
+                            <button
+                              onClick={() => handleDelete(alert)}
+                              disabled={deletingId === alert.id}
+                              className="flex-1 px-3 py-1 text-xs bg-red-500 text-white rounded hover:bg-red-600 disabled:opacity-50"
+                            >
+                              {deletingId === alert.id ? 'Deleting...' : '🗑️ Delete'}
+                            </button>
+                          )}
+                        </div>
+                      )
                     )}
                   </div>
                 </div>

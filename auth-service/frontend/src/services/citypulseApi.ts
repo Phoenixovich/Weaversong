@@ -146,10 +146,12 @@ export async function analyzeAlertText(
 }
 
 export async function createAlert(alert: AlertCreateInput): Promise<Alert> {
+  const token = localStorage.getItem('access_token');
   const response = await fetch(`${API_BASE_URL}/alerts`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
+      ...(token && { 'Authorization': `Bearer ${token}` }),
     },
     body: JSON.stringify(alert),
   })
@@ -203,6 +205,80 @@ export async function createAlert(alert: AlertCreateInput): Promise<Alert> {
     throw error
   }
   return response.json()
+}
+
+export async function updateAlert(alertId: string, updateData: Partial<Alert>): Promise<Alert> {
+  const token = localStorage.getItem('access_token');
+  if (!token) {
+    throw new Error('Authentication required to edit alerts');
+  }
+
+  const response = await fetch(`${API_BASE_URL}/alerts/${alertId}`, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`,
+    },
+    body: JSON.stringify(updateData),
+  });
+
+  if (!response.ok) {
+    let errorMessage = `Failed to update alert (${response.status}). `;
+    try {
+      const errorData = await response.json();
+      if (errorData.detail) {
+        errorMessage += errorData.detail;
+      } else if (errorData.message) {
+        errorMessage += errorData.message;
+      }
+    } catch {
+      if (response.status === 403) {
+        errorMessage += 'You do not have permission to edit this alert.';
+      } else if (response.status === 401) {
+        errorMessage += 'Please log in to edit alerts.';
+      }
+    }
+    const error = new Error(errorMessage);
+    (error as any).status = response.status;
+    throw error;
+  }
+
+  return response.json();
+}
+
+export async function deleteAlert(alertId: string): Promise<void> {
+  const token = localStorage.getItem('access_token');
+  if (!token) {
+    throw new Error('Authentication required to delete alerts');
+  }
+
+  const response = await fetch(`${API_BASE_URL}/alerts/${alertId}`, {
+    method: 'DELETE',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+    },
+  });
+
+  if (!response.ok) {
+    let errorMessage = `Failed to delete alert (${response.status}). `;
+    try {
+      const errorData = await response.json();
+      if (errorData.detail) {
+        errorMessage += errorData.detail;
+      } else if (errorData.message) {
+        errorMessage += errorData.message;
+      }
+    } catch {
+      if (response.status === 403) {
+        errorMessage += 'You do not have permission to delete this alert.';
+      } else if (response.status === 401) {
+        errorMessage += 'Please log in to delete alerts.';
+      }
+    }
+    const error = new Error(errorMessage);
+    (error as any).status = response.status;
+    throw error;
+  }
 }
 
 export interface Sector {

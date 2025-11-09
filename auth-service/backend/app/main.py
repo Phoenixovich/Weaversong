@@ -4,7 +4,7 @@ from app.config import settings
 from app.database import connect_to_mongo, close_mongo_connection
 from app.routers import auth, clarify, reminders, public_data
 from app.routers import helpboard_requests, helpboard_responses, helpboard_users
-from app.routers import citypulse_alerts, citypulse_sectors
+from app.routers import citypulse_alerts, citypulse_sectors, pedestrian_analytics
 
 app = FastAPI(title="Unified Service", version="1.0.0")
 
@@ -30,6 +30,9 @@ app.include_router(helpboard_users.router)
 # CityPulse routers
 app.include_router(citypulse_alerts.router)
 app.include_router(citypulse_sectors.router)
+
+# Pedestrian Analytics router
+app.include_router(pedestrian_analytics.router)
 
 
 @app.on_event("startup")

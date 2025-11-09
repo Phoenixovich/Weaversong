@@ -56,3 +56,6 @@ class AlertAnalysisRequest(BaseModel):
 	user_lng: float | None = None
 	is_speech: bool = False
 
+
+class LocationSearchRequest(BaseModel):
+	query: str

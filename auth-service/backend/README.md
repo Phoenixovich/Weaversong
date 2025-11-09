@@ -22,6 +22,10 @@ GEMINI_API_KEY=
 3. Run the server:
 ```bash
 cd backend
+# Option 1: Using the startup script (recommended)
+python run_server.py
+
+# Option 2: Using uvicorn directly (make sure you're in the backend directory)
 uvicorn app.main:app --reload --port 8000
 ```
 

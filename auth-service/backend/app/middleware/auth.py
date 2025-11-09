@@ -98,3 +98,27 @@ async def require_admin(current_user: UserInDB = Depends(get_current_user)) -> U
         )
     return current_user
 
+
+async def get_current_user_optional(
+    credentials: Optional[HTTPAuthorizationCredentials] = Depends(security)
+) -> Optional[UserInDB]:
+    """Get the current authenticated user if token is provided, otherwise return None"""
+    if credentials is None:
+        return None
+    
+    try:
+        token = credentials.credentials
+        payload = decode_access_token(token)
+        
+        if payload is None:
+            return None
+        
+        user_id: str = payload.get("sub")
+        if user_id is None:
+            return None
+        
+        user = await get_user_by_id(user_id)
+        return user
+    except Exception:
+        return None
+

@@ -15,6 +15,7 @@ import RequestsPage from './pages/RequestsPage';
 import ResponsesPage from './pages/ResponsesPage';
 import LoginCallback from './pages/LoginCallback';
 import CityPulse from './pages/CityPulse';
+import { PedestrianAnalyzer } from './pages/PedestrianAnalyzer';
 
 const AppRoutes: React.FC = () => {
   return (
@@ -52,6 +53,14 @@ const AppRoutes: React.FC = () => {
           element={
             <ProtectedRoute>
               <Profile />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/pedestrian-analyzer"
+          element={
+            <ProtectedRoute>
+              <PedestrianAnalyzer />
             </ProtectedRoute>
           }
         />

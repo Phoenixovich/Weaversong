@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
-import api from '../services/api';
+import api, { helpdeskAPI } from '../services/api';
 import RequestForm from '../components/RequestForm';
 import ResponseForm from '../components/ResponseForm';
 import { useAuthGuard } from '../hooks/useAuthGuard';
+import { useAuth } from '../contexts/AuthContext';
+import { canEditRequest, canDeleteRequest } from '../utils/permissions';
 
 interface RequestItem {
   _id: string;
@@ -18,8 +20,10 @@ interface RequestItem {
 
 export default function RequestsPage() {
   const { requireAuth } = useAuthGuard();
+  const { user } = useAuth();
   const [requests, setRequests] = useState<RequestItem[]>([]);
   const [loading, setLoading] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const fetchRequests = async () => {
     setLoading(true);
@@ -41,6 +45,24 @@ export default function RequestsPage() {
     requireAuth(() => {
       fetchRequests();
     });
+  };
+
+  const handleDelete = async (request: RequestItem) => {
+    if (!request.user_id) return;
+    if (!confirm(`Are you sure you want to delete "${request.title}"?`)) {
+      return;
+    }
+
+    setDeletingId(request._id);
+    try {
+      await helpdeskAPI.deleteRequest(request._id);
+      fetchRequests();
+      alert('Request deleted successfully!');
+    } catch (error: any) {
+      alert(`Failed to delete request: ${error.message}`);
+    } finally {
+      setDeletingId(null);
+    }
   };
 
   const getStatusColor = (status?: string) => {
@@ -151,6 +173,32 @@ export default function RequestsPage() {
                     }}
                   />
                 </div>
+
+                {/* Edit/Delete Buttons */}
+                {request.user_id && (canEditRequest(user, request.user_id) || canDeleteRequest(user, request.user_id)) && (
+                  <div style={styles.actionButtons}>
+                    {canEditRequest(user, request.user_id) && (
+                      <button
+                        onClick={() => {
+                          // TODO: Implement edit modal/form
+                          alert('Edit functionality coming soon!');
+                        }}
+                        style={styles.editButton}
+                      >
+                        ✏️ Edit
+                      </button>
+                    )}
+                    {canDeleteRequest(user, request.user_id) && (
+                      <button
+                        onClick={() => handleDelete(request)}
+                        disabled={deletingId === request._id}
+                        style={styles.deleteButton}
+                      >
+                        {deletingId === request._id ? 'Deleting...' : '🗑️ Delete'}
+                      </button>
+                    )}
+                  </div>
+                )}
               </div>
             ))}
           </div>
@@ -263,5 +311,34 @@ const styles: { [key: string]: React.CSSProperties } = {
     marginTop: '1rem',
     paddingTop: '1rem',
     borderTop: '1px solid #e9ecef',
+  },
+  actionButtons: {
+    display: 'flex',
+    gap: '0.5rem',
+    marginTop: '1rem',
+    paddingTop: '1rem',
+    borderTop: '1px solid #e9ecef',
+  },
+  editButton: {
+    padding: '0.5rem 1rem',
+    backgroundColor: '#007bff',
+    color: 'white',
+    border: 'none',
+    borderRadius: '4px',
+    cursor: 'pointer',
+    fontSize: '0.9rem',
+    fontWeight: '500',
+    transition: 'background-color 0.3s',
+  },
+  deleteButton: {
+    padding: '0.5rem 1rem',
+    backgroundColor: '#dc3545',
+    color: 'white',
+    border: 'none',
+    borderRadius: '4px',
+    cursor: 'pointer',
+    fontSize: '0.9rem',
+    fontWeight: '500',
+    transition: 'background-color 0.3s',
   },
 };
