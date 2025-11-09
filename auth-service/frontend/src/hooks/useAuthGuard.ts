@@ -1,4 +1,5 @@
 import { useCallback } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useAuthModal } from '../contexts/AuthModalContext';
 
@@ -31,13 +32,19 @@ interface UseAuthGuardReturn {
 export const useAuthGuard = (): UseAuthGuardReturn => {
   const { user, isAuthenticated } = useAuth();
   const { showLoginModal, showUpgradeModal } = useAuthModal();
+  const navigate = useNavigate();
+  const location = useLocation();
 
   const isPremium = user?.is_premium === true;
 
   const requireAuth = useCallback(
     (action: () => void, requiresPremium: boolean = false) => {
-      // If not authenticated, show login modal
+      // If not authenticated, redirect to login page if on CityPulse, otherwise show modal
       if (!isAuthenticated) {
+        if (location.pathname === '/citypulse') {
+          navigate('/login');
+          return;
+        }
         showLoginModal();
         return;
       }
@@ -51,7 +58,7 @@ export const useAuthGuard = (): UseAuthGuardReturn => {
       // All checks passed, execute the action
       action();
     },
-    [isAuthenticated, isPremium, showLoginModal, showUpgradeModal]
+    [isAuthenticated, isPremium, showLoginModal, showUpgradeModal, navigate, location.pathname]
   );
 
   return {

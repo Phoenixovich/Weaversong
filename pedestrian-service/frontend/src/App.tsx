@@ -1,13 +1,14 @@
 import React from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route } from 'react-router-dom';
 import PedestrianControl from './pages/PedestrianControl';
+import NotFound from './pages/NotFound';
 
 function App() {
   return (
     <Routes>
       <Route path="/" element={<PedestrianControl />} />
       <Route path="/pedestrian" element={<PedestrianControl />} />
-      <Route path="*" element={<Navigate to="/" replace />} />
+      <Route path="*" element={<NotFound />} />
     </Routes>
   );
 }
