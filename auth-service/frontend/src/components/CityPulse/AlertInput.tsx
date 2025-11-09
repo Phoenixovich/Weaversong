@@ -128,6 +128,7 @@ export default function AlertInput() {
   const [gettingLocation, setGettingLocation] = useState(false)
   const [showAnalysis, setShowAnalysis] = useState(false)
   const [allowContacting, setAllowContacting] = useState(false)
+  const [emailError, setEmailError] = useState<string | null>(null)
   
   // Voice recognition state
   const [isListening, setIsListening] = useState(false)
@@ -147,6 +148,15 @@ export default function AlertInput() {
     other_contact: ''
   })
 
+  // Email validation function
+  const validateEmail = (email: string): boolean => {
+    if (!email || email.trim() === '') {
+      return true // Empty email is allowed (optional field)
+    }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    return emailRegex.test(email.trim())
+  }
+
   // Auto-fill contact info when checkbox is checked
   useEffect(() => {
     if (allowContacting && user) {
@@ -156,6 +166,10 @@ export default function AlertInput() {
         email: prev.email || user.email || '',
         other_contact: prev.other_contact || user.default_other_contact || ''
       }))
+      // Clear email error when auto-filling with user's email
+      if (user.email) {
+        setEmailError(null)
+      }
     } else if (!allowContacting) {
       // Clear contact info when unchecked (only if it matches profile defaults)
       setFormData(prev => ({
@@ -522,6 +536,17 @@ export default function AlertInput() {
       // Location is REQUIRED - must have coordinates (finalLocation already declared above)
       if (!finalLocation || !finalLocation.lat || !finalLocation.lng) {
         setMessage({ type: 'error', text: 'Location is required. Please select a location on the map, get your current location, or mention a location in your text.' })
+        setLoading(false)
+        return
+      }
+
+      // Validate email if provided
+      const emailToValidate = allowContacting && user?.email 
+        ? user.email 
+        : (analysis.email || formData.email || null)
+      
+      if (emailToValidate && !validateEmail(emailToValidate)) {
+        setMessage({ type: 'error', text: 'Please enter a valid email address.' })
         setLoading(false)
         return
       }
@@ -906,11 +931,33 @@ export default function AlertInput() {
                 <input
                   type="email"
                   value={formData.email}
-                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                  onChange={(e) => {
+                    const emailValue = e.target.value
+                    setFormData({ ...formData, email: emailValue })
+                    // Validate email on change
+                    if (emailValue && !validateEmail(emailValue)) {
+                      setEmailError('Please enter a valid email address')
+                    } else {
+                      setEmailError(null)
+                    }
+                  }}
+                  onBlur={(e) => {
+                    // Validate on blur as well
+                    if (e.target.value && !validateEmail(e.target.value)) {
+                      setEmailError('Please enter a valid email address')
+                    } else {
+                      setEmailError(null)
+                    }
+                  }}
                   placeholder="Email address"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                    emailError ? 'border-red-500' : 'border-gray-300'
+                  }`}
                   disabled={allowContacting && user?.email}
                 />
+                {emailError && (
+                  <p className="mt-1 text-sm text-red-600">{emailError}</p>
+                )}
               </div>
               
               <div>

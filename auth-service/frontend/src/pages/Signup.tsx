@@ -19,9 +19,44 @@ export const Signup: React.FC = () => {
     }
   }, [isAuthenticated, navigate]);
 
+  const validatePasswordStrength = (pwd: string): string | null => {
+    if (pwd.length < 8) {
+      return 'Password must be at least 8 characters long';
+    }
+    // Check for spaces
+    if (/\s/.test(pwd)) {
+      return 'Password cannot contain spaces';
+    }
+    // Check that password only contains English letters, numbers, and special characters
+    if (!/^[A-Za-z0-9!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]*$/.test(pwd)) {
+      return 'Password can only contain English letters, numbers, and special characters';
+    }
+    if (!/[A-Z]/.test(pwd)) {
+      return 'Password must contain at least one uppercase letter';
+    }
+    if (!/[a-z]/.test(pwd)) {
+      return 'Password must contain at least one lowercase letter';
+    }
+    if (!/[0-9]/.test(pwd)) {
+      return 'Password must contain at least one number';
+    }
+    if (!/[^A-Za-z0-9]/.test(pwd)) {
+      return 'Password must contain at least one special character';
+    }
+    return null;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+
+    // Validate password strength before submitting
+    const passwordError = validatePasswordStrength(password);
+    if (passwordError) {
+      setError(passwordError);
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -90,7 +125,11 @@ export const Signup: React.FC = () => {
               id="password"
               type="password"
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              onChange={(e) => {
+                // Only allow English letters, numbers, and special characters (no spaces)
+                const value = e.target.value.replace(/[^A-Za-z0-9!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/g, '');
+                setPassword(value);
+              }}
               required
               className="input"
               placeholder="Choose a password"
