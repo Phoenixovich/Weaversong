@@ -344,35 +344,47 @@ export const PublicDataHub: React.FC = () => {
     }
   };
 
-  const getHeaderStyle = () => {
+  const getHeaderClassName = () => {
+    const baseClass = 'header';
     switch (activeTab) {
       case 'datastore':
-        return { ...styles.header, ...styles.datastoreHeader };
+        return `${baseClass} datastoreHeader`;
       case 'social-aid':
-        return { ...styles.header, ...styles.socialAidHeader };
+        return `${baseClass} socialAidHeader`;
       case 'explorer':
-        return { ...styles.header, ...styles.explorerHeader };
+        return `${baseClass} explorerHeader`;
       default:
-        return styles.header;
+        return baseClass;
+    }
+  };
+
+  const getSubmitButtonClassName = () => {
+    const baseClass = 'submitButton';
+    switch (activeTab) {
+      case 'datastore':
+        return `${baseClass} datastoreButton`;
+      case 'social-aid':
+        return `${baseClass} socialAidButton`;
+      case 'explorer':
+        return `${baseClass} explorerButton`;
+      default:
+        return baseClass;
     }
   };
 
   return (
     <div className="public-data-hub-page">
-      <div style={getHeaderStyle()}>
-        <h1 style={styles.headerTitle}>Public Data Hub</h1>
-        <p style={styles.headerSubtitle}>
+      <div className={getHeaderClassName()}>
+        <h1 className="headerTitle">Public Data Hub</h1>
+        <p className="headerSubtitle">
           {activeTab === 'datastore' && 'Query and visualize structured data from data.gov.ro'}
           {activeTab === 'social-aid' && 'Learn about social benefits and eligibility'}
           {activeTab === 'explorer' && 'Explore Romanian open data'}
         </p>
-        <div style={styles.controlsRow}>
-          <div style={styles.tabSelector}>
+        <div className="controlsRow">
+          <div className="tabSelector">
             <button
-              style={{
-                ...styles.tabButton,
-                ...(activeTab === 'datastore' ? styles.tabButtonActiveDatastore : {}),
-              }}
+              className={`tabButton ${activeTab === 'datastore' ? 'tabButtonActiveDatastore' : ''}`}
               onClick={() => {
                 setActiveTab('datastore');
                 setError('');
@@ -381,10 +393,7 @@ export const PublicDataHub: React.FC = () => {
               💎 Datastore
             </button>
             <button
-              style={{
-                ...styles.tabButton,
-                ...(activeTab === 'social-aid' ? styles.tabButtonActiveSocialAid : {}),
-              }}
+              className={`tabButton ${activeTab === 'social-aid' ? 'tabButtonActiveSocialAid' : ''}`}
               onClick={() => {
                 setActiveTab('social-aid');
                 setError('');
@@ -393,10 +402,7 @@ export const PublicDataHub: React.FC = () => {
               💰 Social Aid
             </button>
             <button
-              style={{
-                ...styles.tabButton,
-                ...(activeTab === 'explorer' ? styles.tabButtonActiveExplorer : {}),
-              }}
+              className={`tabButton ${activeTab === 'explorer' ? 'tabButtonActiveExplorer' : ''}`}
               onClick={() => {
                 setActiveTab('explorer');
                 setError('');
@@ -406,15 +412,15 @@ export const PublicDataHub: React.FC = () => {
             </button>
           </div>
 
-          <div style={styles.modelSelector}>
-            <label htmlFor="model-select" style={styles.modelLabel}>
+          <div className="modelSelector">
+            <label htmlFor="model-select" className="modelLabel">
               Model:
             </label>
             <select
               id="model-select"
               value={model}
               onChange={(e) => setModel(e.target.value)}
-              style={styles.modelSelect}
+              className="modelSelect"
             >
               <option value="gemini-2.5-pro">gemini-2.5-pro</option>
               <option value="gemini-2.5-flash-lite">gemini-2.5-flash-lite</option>
@@ -424,38 +430,38 @@ export const PublicDataHub: React.FC = () => {
         </div>
       </div>
 
-      <div style={styles.content}>
+      <div className="content">
         {error && (
-          <div style={styles.errorBanner}>
+          <div className="errorBanner">
             ⚠️ {error}
           </div>
         )}
 
         {/* Datastore Tab */}
         {activeTab === 'datastore' && (
-          <div style={styles.tabContent}>
-            <div style={styles.inputSection}>
-              <h2 style={styles.sectionTitle}>Datastore Search</h2>
-              <p style={styles.sectionDescription}>
+          <div className="tabContent">
+            <div className="inputSection">
+              <h2 className="sectionTitle">Datastore Search</h2>
+              <p className="sectionDescription">
                 Query structured data from data.gov.ro datastore. Enter a resource ID to get started.
               </p>
               
-              <div style={styles.resourceIdInput}>
-                <label htmlFor="resource-id" style={styles.label}>
+              <div className="resourceIdInput">
+                <label htmlFor="resource-id" className="label">
                   Resource ID:
                 </label>
                 
                 {/* Category and Search Filters */}
-                <div style={styles.filterRow}>
-                  <div style={styles.filterField}>
-                    <label style={styles.label}>Category:</label>
+                <div className="filterRow">
+                  <div className="filterField">
+                    <label className="label">Category:</label>
                     <select
                       value={selectedCategory}
                       onChange={(e) => {
                         setSelectedCategory(e.target.value);
                         setResourcesOffset(0); // Reset to first page
                       }}
-                      style={styles.selectField}
+                      className="selectField"
                     >
                       <option value="All">All Categories ({resourcesTotal || 0})</option>
                       {Object.entries(categoryCounts)
@@ -467,8 +473,8 @@ export const PublicDataHub: React.FC = () => {
                         ))}
                     </select>
                   </div>
-                  <div style={styles.filterField}>
-                    <label style={styles.label}>Search:</label>
+                  <div className="filterField">
+                    <label className="label">Search:</label>
                     <input
                       type="text"
                       value={resourceSearchQuery}
@@ -477,16 +483,16 @@ export const PublicDataHub: React.FC = () => {
                         setResourcesOffset(0); // Reset to first page
                       }}
                       placeholder="Search by name, title, description..."
-                      style={styles.inputField}
+                      className="inputField"
                     />
                   </div>
                 </div>
 
                 {/* Resource Selection */}
-                <div style={styles.resourceSelection}>
-                  <label style={styles.label}>Select Resource:</label>
+                <div className="resourceSelection">
+                  <label className="label">Select Resource:</label>
                   {loadingResources ? (
-                    <p style={styles.loadingText}>Loading resources...</p>
+                    <p className="loadingText">Loading resources...</p>
                   ) : (
                     <>
                       <select
@@ -498,7 +504,7 @@ export const PublicDataHub: React.FC = () => {
                             await handleLoadResourceInfo();
                           }
                         }}
-                        style={styles.resourceIdSelect}
+                        className="resourceIdSelect"
                       >
                         <option value="">Select a resource from the list below...</option>
                         {predefinedResources.map((resource) => (
@@ -510,21 +516,18 @@ export const PublicDataHub: React.FC = () => {
                       
                       {/* Pagination */}
                       {resourcesTotal > 0 && (
-                        <div style={styles.paginationControls}>
+                        <div className="paginationControls">
                           <button
                             onClick={() => {
                               const newOffset = Math.max(0, resourcesOffset - resourcesLimit);
                               setResourcesOffset(newOffset);
                             }}
                             disabled={resourcesOffset === 0}
-                            style={{
-                              ...styles.paginationButton,
-                              ...(resourcesOffset === 0 ? styles.paginationButtonDisabled : {}),
-                            }}
+                            className={`paginationButton ${resourcesOffset === 0 ? 'paginationButtonDisabled' : ''}`}
                           >
                             ← Previous
                           </button>
-                          <span style={styles.paginationInfo}>
+                          <span className="paginationInfo">
                             Showing {resourcesOffset + 1}-{Math.min(resourcesOffset + resourcesLimit, resourcesTotal)} of {resourcesTotal.toLocaleString()}
                           </span>
                           <button
@@ -549,23 +552,19 @@ export const PublicDataHub: React.FC = () => {
                 </div>
 
                 {/* Manual Resource ID Input */}
-                <div style={styles.resourceIdRow}>
+                <div className="resourceIdRow">
                   <input
                     id="resource-id"
                     type="text"
                     value={resourceId}
                     onChange={(e) => setResourceId(e.target.value)}
                     placeholder="Or enter custom resource ID manually..."
-                    style={styles.resourceIdInputField}
+                    className="resourceIdInputField"
                   />
                   <button
                     onClick={handleLoadResourceInfo}
                     disabled={loading || !resourceId.trim()}
-                    style={{
-                      ...styles.submitButton,
-                      ...styles.datastoreButton,
-                      ...(loading || !resourceId.trim() ? styles.submitButtonDisabled : {}),
-                    }}
+                    className={`submitButton datastoreButton ${loading || !resourceId.trim() ? 'submitButtonDisabled' : ''}`}
                   >
                     {loading ? 'Loading...' : 'Load Resource'}
                   </button>
@@ -573,13 +572,13 @@ export const PublicDataHub: React.FC = () => {
               </div>
 
               {resourceInfo && (
-                <div style={styles.resourceInfoBox}>
-                  <h3 style={styles.resourceInfoTitle}>Resource Information</h3>
+                <div className="resourceInfoBox">
+                  <h3 className="resourceInfoTitle">Resource Information</h3>
                   <p><strong>Total Records:</strong> {resourceInfo.total_records.toLocaleString()}</p>
                   <p><strong>Fields ({resourceInfo.fields.length}):</strong> {resourceInfo.fields.map(f => f.id).join(', ')}</p>
                   
                   {/* Analysis Section */}
-                  <div style={styles.analysisSection}>
+                  <div className="analysisSection">
                     <div style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
                       <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.9rem', color: '#333' }}>
                         <span>Max Fields to Analyze:</span>
@@ -616,23 +615,20 @@ export const PublicDataHub: React.FC = () => {
                     <button
                       onClick={handleAnalyzeResource}
                       disabled={analyzing}
-                      style={{
-                        ...styles.analyzeButton,
-                        ...(analyzing ? styles.buttonDisabled : {}),
-                      }}
+                      className={`analyzeButton ${analyzing ? 'buttonDisabled' : ''}`}
                     >
                       {analyzing ? '🔄 Analyzing...' : '🤖 Analyze with Gemini'}
                     </button>
                     
                     {visualizationAnalysis && (
-                      <div style={styles.analysisResults}>
-                        <h4 style={styles.analysisTitle}>📊 Analysis Results</h4>
+                      <div className="analysisResults">
+                        <h4 className="analysisTitle">📊 Analysis Results</h4>
                         <p><strong>Recommended Limit:</strong> {visualizationAnalysis.recommended_limit} records</p>
                         <p><strong>Visualizable Fields:</strong> {visualizationAnalysis.visualizable_fields.join(', ')}</p>
                         {visualizationAnalysis.field_recommendations && Object.keys(visualizationAnalysis.field_recommendations).length > 0 && (
-                          <div style={styles.recommendationsList}>
+                          <div className="recommendationsList">
                             {Object.entries(visualizationAnalysis.field_recommendations).map(([field, rec]) => (
-                              <div key={field} style={styles.recommendationItem}>
+                              <div key={field} className="recommendationItem">
                                 <strong>{field}:</strong> {rec.chart_type} chart ({rec.data_type}) - {rec.reason}
                               </div>
                             ))}
@@ -640,7 +636,7 @@ export const PublicDataHub: React.FC = () => {
                         )}
                         <button
                           onClick={handleVisualizeRecommended}
-                          style={styles.visualizeButton}
+                          className="visualizeButton"
                         >
                           📈 Visualize Recommended Fields
                         </button>
@@ -648,7 +644,7 @@ export const PublicDataHub: React.FC = () => {
                     )}
                   </div>
                   
-                  <p style={styles.infoHint}>
+                  <p className="infoHint">
                     ✅ This resource is available in the datastore and can be queried.
                   </p>
                 </div>
@@ -656,10 +652,10 @@ export const PublicDataHub: React.FC = () => {
 
               {resourceInfo && (
                 <>
-                  <div style={styles.queryModeSelector}>
-                    <label style={styles.label}>Query Mode:</label>
-                    <div style={styles.radioGroup}>
-                      <label style={styles.radioLabel}>
+                  <div className="queryModeSelector">
+                    <label className="label">Query Mode:</label>
+                    <div className="radioGroup">
+                      <label className="radioLabel">
                         <input
                           type="radio"
                           value="filter"
@@ -668,7 +664,7 @@ export const PublicDataHub: React.FC = () => {
                         />
                         Filter
                       </label>
-                      <label style={styles.radioLabel}>
+                      <label className="radioLabel">
                         <input
                           type="radio"
                           value="text"
@@ -677,7 +673,7 @@ export const PublicDataHub: React.FC = () => {
                         />
                         Text Search
                       </label>
-                      <label style={styles.radioLabel}>
+                      <label className="radioLabel">
                         <input
                           type="radio"
                           value="sql"
@@ -690,14 +686,14 @@ export const PublicDataHub: React.FC = () => {
                   </div>
 
                   {queryMode === 'filter' ? (
-                    <div style={styles.filterSection}>
-                      <div style={styles.filterRow}>
-                        <div style={styles.filterField}>
-                          <label style={styles.label}>Filter Field:</label>
+                    <div className="filterSection">
+                      <div className="filterRow">
+                        <div className="filterField">
+                          <label className="label">Filter Field:</label>
                           <select
                             value={filterField}
                             onChange={(e) => setFilterField(e.target.value)}
-                            style={styles.selectField}
+                            className="selectField"
                           >
                             <option value="">Select field...</option>
                             {resourceInfo.fields.map((field) => (
@@ -707,86 +703,86 @@ export const PublicDataHub: React.FC = () => {
                             ))}
                           </select>
                         </div>
-                        <div style={styles.filterField}>
-                          <label style={styles.label}>Filter Value:</label>
+                        <div className="filterField">
+                          <label className="label">Filter Value:</label>
                           <input
                             type="text"
                             value={filterValue}
                             onChange={(e) => setFilterValue(e.target.value)}
                             placeholder="Enter value to filter by..."
-                            style={styles.inputField}
+                            className="inputField"
                           />
                         </div>
                       </div>
-                      <div style={styles.paginationRow}>
-                        <div style={styles.paginationField}>
-                          <label style={styles.label}>Limit:</label>
+                      <div className="paginationRow">
+                        <div className="paginationField">
+                          <label className="label">Limit:</label>
                           <input
                             type="number"
                             value={limit}
                             onChange={(e) => setLimit(parseInt(e.target.value) || 100)}
                             min="1"
                             max="1000"
-                            style={styles.numberInput}
+                            className="numberInput"
                           />
                         </div>
-                        <div style={styles.paginationField}>
-                          <label style={styles.label}>Offset:</label>
+                        <div className="paginationField">
+                          <label className="label">Offset:</label>
                           <input
                             type="number"
                             value={offset}
                             onChange={(e) => setOffset(parseInt(e.target.value) || 0)}
                             min="0"
-                            style={styles.numberInput}
+                            className="numberInput"
                           />
                         </div>
                       </div>
                     </div>
                   ) : queryMode === 'text' ? (
-                    <div style={styles.textSearchSection}>
-                      <label style={styles.label}>Text Search (searches across all fields):</label>
+                    <div className="textSearchSection">
+                      <label className="label">Text Search (searches across all fields):</label>
                       <input
                         type="text"
                         value={textQuery}
                         onChange={(e) => setTextQuery(e.target.value)}
                         placeholder="Enter search text..."
-                        style={styles.inputField}
+                        className="inputField"
                       />
-                      <div style={styles.paginationRow}>
-                        <div style={styles.paginationField}>
-                          <label style={styles.label}>Limit:</label>
+                      <div className="paginationRow">
+                        <div className="paginationField">
+                          <label className="label">Limit:</label>
                           <input
                             type="number"
                             value={limit}
                             onChange={(e) => setLimit(parseInt(e.target.value) || 100)}
                             min="1"
                             max="1000"
-                            style={styles.numberInput}
+                            className="numberInput"
                           />
                         </div>
-                        <div style={styles.paginationField}>
-                          <label style={styles.label}>Offset:</label>
+                        <div className="paginationField">
+                          <label className="label">Offset:</label>
                           <input
                             type="number"
                             value={offset}
                             onChange={(e) => setOffset(parseInt(e.target.value) || 0)}
                             min="0"
-                            style={styles.numberInput}
+                            className="numberInput"
                           />
                         </div>
                       </div>
                     </div>
                   ) : (
-                    <div style={styles.sqlSection}>
-                      <label style={styles.label}>SQL Query:</label>
+                    <div className="sqlSection">
+                      <label className="label">SQL Query:</label>
                       <textarea
                         value={sqlQuery}
                         onChange={(e) => setSqlQuery(e.target.value)}
                         placeholder='SELECT * FROM "<resource_id>" WHERE county="Bucuresti" LIMIT 100'
-                        style={styles.textarea}
+                        className="textarea"
                         rows={4}
                       />
-                      <p style={styles.sqlHint}>
+                      <p className="sqlHint">
                         💡 Tip: Use <code>"{resourceId}"</code> as the table name. Example: <code>SELECT * FROM "{resourceId}" WHERE county='Bucuresti' LIMIT 100</code>
                       </p>
                     </div>
@@ -795,11 +791,7 @@ export const PublicDataHub: React.FC = () => {
                   <button
                     onClick={handleSearchDatastore}
                     disabled={loading || !resourceId.trim()}
-                    style={{
-                      ...styles.submitButton,
-                      ...styles.datastoreButton,
-                      ...(loading || !resourceId.trim() ? styles.submitButtonDisabled : {}),
-                    }}
+                    className={`submitButton datastoreButton ${loading || !resourceId.trim() ? 'submitButtonDisabled' : ''}`}
                   >
                     {loading ? 'Searching...' : 'Search Datastore'}
                   </button>
@@ -808,19 +800,19 @@ export const PublicDataHub: React.FC = () => {
             </div>
 
             {datastoreResults && (
-              <div style={styles.outputSection}>
-                <h2 style={styles.sectionTitle}>
+              <div className="outputSection">
+                <h2 className="sectionTitle">
                   Results ({datastoreResults.total?.toLocaleString() || datastoreResults.records.length} records)
                 </h2>
                 
                 {/* Dashboard Controls */}
-                <div style={styles.dashboardControls}>
-                  <div style={styles.chartTypeSelector}>
-                    <label style={styles.label}>View:</label>
+                <div className="dashboardControls">
+                  <div className="chartTypeSelector">
+                    <label className="label">View:</label>
                     <select
                       value={chartType}
                       onChange={(e) => setChartType(e.target.value as 'bar' | 'line' | 'pie' | 'table')}
-                      style={styles.selectField}
+                      className="selectField"
                     >
                       <option value="bar">Bar Chart</option>
                       <option value="line">Line Chart</option>
@@ -829,12 +821,12 @@ export const PublicDataHub: React.FC = () => {
                     </select>
                   </div>
                   {chartType !== 'table' && (
-                    <div style={styles.chartFieldSelector}>
-                      <label style={styles.label}>Chart Field:</label>
+                    <div className="chartFieldSelector">
+                      <label className="label">Chart Field:</label>
                       <select
                         value={chartField}
                         onChange={(e) => setChartField(e.target.value)}
-                        style={styles.selectField}
+                        className="selectField"
                       >
                         <option value="">Select field...</option>
                         {datastoreResults.fields?.map((field) => (
@@ -845,8 +837,8 @@ export const PublicDataHub: React.FC = () => {
                       </select>
                     </div>
                   )}
-                  <div style={styles.autoVisualizeToggle}>
-                    <label style={styles.checkboxLabel}>
+                  <div className="autoVisualizeToggle">
+                    <label className="checkboxLabel">
                       <input
                         type="checkbox"
                         checked={autoVisualize}
@@ -859,14 +851,14 @@ export const PublicDataHub: React.FC = () => {
 
                 {/* Auto Visualizations - Show charts for recommended or all fields */}
                 {autoVisualize && chartType !== 'table' && datastoreResults.fields && datastoreResults.fields.length > 0 && (
-                  <div style={styles.autoChartsContainer}>
-                    <h3 style={styles.autoChartsTitle}>
+                  <div className="autoChartsContainer">
+                    <h3 className="autoChartsTitle">
                       📊 Automatic Visualizations
                       {visualizationAnalysis && (
-                        <span style={styles.analysisBadge}> (Using Gemini Recommendations)</span>
+                        <span className="analysisBadge"> (Using Gemini Recommendations)</span>
                       )}
                     </h3>
-                    <div style={styles.chartsGrid}>
+                    <div className="chartsGrid">
                       {(visualizationAnalysis?.visualizable_fields || datastoreResults.fields.slice(0, 6).map(f => f.id)).map((fieldId) => {
                         const field = datastoreResults.fields?.find(f => f.id === fieldId);
                         if (!field) return null;
@@ -879,8 +871,8 @@ export const PublicDataHub: React.FC = () => {
                         const recommendedChartType = recommendation?.chart_type || chartType;
                         
                         return (
-                          <div key={fieldId} style={styles.chartCard}>
-                            <h4 style={styles.chartCardTitle}>{fieldId}</h4>
+                          <div key={fieldId} className="chartCard">
+                            <h4 className="chartCardTitle">{fieldId}</h4>
                             {recommendedChartType === 'bar' && (
                               <ResponsiveContainer width="100%" height={300}>
                                 <BarChart data={chartData}>
@@ -933,8 +925,8 @@ export const PublicDataHub: React.FC = () => {
 
                 {/* Single Chart View */}
                 {chartType !== 'table' && chartField && !autoVisualize && (
-                  <div style={styles.chartContainer}>
-                    <h3 style={styles.chartTitle}>Chart: {chartField}</h3>
+                  <div className="chartContainer">
+                    <h3 className="chartTitle">Chart: {chartField}</h3>
                     {chartType === 'bar' && (
                       <ResponsiveContainer width="100%" height={400}>
                         <BarChart data={getChartData()}>
@@ -986,12 +978,12 @@ export const PublicDataHub: React.FC = () => {
 
                 {/* Table View */}
                 {chartType === 'table' && (
-                  <div style={styles.resultsTable}>
-                    <table style={styles.table}>
+                  <div className="resultsTable">
+                    <table className="table">
                       <thead>
                         <tr>
                           {datastoreResults.fields?.map((field) => (
-                            <th key={field.id} style={styles.tableHeader}>
+                            <th key={field.id} className="tableHeader">
                               {field.id}
                             </th>
                           ))}
@@ -999,9 +991,9 @@ export const PublicDataHub: React.FC = () => {
                       </thead>
                       <tbody>
                         {datastoreResults.records.map((record, idx) => (
-                          <tr key={idx} style={styles.tableRow}>
+                          <tr key={idx} className="tableRow">
                             {datastoreResults.fields?.map((field) => (
-                              <td key={field.id} style={styles.tableCell}>
+                              <td key={field.id} className="tableCell">
                                 {String(record[field.id] ?? '')}
                               </td>
                             ))}
@@ -1018,43 +1010,39 @@ export const PublicDataHub: React.FC = () => {
 
         {/* Social Aid Tab */}
         {activeTab === 'social-aid' && (
-          <div style={styles.tabContent}>
-            <div style={styles.inputSection}>
-              <h2 style={styles.sectionTitle}>Social Aid Helper</h2>
-              <p style={styles.sectionDescription}>
+          <div className="tabContent">
+            <div className="inputSection">
+              <h2 className="sectionTitle">Social Aid Helper</h2>
+              <p className="sectionDescription">
                 Ask questions about social benefits, eligibility, or how to apply
               </p>
               <textarea
                 value={socialAidQuestion}
                 onChange={(e) => setSocialAidQuestion(e.target.value)}
                 placeholder="e.g., Am I eligible for VMI? How do I apply for social assistance?"
-                style={styles.textarea}
+                className="textarea"
                 rows={4}
               />
               <textarea
                 value={socialAidContext}
                 onChange={(e) => setSocialAidContext(e.target.value)}
                 placeholder="Optional: Add context about your situation..."
-                style={styles.textarea}
+                className="textarea"
                 rows={3}
               />
               <button
                 onClick={handleExplainSocialAid}
                 disabled={loading || !socialAidQuestion.trim()}
-                style={{
-                  ...styles.submitButton,
-                  ...styles.socialAidButton,
-                  ...(loading || !socialAidQuestion.trim() ? styles.submitButtonDisabled : {}),
-                }}
+                    className={`submitButton socialAidButton ${loading || !socialAidQuestion.trim() ? 'submitButtonDisabled' : ''}`}
               >
                 {loading ? 'Getting Answer...' : 'Get Answer'}
               </button>
             </div>
 
             {socialAidExplanation && (
-              <div style={styles.outputSection}>
-                <h2 style={styles.sectionTitle}>Answer</h2>
-                <div className="markdown-container" style={styles.markdownContainer}>
+              <div className="outputSection">
+                <h2 className="sectionTitle">Answer</h2>
+                <div className="markdown-container markdownContainer">
                   <ReactMarkdown>{socialAidExplanation}</ReactMarkdown>
                 </div>
               </div>
@@ -1064,19 +1052,19 @@ export const PublicDataHub: React.FC = () => {
 
         {/* Explorer Tab */}
         {activeTab === 'explorer' && (
-          <div style={styles.tabContent}>
-            <div style={styles.inputSection}>
-              <h2 style={styles.sectionTitle}>Data Explorer</h2>
-              <p style={styles.sectionDescription}>
+          <div className="tabContent">
+            <div className="inputSection">
+              <h2 className="sectionTitle">Data Explorer</h2>
+              <p className="sectionDescription">
                 Search and explore datasets from data.gov.ro
               </p>
-              <div style={styles.searchContainer}>
+              <div className="searchContainer">
                 <input
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Search datasets (e.g., 'RO-ALERT', 'VMI', 'budget')..."
-                  style={styles.searchInput}
+                  className="searchInput"
                   onKeyPress={(e) => {
                     if (e.key === 'Enter') {
                       handleSearchDatasets();
@@ -1086,11 +1074,7 @@ export const PublicDataHub: React.FC = () => {
                 <button
                   onClick={handleSearchDatasets}
                   disabled={explorerLoading}
-                  style={{
-                    ...styles.submitButton,
-                    ...styles.explorerButton,
-                    ...(explorerLoading ? styles.submitButtonDisabled : {}),
-                  }}
+                  className={`submitButton explorerButton ${explorerLoading ? 'submitButtonDisabled' : ''}`}
                 >
                   {explorerLoading ? 'Searching...' : 'Search'}
                 </button>
@@ -1098,25 +1082,25 @@ export const PublicDataHub: React.FC = () => {
             </div>
 
             {datasets.length > 0 && (
-              <div style={styles.datasetsList}>
-                <h2 style={styles.sectionTitle}>Found {datasets.length} datasets</h2>
+              <div className="datasetsList">
+                <h2 className="sectionTitle">Found {datasets.length} datasets</h2>
                 {datasets.map((dataset, index) => (
                   <div
                     key={dataset.id || index}
-                    style={styles.datasetCard}
+                    className="datasetCard"
                     onClick={() => dataset.id && handleDatasetClick(dataset.id)}
                   >
-                    <h3 style={styles.datasetTitle}>{dataset.title || dataset.name || 'Untitled'}</h3>
+                    <h3 className="datasetTitle">{dataset.title || dataset.name || 'Untitled'}</h3>
                     {dataset.notes && (
-                      <p style={styles.datasetNotes}>{dataset.notes.substring(0, 200)}...</p>
+                      <p className="datasetNotes">{dataset.notes.substring(0, 200)}...</p>
                     )}
                     {dataset.organization && (
-                      <p style={styles.datasetOrg}>
+                      <p className="datasetOrg">
                         📁 {dataset.organization.title || dataset.organization.name}
                       </p>
                     )}
                     {dataset.resources && dataset.resources.length > 0 && (
-                      <p style={styles.datasetResources}>
+                      <p className="datasetResources">
                         📎 {dataset.resources.length} resource(s) available
                       </p>
                     )}
@@ -1126,50 +1110,50 @@ export const PublicDataHub: React.FC = () => {
             )}
 
             {selectedDataset && (
-              <div style={styles.outputSection}>
+              <div className="outputSection">
                 <button
                   onClick={() => {
                     setSelectedDataset(null);
                     setAggregatedView(null);
                   }}
-                  style={styles.backButton}
+                  className="backButton"
                 >
                   ← Back to results
                 </button>
-                <h2 style={styles.sectionTitle}>{selectedDataset.title || selectedDataset.name}</h2>
+                <h2 className="sectionTitle">{selectedDataset.title || selectedDataset.name}</h2>
                 
                 {/* Aggregated View */}
                 {aggregatedView && (
-                  <div style={styles.aggregatedSection}>
-                    <h3 style={styles.aggregatedTitle}>📊 Aggregated Analysis</h3>
+                  <div className="aggregatedSection">
+                    <h3 className="aggregatedTitle">📊 Aggregated Analysis</h3>
                     {aggregatedView.resource && (
-                      <p style={styles.resourceInfo}>
+                      <p className="resourceInfo">
                         Analyzing: <strong>{aggregatedView.resource.name || 'Resource'}</strong> ({aggregatedView.resource.format})
                       </p>
                     )}
                     {explorerLoading ? (
-                      <p style={styles.loadingText}>Analyzing dataset...</p>
+                      <p className="loadingText">Analyzing dataset...</p>
                     ) : (
-                      <div className="markdown-container" style={styles.markdownContainer}>
+                      <div className="markdown-container markdownContainer">
                         <ReactMarkdown>{aggregatedView.analysis}</ReactMarkdown>
                       </div>
                     )}
                     
                     {aggregatedView.structure && Object.keys(aggregatedView.structure).length > 0 && (
-                      <div style={styles.structureSection}>
-                        <h4 style={styles.structureTitle}>Data Structure</h4>
+                      <div className="structureSection">
+                        <h4 className="structureTitle">Data Structure</h4>
                         {aggregatedView.structure.headers && (
-                          <div style={styles.structureInfo}>
+                          <div className="structureInfo">
                             <strong>Columns:</strong> {aggregatedView.structure.headers.join(', ')}
                           </div>
                         )}
                         {aggregatedView.structure.row_count !== undefined && (
-                          <div style={styles.structureInfo}>
+                          <div className="structureInfo">
                             <strong>Rows analyzed:</strong> {aggregatedView.structure.row_count}
                           </div>
                         )}
                         {aggregatedView.structure.total_estimated_rows && (
-                          <div style={styles.structureInfo}>
+                          <div className="structureInfo">
                             <strong>Total rows (estimated):</strong> {aggregatedView.structure.total_estimated_rows}
                           </div>
                         )}
@@ -1180,9 +1164,9 @@ export const PublicDataHub: React.FC = () => {
 
                 {/* Dataset Description */}
                 {selectedDataset.notes && (
-                  <div style={styles.descriptionSection}>
-                    <h3 style={styles.sectionSubtitle}>Description</h3>
-                    <div className="markdown-container" style={styles.markdownContainer}>
+                  <div className="descriptionSection">
+                    <h3 className="sectionSubtitle">Description</h3>
+                    <div className="markdown-container markdownContainer">
                       <ReactMarkdown>{selectedDataset.notes}</ReactMarkdown>
                     </div>
                   </div>
@@ -1190,15 +1174,15 @@ export const PublicDataHub: React.FC = () => {
 
                 {/* Resources */}
                 {selectedDataset.resources && selectedDataset.resources.length > 0 && (
-                  <div style={styles.resourcesSection}>
-                    <h3 style={styles.sectionSubtitle}>Resources</h3>
+                  <div className="resourcesSection">
+                    <h3 className="sectionSubtitle">Resources</h3>
                     {selectedDataset.resources.map((resource, index) => (
-                      <div key={index} style={styles.resourceItem}>
+                      <div key={index} className="resourceItem">
                         <a
                           href={resource.url}
                           target="_blank"
                           rel="noopener noreferrer"
-                          style={styles.resourceLink}
+                          className="resourceLink"
                         >
                           📄 {resource.name || resource.url} ({resource.format})
                         </a>
@@ -1215,585 +1199,4 @@ export const PublicDataHub: React.FC = () => {
   );
 };
 
-const styles: { [key: string]: React.CSSProperties } = {
-  header: {
-    padding: '2rem',
-    color: 'white',
-    textAlign: 'center',
-    borderRadius: '8px 8px 0 0',
-  },
-  datastoreHeader: {
-    backgroundColor: '#7b1fa2',
-  },
-  socialAidHeader: {
-    backgroundColor: '#1976d2',
-  },
-  explorerHeader: {
-    backgroundColor: '#388e3c',
-  },
-  headerTitle: {
-    margin: '0 0 0.5rem 0',
-    fontSize: '2rem',
-    fontWeight: 'bold',
-  },
-  headerSubtitle: {
-    margin: '0 0 1.5rem 0',
-    fontSize: '1.1rem',
-    opacity: 0.9,
-  },
-  controlsRow: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    flexWrap: 'wrap',
-    gap: '1rem',
-  },
-  tabSelector: {
-    display: 'flex',
-    gap: '0.5rem',
-  },
-  tabButton: {
-    padding: '0.5rem 1.5rem',
-    border: '2px solid rgba(255, 255, 255, 0.3)',
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-    color: 'white',
-    borderRadius: '4px',
-    cursor: 'pointer',
-    fontSize: '1rem',
-    fontWeight: '500',
-    transition: 'all 0.3s',
-  },
-  tabButtonActiveDatastore: {
-    backgroundColor: 'rgba(255, 255, 255, 0.3)',
-    border: '2px solid white',
-  },
-  tabButtonActiveSocialAid: {
-    backgroundColor: 'rgba(255, 255, 255, 0.3)',
-    border: '2px solid white',
-  },
-  tabButtonActiveExplorer: {
-    backgroundColor: 'rgba(255, 255, 255, 0.3)',
-    border: '2px solid white',
-  },
-  modelSelector: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '0.5rem',
-  },
-  modelLabel: {
-    color: 'white',
-    fontWeight: '500',
-  },
-  modelSelect: {
-    padding: '0.5rem',
-    borderRadius: '4px',
-    border: '1px solid rgba(255, 255, 255, 0.3)',
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
-    fontSize: '0.9rem',
-  },
-  content: {
-    padding: '2rem',
-    maxWidth: '1200px',
-    margin: '0 auto',
-  },
-  errorBanner: {
-    padding: '1rem',
-    backgroundColor: '#ffebee',
-    color: '#c62828',
-    borderRadius: '4px',
-    marginBottom: '1.5rem',
-    border: '1px solid #ef5350',
-  },
-  tabContent: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '2rem',
-  },
-  inputSection: {
-    backgroundColor: 'white',
-    padding: '2rem',
-    borderRadius: '8px',
-    boxShadow: '0 2px 10px rgba(0, 0, 0, 0.1)',
-  },
-  sectionTitle: {
-    margin: '0 0 0.5rem 0',
-    color: '#333',
-    fontSize: '1.5rem',
-  },
-  sectionDescription: {
-    margin: '0 0 1.5rem 0',
-    color: '#666',
-    fontSize: '1rem',
-  },
-  textarea: {
-    width: '100%',
-    padding: '0.75rem',
-    border: '1px solid #ddd',
-    borderRadius: '4px',
-    fontSize: '1rem',
-    fontFamily: 'inherit',
-    resize: 'vertical',
-    marginBottom: '1rem',
-    boxSizing: 'border-box',
-  },
-  submitButton: {
-    padding: '0.75rem 2rem',
-    color: 'white',
-    border: 'none',
-    borderRadius: '4px',
-    fontSize: '1rem',
-    fontWeight: '600',
-    cursor: 'pointer',
-  },
-  datastoreButton: {
-    backgroundColor: '#7b1fa2',
-  },
-  socialAidButton: {
-    backgroundColor: '#1976d2',
-  },
-  explorerButton: {
-    backgroundColor: '#388e3c',
-  },
-  submitButtonDisabled: {
-    backgroundColor: '#ccc',
-    cursor: 'not-allowed',
-  },
-  outputSection: {
-    backgroundColor: 'white',
-    padding: '2rem',
-    borderRadius: '8px',
-    boxShadow: '0 2px 10px rgba(0, 0, 0, 0.1)',
-  },
-  markdownContainer: {
-    lineHeight: '1.6',
-  },
-  searchContainer: {
-    display: 'flex',
-    gap: '1rem',
-    marginBottom: '1rem',
-  },
-  searchInput: {
-    flex: 1,
-    padding: '0.75rem',
-    border: '1px solid #ddd',
-    borderRadius: '4px',
-    fontSize: '1rem',
-    fontFamily: 'inherit',
-  },
-  datasetsList: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '1rem',
-  },
-  datasetCard: {
-    backgroundColor: 'white',
-    padding: '1.5rem',
-    borderRadius: '8px',
-    boxShadow: '0 2px 10px rgba(0, 0, 0, 0.1)',
-    cursor: 'pointer',
-    transition: 'transform 0.2s, box-shadow 0.2s',
-  },
-  datasetTitle: {
-    margin: '0 0 0.5rem 0',
-    color: '#333',
-    fontSize: '1.2rem',
-  },
-  datasetNotes: {
-    margin: '0 0 0.5rem 0',
-    color: '#666',
-    fontSize: '0.9rem',
-  },
-  datasetOrg: {
-    margin: '0.5rem 0',
-    color: '#888',
-    fontSize: '0.85rem',
-  },
-  datasetResources: {
-    margin: '0.5rem 0 0 0',
-    color: '#888',
-    fontSize: '0.85rem',
-  },
-  label: {
-    display: 'block',
-    marginBottom: '0.5rem',
-    color: '#333',
-    fontWeight: '500',
-  },
-  resourceIdInput: {
-    marginBottom: '1.5rem',
-  },
-  resourceSelection: {
-    marginBottom: '1rem',
-  },
-  resourceIdRow: {
-    display: 'flex',
-    gap: '1rem',
-    alignItems: 'flex-end',
-    marginTop: '1rem',
-  },
-  resourceIdSelect: {
-    width: '100%',
-    padding: '0.75rem',
-    border: '1px solid #ddd',
-    borderRadius: '4px',
-    fontSize: '1rem',
-    fontFamily: 'inherit',
-    backgroundColor: 'white',
-    cursor: 'pointer',
-    marginBottom: '0.5rem',
-  },
-  resourceIdInputField: {
-    flex: 1,
-    padding: '0.75rem',
-    border: '1px solid #ddd',
-    borderRadius: '4px',
-    fontSize: '1rem',
-    fontFamily: 'inherit',
-  },
-  paginationControls: {
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center',
-    gap: '1rem',
-    marginTop: '0.5rem',
-    padding: '0.5rem',
-  },
-  paginationButton: {
-    padding: '0.5rem 1rem',
-    backgroundColor: '#7b1fa2',
-    color: 'white',
-    border: 'none',
-    borderRadius: '4px',
-    cursor: 'pointer',
-    fontSize: '0.9rem',
-  },
-  paginationButtonDisabled: {
-    backgroundColor: '#ccc',
-    cursor: 'not-allowed',
-  },
-  paginationInfo: {
-    fontSize: '0.9rem',
-    color: '#666',
-  },
-  loadingText: {
-    color: '#666',
-    fontStyle: 'italic',
-    padding: '1rem',
-    textAlign: 'center',
-  },
-  resourceInfoBox: {
-    marginTop: '1.5rem',
-    padding: '1rem',
-    backgroundColor: '#f8f9fa',
-    borderRadius: '4px',
-    border: '1px solid #e9ecef',
-  },
-  resourceInfoTitle: {
-    margin: '0 0 0.5rem 0',
-    color: '#333',
-    fontSize: '1.1rem',
-  },
-  infoHint: {
-    margin: '0.5rem 0 0 0',
-    fontSize: '0.85rem',
-    color: '#388e3c',
-    fontStyle: 'italic',
-  },
-  queryModeSelector: {
-    marginTop: '1.5rem',
-    marginBottom: '1rem',
-  },
-  radioGroup: {
-    display: 'flex',
-    gap: '1.5rem',
-    marginTop: '0.5rem',
-  },
-  radioLabel: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '0.5rem',
-    cursor: 'pointer',
-  },
-  filterSection: {
-    marginTop: '1rem',
-  },
-  filterRow: {
-    display: 'flex',
-    gap: '1rem',
-    marginBottom: '1rem',
-  },
-  filterField: {
-    flex: 1,
-  },
-  selectField: {
-    width: '100%',
-    padding: '0.75rem',
-    border: '1px solid #ddd',
-    borderRadius: '4px',
-    fontSize: '1rem',
-    fontFamily: 'inherit',
-  },
-  inputField: {
-    width: '100%',
-    padding: '0.75rem',
-    border: '1px solid #ddd',
-    borderRadius: '4px',
-    fontSize: '1rem',
-    fontFamily: 'inherit',
-  },
-  paginationRow: {
-    display: 'flex',
-    gap: '1rem',
-  },
-  paginationField: {
-    flex: 1,
-  },
-  numberInput: {
-    width: '100%',
-    padding: '0.75rem',
-    border: '1px solid #ddd',
-    borderRadius: '4px',
-    fontSize: '1rem',
-    fontFamily: 'inherit',
-  },
-  textSearchSection: {
-    marginTop: '1rem',
-  },
-  sqlSection: {
-    marginTop: '1rem',
-  },
-  sqlHint: {
-    marginTop: '0.5rem',
-    fontSize: '0.9rem',
-    color: '#666',
-    fontStyle: 'italic',
-  },
-  dashboardControls: {
-    display: 'flex',
-    gap: '1rem',
-    marginBottom: '1.5rem',
-    padding: '1rem',
-    backgroundColor: '#f8f9fa',
-    borderRadius: '4px',
-  },
-  chartTypeSelector: {
-    flex: 1,
-  },
-  chartFieldSelector: {
-    flex: 1,
-  },
-  chartContainer: {
-    marginTop: '1.5rem',
-    padding: '1rem',
-    backgroundColor: '#f8f9fa',
-    borderRadius: '4px',
-  },
-  chartTitle: {
-    margin: '0 0 1rem 0',
-    color: '#333',
-    fontSize: '1.2rem',
-    fontWeight: '600',
-  },
-  autoChartsContainer: {
-    marginTop: '1.5rem',
-    padding: '1.5rem',
-    backgroundColor: '#f8f9fa',
-    borderRadius: '8px',
-    border: '2px solid #7b1fa2',
-  },
-  autoChartsTitle: {
-    margin: '0 0 1.5rem 0',
-    color: '#333',
-    fontSize: '1.3rem',
-    fontWeight: '600',
-  },
-  chartsGrid: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))',
-    gap: '1.5rem',
-  },
-  chartCard: {
-    backgroundColor: 'white',
-    padding: '1rem',
-    borderRadius: '8px',
-    boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
-    border: '1px solid #e9ecef',
-  },
-  chartCardTitle: {
-    margin: '0 0 0.75rem 0',
-    color: '#333',
-    fontSize: '1rem',
-    fontWeight: '600',
-    textAlign: 'center',
-  },
-  autoVisualizeToggle: {
-    display: 'flex',
-    alignItems: 'center',
-  },
-  checkboxLabel: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '0.5rem',
-    cursor: 'pointer',
-    fontSize: '0.9rem',
-    color: '#333',
-  },
-  analysisSection: {
-    marginTop: '1rem',
-    padding: '1rem',
-    backgroundColor: '#f8f9fa',
-    borderRadius: '4px',
-    border: '1px solid #dee2e6',
-  },
-  analyzeButton: {
-    padding: '0.75rem 1.5rem',
-    backgroundColor: '#7b1fa2',
-    color: 'white',
-    border: 'none',
-    borderRadius: '4px',
-    fontSize: '1rem',
-    fontWeight: '600',
-    cursor: 'pointer',
-    marginBottom: '1rem',
-  },
-  buttonDisabled: {
-    backgroundColor: '#ccc',
-    cursor: 'not-allowed',
-  },
-  analysisResults: {
-    marginTop: '1rem',
-    padding: '1rem',
-    backgroundColor: '#e8f5e9',
-    borderRadius: '4px',
-    border: '1px solid #4caf50',
-  },
-  analysisTitle: {
-    margin: '0 0 0.75rem 0',
-    color: '#2e7d32',
-    fontSize: '1rem',
-    fontWeight: '600',
-  },
-  recommendationsList: {
-    marginTop: '0.75rem',
-    marginBottom: '0.75rem',
-  },
-  recommendationItem: {
-    margin: '0.5rem 0',
-    fontSize: '0.85rem',
-    color: '#555',
-    padding: '0.5rem',
-    backgroundColor: 'white',
-    borderRadius: '4px',
-  },
-  visualizeButton: {
-    padding: '0.75rem 1.5rem',
-    backgroundColor: '#388e3c',
-    color: 'white',
-    border: 'none',
-    borderRadius: '4px',
-    fontSize: '1rem',
-    fontWeight: '600',
-    cursor: 'pointer',
-    marginTop: '0.5rem',
-  },
-  analysisBadge: {
-    fontSize: '0.85rem',
-    color: '#666',
-    fontWeight: 'normal',
-    fontStyle: 'italic',
-  },
-  resultsTable: {
-    overflowX: 'auto',
-    marginTop: '1rem',
-  },
-  table: {
-    width: '100%',
-    borderCollapse: 'collapse',
-    fontSize: '0.9rem',
-  },
-  tableHeader: {
-    padding: '0.75rem',
-    backgroundColor: '#f8f9fa',
-    border: '1px solid #dee2e6',
-    textAlign: 'left',
-    fontWeight: '600',
-    color: '#333',
-  },
-  tableRow: {
-    borderBottom: '1px solid #dee2e6',
-  },
-  tableCell: {
-    padding: '0.75rem',
-    border: '1px solid #dee2e6',
-    maxWidth: '300px',
-    overflow: 'hidden',
-    textOverflow: 'ellipsis',
-    whiteSpace: 'nowrap',
-  },
-  backButton: {
-    padding: '0.5rem 1rem',
-    backgroundColor: '#f5f5f5',
-    border: '1px solid #ddd',
-    borderRadius: '4px',
-    cursor: 'pointer',
-    marginBottom: '1rem',
-    fontSize: '0.9rem',
-  },
-  resourcesSection: {
-    marginTop: '1.5rem',
-  },
-  resourceItem: {
-    margin: '0.5rem 0',
-  },
-  resourceLink: {
-    color: '#1976d2',
-    textDecoration: 'none',
-  },
-  aggregatedSection: {
-    marginBottom: '2rem',
-    padding: '1.5rem',
-    backgroundColor: '#f8f9fa',
-    borderRadius: '8px',
-    border: '2px solid #388e3c',
-  },
-  aggregatedTitle: {
-    margin: '0 0 1rem 0',
-    color: '#333',
-    fontSize: '1.3rem',
-    fontWeight: '600',
-  },
-  resourceInfo: {
-    margin: '0 0 1rem 0',
-    color: '#666',
-    fontSize: '0.9rem',
-  },
-  structureSection: {
-    marginTop: '1.5rem',
-    padding: '1rem',
-    backgroundColor: 'white',
-    borderRadius: '4px',
-    border: '1px solid #ddd',
-  },
-  structureTitle: {
-    margin: '0 0 0.75rem 0',
-    color: '#333',
-    fontSize: '1.1rem',
-    fontWeight: '600',
-  },
-  structureInfo: {
-    margin: '0.5rem 0',
-    color: '#555',
-    fontSize: '0.9rem',
-  },
-  descriptionSection: {
-    marginTop: '2rem',
-    marginBottom: '1.5rem',
-  },
-  sectionSubtitle: {
-    margin: '0 0 1rem 0',
-    color: '#333',
-    fontSize: '1.2rem',
-    fontWeight: '600',
-  },
-};
 

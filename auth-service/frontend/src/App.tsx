@@ -19,6 +19,8 @@ import { PedestrianAnalyzer } from './pages/PedestrianAnalyzer';
 import HelpboardLanding from './pages/HelpboardLanding';
 import MyTrades from './pages/MyTrades';
 import MyResponsesPage from './pages/MyResponsesPage';
+import MyRequestsPage from './pages/MyRequestsPage';
+import { Welcome } from './pages/Welcome';
 
 const AppRoutes: React.FC = () => {
   return (
@@ -45,6 +47,14 @@ const AppRoutes: React.FC = () => {
           element={
             <ProtectedRoute>
               <MyResponsesPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/helpboard/my-requests"
+          element={
+            <ProtectedRoute>
+              <MyRequestsPage />
             </ProtectedRoute>
           }
         />
@@ -85,8 +95,8 @@ const AppRoutes: React.FC = () => {
           }
         />
         <Route path="/helpboard/login" element={<LoginCallback />} />
-        {/* Default route - redirect to public page */}
-        <Route path="/" element={<Navigate to="/citypulse" replace />} />
+        {/* Welcome page - default route */}
+        <Route path="/" element={<Welcome />} />
       </Routes>
     </>
   );

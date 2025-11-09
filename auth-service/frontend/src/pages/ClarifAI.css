@@ -1,4 +1,130 @@
-.clarifai-page {
-  min-height: 100vh;
+.header {
+  color: white;
+  padding: 2rem;
+  text-align: center;
 }
 
+.medicalHeader {
+  background-color: #2196f3;
+}
+
+.legalHeader {
+  background-color: #ff9800;
+}
+
+.headerTitle {
+  margin: 0;
+  font-size: 2.5rem;
+  font-weight: bold;
+}
+
+.headerSubtitle {
+  margin: 0.5rem 0 1rem 0;
+  font-size: 1.1rem;
+  opacity: 0.9;
+}
+
+.controlsRow {
+  display: flex;
+  gap: 2rem;
+  justify-content: center;
+  align-items: center;
+  margin-top: 1rem;
+  flex-wrap: wrap;
+}
+
+.tabSelector {
+  display: flex;
+  gap: 1rem;
+}
+
+.modelSelector {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.modelLabel {
+  color: white;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.modelSelect {
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  border: 2px solid white;
+  background-color: white;
+  color: #333;
+  font-size: 0.9rem;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.styleSelector {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.styleLabel {
+  color: white;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.styleSelect {
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  border: 2px solid white;
+  background-color: white;
+  color: #333;
+  font-size: 0.9rem;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.tabButton {
+  padding: 0.75rem 2rem;
+  border: 2px solid white;
+  background-color: transparent;
+  color: white;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: 600;
+  transition: all 0.3s;
+}
+
+.tabButtonActiveMedical {
+  background-color: white;
+  color: #2196f3;
+}
+
+.tabButtonActiveLegal {
+  background-color: white;
+  color: #ff9800;
+}
+
+.content {
+  min-height: calc(100vh - 200px);
+  padding: 2rem 1rem;
+}
+
+.medicalContent {
+  background-color: #f5f9ff;
+}
+
+.legalContent {
+  background-color: #fffaf5;
+}
+
+.error {
+  max-width: 800px;
+  margin: 1rem auto;
+  padding: 1rem;
+  background-color: #fee;
+  color: #c33;
+  border-radius: 4px;
+  border: 1px solid #fcc;
+}

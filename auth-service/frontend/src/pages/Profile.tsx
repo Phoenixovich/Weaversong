@@ -4,6 +4,7 @@ import { authAPI } from '../services/api';
 import { UserBadge } from '../components/UserBadge';
 import { useNavigate } from 'react-router-dom';
 import { Link } from 'react-router-dom';
+import './Profile.css';
 
 interface UserStats {
   alerts: number;
@@ -165,8 +166,8 @@ export const Profile: React.FC = () => {
 
   if (!user) {
     return (
-      <div style={styles.container}>
-        <div style={styles.card}>
+      <div className="container">
+        <div className="card">
           <p>Please log in to view your profile.</p>
         </div>
       </div>
@@ -174,108 +175,108 @@ export const Profile: React.FC = () => {
   }
 
   return (
-    <div style={styles.container}>
-      <div style={styles.card}>
-        <div style={styles.header}>
-          <h1 style={styles.title}>My Profile</h1>
-          <Link to="/settings" style={styles.settingsLink}>
+    <div className="container">
+      <div className="card">
+        <div className="header">
+          <h1 className="title">My Profile</h1>
+          <Link to="/settings" className="settingsLink">
             ⚙️ Settings
           </Link>
         </div>
 
         {message && (
-          <div style={message.type === 'success' ? styles.successMessage : styles.errorMessage}>
+          <div className={message.type === 'success' ? 'successMessage' : 'errorMessage'}>
             {message.text}
           </div>
         )}
 
-        <div style={styles.profileSection}>
-          <div style={styles.sectionHeader}>
-            <h2 style={styles.sectionTitle}>Profile Information</h2>
+        <div className="profileSection">
+          <div className="sectionHeader">
+            <h2 className="sectionTitle">Profile Information</h2>
             {!isEditing && (
-              <button onClick={handleEditProfile} style={styles.editButton}>
+              <button onClick={handleEditProfile} className="editButton">
                 ✏️ Edit Profile
               </button>
             )}
           </div>
           
           {isEditing ? (
-            <div style={styles.editForm}>
-              <div style={styles.formGroup}>
-                <label style={styles.label}>Username</label>
+            <div className="editForm">
+              <div className="formGroup">
+                <label className="label">Username</label>
                 <input
                   type="text"
                   value={editingProfile.username}
                   onChange={(e) => setEditingProfile({ ...editingProfile, username: e.target.value })}
-                  style={styles.input}
+                  className="input"
                   placeholder="Enter username"
                 />
               </div>
               
-              <div style={styles.formGroup}>
-                <label style={styles.label}>Default Phone</label>
+              <div className="formGroup">
+                <label className="label">Default Phone</label>
                 <input
                   type="tel"
                   value={editingProfile.default_phone}
                   onChange={(e) => setEditingProfile({ ...editingProfile, default_phone: e.target.value })}
-                  style={styles.input}
+                  className="input"
                   placeholder="Enter phone number (optional)"
                 />
-                <p style={styles.helpText}>This will be used when creating alerts if "Allow contacting me" is checked.</p>
+                <p className="helpText">This will be used when creating alerts if "Allow contacting me" is checked.</p>
               </div>
               
-              <div style={styles.formGroup}>
-                <label style={styles.label}>Other Contact Info</label>
+              <div className="formGroup">
+                <label className="label">Other Contact Info</label>
                 <input
                   type="text"
                   value={editingProfile.default_other_contact}
                   onChange={(e) => setEditingProfile({ ...editingProfile, default_other_contact: e.target.value })}
-                  style={styles.input}
+                  className="input"
                   placeholder="Enter other contact info (optional)"
                 />
-                <p style={styles.helpText}>Additional contact information (e.g., Telegram, WhatsApp).</p>
+                <p className="helpText">Additional contact information (e.g., Telegram, WhatsApp).</p>
               </div>
               
-              <div style={styles.formActions}>
+              <div className="formActions">
                 <button
                   onClick={handleSaveProfile}
                   disabled={saving || !editingProfile.username.trim()}
-                  style={styles.saveButton}
+                  className="saveButton"
                 >
                   {saving ? 'Saving...' : 'Save Changes'}
                 </button>
                 <button
                   onClick={handleCancelEdit}
                   disabled={saving}
-                  style={styles.cancelEditButton}
+                  className="cancelEditButton"
                 >
                   Cancel
                 </button>
               </div>
             </div>
           ) : (
-            <div style={styles.userInfo}>
+            <div className="userInfo">
               <UserBadge user={user} showRole={true} size="large" />
-              <div style={styles.userDetails}>
-                <div style={styles.detailRow}>
+              <div className="userDetails">
+                <div className="detailRow">
                   <strong>Email:</strong> {user.email}
                 </div>
-                <div style={styles.detailRow}>
+                <div className="detailRow">
                   <strong>Username:</strong> {user.username}
                 </div>
-                <div style={styles.detailRow}>
+                <div className="detailRow">
                   <strong>Role:</strong> {user.role ? user.role.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase()) : 'User'}
                 </div>
-                <div style={styles.detailRow}>
+                <div className="detailRow">
                   <strong>Member Since:</strong> {new Date(user.date_created).toLocaleDateString()}
                 </div>
                 {user.default_phone && (
-                  <div style={styles.detailRow}>
+                  <div className="detailRow">
                     <strong>Default Phone:</strong> {user.default_phone}
                   </div>
                 )}
                 {user.default_other_contact && (
-                  <div style={styles.detailRow}>
+                  <div className="detailRow">
                     <strong>Other Contact:</strong> {user.default_other_contact}
                   </div>
                 )}
@@ -284,36 +285,36 @@ export const Profile: React.FC = () => {
           )}
         </div>
 
-        <div style={styles.statsSection}>
-          <h2 style={styles.sectionTitle}>Contributions</h2>
+        <div className="statsSection">
+          <h2 className="sectionTitle">Contributions</h2>
           {loading ? (
             <p>Loading statistics...</p>
           ) : stats ? (
-            <div style={styles.statsGrid}>
-              <div style={styles.statCard}>
-                <div style={styles.statIcon}>🚨</div>
-                <div style={styles.statValue}>{stats.alerts}</div>
-                <div style={styles.statLabel}>Alerts</div>
+            <div className="statsGrid">
+              <div className="statCard">
+                <div className="statIcon">🚨</div>
+                <div className="statValue">{stats.alerts}</div>
+                <div className="statLabel">Alerts</div>
               </div>
-              <div style={styles.statCard}>
-                <div style={styles.statIcon}>📣</div>
-                <div style={styles.statValue}>{stats.requests}</div>
-                <div style={styles.statLabel}>Requests</div>
+              <div className="statCard">
+                <div className="statIcon">📣</div>
+                <div className="statValue">{stats.requests}</div>
+                <div className="statLabel">Requests</div>
               </div>
-              <div style={styles.statCard}>
-                <div style={styles.statIcon}>💬</div>
-                <div style={styles.statValue}>{stats.responses}</div>
-                <div style={styles.statLabel}>Responses</div>
+              <div className="statCard">
+                <div className="statIcon">💬</div>
+                <div className="statValue">{stats.responses}</div>
+                <div className="statLabel">Responses</div>
               </div>
-              <div style={styles.statCard}>
-                <div style={styles.statIcon}>📋</div>
-                <div style={styles.statValue}>{stats.reminders}</div>
-                <div style={styles.statLabel}>Reminders</div>
+              <div className="statCard">
+                <div className="statIcon">📋</div>
+                <div className="statValue">{stats.reminders}</div>
+                <div className="statLabel">Reminders</div>
               </div>
-              <div style={{ ...styles.statCard, ...styles.totalCard }}>
-                <div style={styles.statIcon}>📊</div>
-                <div style={styles.statValue}>{stats.total}</div>
-                <div style={styles.statLabel}>Total</div>
+              <div className="statCard totalCard">
+                <div className="statIcon">📊</div>
+                <div className="statValue">{stats.total}</div>
+                <div className="statLabel">Total</div>
               </div>
             </div>
           ) : (
@@ -321,21 +322,21 @@ export const Profile: React.FC = () => {
           )}
         </div>
 
-        <div style={styles.premiumSection}>
-          <h2 style={styles.sectionTitle}>Premium Status</h2>
-          <div style={styles.premiumCard}>
+        <div className="premiumSection">
+          <h2 className="sectionTitle">Premium Status</h2>
+          <div className="premiumCard">
             {user.is_premium ? (
               <>
-                <div style={styles.premiumActive}>
-                  <span style={styles.premiumBadge}>⭐ Premium Member</span>
-                  <p style={styles.premiumDescription}>
+                <div className="premiumActive">
+                  <span className="premiumBadge">⭐ Premium Member</span>
+                  <p className="premiumDescription">
                     You have access to all premium features including promoted events, 
                     advanced analytics, and enhanced visibility.
                   </p>
                   <button
                     onClick={handleCancelPremium}
                     disabled={cancelling}
-                    style={styles.cancelButton}
+                    className="cancelButton"
                   >
                     {cancelling ? 'Cancelling...' : 'Cancel Premium'}
                   </button>
@@ -343,21 +344,21 @@ export const Profile: React.FC = () => {
               </>
             ) : (
               <>
-                <div style={styles.premiumInactive}>
-                  <h3 style={styles.premiumTitle}>Upgrade to Premium</h3>
-                  <p style={styles.premiumDescription}>
+                <div className="premiumInactive">
+                  <h3 className="premiumTitle">Upgrade to Premium</h3>
+                  <p className="premiumDescription">
                     Get access to premium features:
                   </p>
-                  <ul style={styles.premiumFeatures}>
-                    <li style={styles.premiumFeatureItem}>✓ Create promoted events</li>
-                    <li style={styles.premiumFeatureItem}>✓ Highlight or boost visibility of content</li>
-                    <li style={styles.premiumFeatureItem}>✓ Access advanced stats and dashboards</li>
-                    <li style={styles.premiumFeatureItem}>✓ Additional premium-only UI sections</li>
+                  <ul className="premiumFeatures">
+                    <li className="premiumFeatureItem">✓ Create promoted events</li>
+                    <li className="premiumFeatureItem">✓ Highlight or boost visibility of content</li>
+                    <li className="premiumFeatureItem">✓ Access advanced stats and dashboards</li>
+                    <li className="premiumFeatureItem">✓ Additional premium-only UI sections</li>
                   </ul>
                   <button
                     onClick={handleUpgrade}
                     disabled={upgrading}
-                    style={styles.upgradeButton}
+                    className="upgradeButton"
                   >
                     {upgrading ? 'Upgrading...' : 'Upgrade to Premium'}
                   </button>
@@ -371,251 +372,4 @@ export const Profile: React.FC = () => {
   );
 };
 
-const styles: { [key: string]: React.CSSProperties } = {
-  container: {
-    maxWidth: '1000px',
-    margin: '2rem auto',
-    padding: '0 1rem',
-  },
-  card: {
-    backgroundColor: 'white',
-    padding: '2rem',
-    borderRadius: '8px',
-    boxShadow: '0 2px 10px rgba(0, 0, 0, 0.1)',
-  },
-  header: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: '2rem',
-    borderBottom: '2px solid #e0e0e0',
-    paddingBottom: '1rem',
-  },
-  title: {
-    margin: 0,
-    color: '#333',
-  },
-  settingsLink: {
-    color: '#007bff',
-    textDecoration: 'none',
-    fontSize: '1rem',
-    padding: '0.5rem 1rem',
-    borderRadius: '4px',
-    border: '1px solid #007bff',
-    transition: 'all 0.3s',
-  },
-  profileSection: {
-    marginBottom: '2rem',
-  },
-  userInfo: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '1rem',
-  },
-  userDetails: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
-    gap: '1rem',
-    marginTop: '1rem',
-  },
-  detailRow: {
-    padding: '0.75rem',
-    backgroundColor: '#f9f9f9',
-    borderRadius: '4px',
-  },
-  statsSection: {
-    marginBottom: '2rem',
-    paddingTop: '2rem',
-    borderTop: '1px solid #e0e0e0',
-  },
-  sectionTitle: {
-    marginBottom: '1.5rem',
-    color: '#333',
-    fontSize: '1.5rem',
-  },
-  statsGrid: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
-    gap: '1rem',
-  },
-  statCard: {
-    padding: '1.5rem',
-    backgroundColor: '#f8f9fa',
-    borderRadius: '8px',
-    textAlign: 'center',
-    border: '2px solid #e9ecef',
-    transition: 'transform 0.3s, box-shadow 0.3s',
-  },
-  totalCard: {
-    backgroundColor: '#007bff',
-    color: 'white',
-    borderColor: '#007bff',
-  },
-  statIcon: {
-    fontSize: '2rem',
-    marginBottom: '0.5rem',
-  },
-  statValue: {
-    fontSize: '2rem',
-    fontWeight: 'bold',
-    marginBottom: '0.25rem',
-  },
-  statLabel: {
-    fontSize: '0.9rem',
-    color: '#666',
-  },
-  premiumSection: {
-    marginTop: '2rem',
-    paddingTop: '2rem',
-    borderTop: '1px solid #e0e0e0',
-  },
-  premiumCard: {
-    padding: '1.5rem',
-    borderRadius: '8px',
-    border: '2px solid #e9ecef',
-  },
-  premiumActive: {
-    backgroundColor: '#f0f8ff',
-    padding: '1.5rem',
-    borderRadius: '8px',
-  },
-  premiumInactive: {
-    backgroundColor: '#fffaf0',
-    padding: '1.5rem',
-    borderRadius: '8px',
-  },
-  premiumBadge: {
-    display: 'inline-block',
-    fontSize: '1.2rem',
-    fontWeight: 'bold',
-    color: '#9C27B0',
-    marginBottom: '1rem',
-  },
-  premiumTitle: {
-    marginTop: 0,
-    color: '#333',
-  },
-  premiumDescription: {
-    color: '#666',
-    marginBottom: '1rem',
-  },
-  premiumFeatures: {
-    listStyle: 'none',
-    padding: 0,
-    marginBottom: '1.5rem',
-  },
-  premiumFeatureItem: {
-    padding: '0.5rem 0',
-    color: '#333',
-  },
-  upgradeButton: {
-    padding: '0.75rem 1.5rem',
-    backgroundColor: '#007bff',
-    color: 'white',
-    border: 'none',
-    borderRadius: '4px',
-    fontSize: '1rem',
-    cursor: 'pointer',
-    fontWeight: '500',
-    transition: 'background-color 0.3s',
-  },
-  cancelButton: {
-    padding: '0.75rem 1.5rem',
-    backgroundColor: '#dc3545',
-    color: 'white',
-    border: 'none',
-    borderRadius: '4px',
-    fontSize: '1rem',
-    cursor: 'pointer',
-    fontWeight: '500',
-    transition: 'background-color 0.3s',
-  },
-  successMessage: {
-    padding: '0.75rem',
-    backgroundColor: '#d4edda',
-    color: '#155724',
-    borderRadius: '4px',
-    marginBottom: '1rem',
-  },
-  errorMessage: {
-    padding: '0.75rem',
-    backgroundColor: '#f8d7da',
-    color: '#721c24',
-    borderRadius: '4px',
-    marginBottom: '1rem',
-  },
-  sectionHeader: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: '1rem',
-  },
-  editButton: {
-    padding: '0.5rem 1rem',
-    backgroundColor: '#007bff',
-    color: 'white',
-    border: 'none',
-    borderRadius: '4px',
-    fontSize: '0.9rem',
-    cursor: 'pointer',
-    fontWeight: '500',
-    transition: 'background-color 0.3s',
-  },
-  editForm: {
-    marginTop: '1rem',
-    padding: '1.5rem',
-    backgroundColor: '#f8f9fa',
-    borderRadius: '8px',
-    border: '1px solid #e9ecef',
-  },
-  formGroup: {
-    marginBottom: '1.5rem',
-  },
-  label: {
-    display: 'block',
-    marginBottom: '0.5rem',
-    fontWeight: '500',
-    color: '#333',
-  },
-  input: {
-    width: '100%',
-    padding: '0.75rem',
-    border: '1px solid #ced4da',
-    borderRadius: '4px',
-    fontSize: '1rem',
-    boxSizing: 'border-box',
-  },
-  helpText: {
-    marginTop: '0.25rem',
-    fontSize: '0.85rem',
-    color: '#666',
-  },
-  formActions: {
-    display: 'flex',
-    gap: '1rem',
-    marginTop: '1.5rem',
-  },
-  saveButton: {
-    padding: '0.75rem 1.5rem',
-    backgroundColor: '#28a745',
-    color: 'white',
-    border: 'none',
-    borderRadius: '4px',
-    fontSize: '1rem',
-    cursor: 'pointer',
-    fontWeight: '500',
-    transition: 'background-color 0.3s',
-  },
-  cancelEditButton: {
-    padding: '0.75rem 1.5rem',
-    backgroundColor: '#6c757d',
-    color: 'white',
-    border: 'none',
-    borderRadius: '4px',
-    fontSize: '1rem',
-    cursor: 'pointer',
-    fontWeight: '500',
-    transition: 'background-color 0.3s',
-  },
-};
 

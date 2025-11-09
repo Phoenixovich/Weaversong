@@ -1,12 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api, { helpdeskAPI } from '../services/api';
-import RequestForm from '../components/RequestForm';
-import ResponseForm from '../components/ResponseForm';
-import { useAuthGuard } from '../hooks/useAuthGuard';
 import { useAuth } from '../contexts/AuthContext';
 import { canEditRequest, canDeleteRequest, canAcceptResponse } from '../utils/permissions';
-import './RequestsPage.css';
+import './MyRequestsPage.css';
 
 interface RequestItem {
   _id: string;
@@ -29,8 +26,7 @@ interface ResponseItem {
   date_created?: string;
 }
 
-export default function RequestsPage() {
-  const { requireAuth } = useAuthGuard();
+export default function MyRequestsPage() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [requests, setRequests] = useState<RequestItem[]>([]);
@@ -39,6 +35,7 @@ export default function RequestsPage() {
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [editingRequest, setEditingRequest] = useState<RequestItem | null>(null);
   const [editForm, setEditForm] = useState({ title: '', description: '', trade_needed: '', budget: 0, urgency: 'normal', status: 'open' });
+  const [expandedResponses, setExpandedResponses] = useState<Set<string>>(new Set());
   const [updatingStatusId, setUpdatingStatusId] = useState<string | null>(null);
 
   const fetchRequests = async () => {
@@ -67,10 +64,65 @@ export default function RequestsPage() {
     fetchResponses();
   }, []);
 
-  const handleCreateRequest = () => {
-    requireAuth(() => {
-      fetchRequests();
-    });
+  // Filter requests to only show those created by the current user
+  const getMyRequests = () => {
+    if (!user) return [];
+    return requests.filter(r => r.user_id === user.id);
+  };
+
+  const getResponsesForRequest = (requestId: string) => {
+    return responses.filter(r => r.request_id === requestId);
+  };
+
+  const toggleResponses = (requestId: string) => {
+    const newExpanded = new Set(expandedResponses);
+    if (newExpanded.has(requestId)) {
+      newExpanded.delete(requestId);
+    } else {
+      newExpanded.add(requestId);
+    }
+    setExpandedResponses(newExpanded);
+  };
+
+  const getStatusColor = (status?: string) => {
+    switch (status?.toLowerCase()) {
+      case 'open':
+        return '#28a745';
+      case 'closed':
+        return '#6c757d';
+      case 'accepted':
+        return '#17a2b8';
+      default:
+        return '#6c757d';
+    }
+  };
+
+  const getUrgencyColor = (urgency?: string) => {
+    switch (urgency?.toLowerCase()) {
+      case 'high':
+        return '#dc3545';
+      case 'medium':
+        return '#ffc107';
+      case 'normal':
+        return '#17a2b8';
+      case 'low':
+        return '#28a745';
+      default:
+        return '#6c757d';
+    }
+  };
+
+  const getResponseStatusColor = (status?: string) => {
+    switch (status?.toLowerCase()) {
+      case 'accepted':
+        return '#28a745';
+      case 'declined':
+        return '#dc3545';
+      case 'pending':
+        return '#ffc107';
+      default:
+        return '#6c757d';
+    }
   };
 
   const handleDelete = async (request: RequestItem) => {
@@ -132,7 +184,7 @@ export default function RequestsPage() {
         await helpdeskAPI.updateRequest(requestId, { status: 'accepted' });
       }
       fetchResponses();
-      fetchRequests(); // Refresh to update request status if needed
+      fetchRequests();
     } catch (error: any) {
       alert(`Failed to ${status === 'accepted' ? 'accept' : 'decline'} response: ${error.message}`);
     } finally {
@@ -140,64 +192,14 @@ export default function RequestsPage() {
     }
   };
 
-  const getResponsesForRequest = (requestId: string) => {
-    // Only show responses if the current user owns the request
-    const request = requests.find(r => r._id === requestId);
-    if (!user || !request || request.user_id !== user.id) {
-      return [];
-    }
-    return responses.filter(r => r.request_id === requestId);
-  };
-
-  const getStatusColor = (status?: string) => {
-    switch (status?.toLowerCase()) {
-      case 'open':
-        return '#28a745';
-      case 'closed':
-        return '#6c757d';
-      case 'pending':
-        return '#ffc107';
-      case 'accepted':
-        return '#28a745';
-      case 'declined':
-        return '#dc3545';
-      default:
-        return '#6c757d';
-    }
-  };
-
-  const getResponseStatusColor = (status?: string) => {
-    switch (status?.toLowerCase()) {
-      case 'accepted':
-        return '#28a745';
-      case 'declined':
-        return '#dc3545';
-      case 'pending':
-        return '#ffc107';
-      default:
-        return '#6c757d';
-    }
-  };
-
-  const getUrgencyColor = (urgency?: string) => {
-    switch (urgency?.toLowerCase()) {
-      case 'high':
-        return '#dc3545';
-      case 'medium':
-        return '#ffc107';
-      case 'low':
-        return '#28a745';
-      default:
-        return '#6c757d';
-    }
-  };
+  const myRequests = getMyRequests();
 
   return (
     <div className="helpboard-page">
       <div className="header">
-        <h1 className="headerTitle">📣 Help Requests</h1>
+        <h1 className="headerTitle">📋 My Requests</h1>
         <p className="headerSubtitle">
-          Post your requests and get help from the community
+          View and manage all your help requests
         </p>
         <div className="controlsRow">
           <button
@@ -210,22 +212,19 @@ export default function RequestsPage() {
       </div>
 
       <div className="content">
-        <div className="createSection">
-        <h2 className="sectionTitle">Create a Request</h2>
-        <RequestForm onCreated={handleCreateRequest} />
-      </div>
-
-      <div className="listSection">
-        <h2 className="sectionTitle">All Requests ({requests.length})</h2>
         {loading ? (
           <p className="loading">Loading requests...</p>
-        ) : requests.length === 0 ? (
+        ) : !user ? (
           <div className="emptyState">
-            <p>No requests yet. Be the first to create one!</p>
+            <p>Please log in to see your requests.</p>
+          </div>
+        ) : myRequests.length === 0 ? (
+          <div className="emptyState">
+            <p>You haven't created any requests yet.</p>
           </div>
         ) : (
-          <div className="requestsGrid">
-            {requests.map((request) => (
+          <div className="requestsList">
+            {myRequests.map((request) => (
               <div key={request._id} className="requestCard">
                 <div className="requestHeader">
                   <h3 className="requestTitle">{request.title}</h3>
@@ -263,79 +262,19 @@ export default function RequestsPage() {
                       <strong>Trade:</strong> {request.trade_needed}
                     </div>
                   )}
-                  {request.budget && (
+                  {request.budget !== undefined && request.budget > 0 && (
                     <div className="detailItem">
                       <strong>Budget:</strong> ${request.budget}
                     </div>
                   )}
                   {request.date_created && (
                     <div className="detailItem">
-                      <strong>Created:</strong>{' '}
-                      {new Date(request.date_created).toLocaleDateString()}
+                      <strong>Created:</strong> {new Date(request.date_created).toLocaleDateString()}
                     </div>
                   )}
                 </div>
-                {/* Responses Section */}
-                {getResponsesForRequest(request._id).length > 0 && (
-                  <div className="responsesSection">
-                    <h4 className="responsesTitle">Responses ({getResponsesForRequest(request._id).length})</h4>
-                    {getResponsesForRequest(request._id).map((response) => (
-                      <div key={response._id} className="responseItem">
-                        <div className="responseHeader">
-                          <p className="responseMessage">{response.message}</p>
-                          <span
-                            className="badge"
-                            style={{
-                              backgroundColor: getResponseStatusColor(response.status),
-                              color: 'white',
-                            }}
-                          >
-                            {response.status}
-                          </span>
-                        </div>
-                        {response.date_created && (
-                          <div className="responseDate">
-                            {new Date(response.date_created).toLocaleString()}
-                          </div>
-                        )}
-                        {/* Accept/Decline buttons - only for request owner */}
-                        {request.user_id && canAcceptResponse(user, request.user_id) && response.status === 'pending' && (
-                          <div className="responseActions">
-                            <button
-                              onClick={() => handleAcceptResponse(response._id, request._id, 'accepted')}
-                              disabled={updatingStatusId === response._id}
-                              className="acceptButton"
-                            >
-                              {updatingStatusId === response._id ? 'Updating...' : '✅ Accept'}
-                            </button>
-                            <button
-                              onClick={() => handleAcceptResponse(response._id, request._id, 'declined')}
-                              disabled={updatingStatusId === response._id}
-                              className="declineButton"
-                            >
-                              {updatingStatusId === response._id ? 'Updating...' : '❌ Decline'}
-                            </button>
-                          </div>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                )}
 
-                {/* Only show response form for requests NOT owned by the user */}
-                {user && request.user_id !== user.id && (
-                  <div className="responseSection">
-                    <ResponseForm
-                      request_id={request._id}
-                      onCreated={() => {
-                        fetchRequests();
-                        fetchResponses();
-                      }}
-                    />
-                  </div>
-                )}
-
-                {/* Quick Status Update - only for request owner */}
+                {/* Quick Status Update */}
                 {request.user_id && canEditRequest(user, request.user_id) && (
                   <div className="statusUpdateSection">
                     <label className="statusLabel">Status:</label>
@@ -354,6 +293,69 @@ export default function RequestsPage() {
                       <option value="open">Open</option>
                       <option value="closed">Closed</option>
                     </select>
+                  </div>
+                )}
+
+                {/* Show responses button */}
+                {user && (
+                  <button
+                    onClick={() => toggleResponses(request._id)}
+                    className="expandButton"
+                  >
+                    {expandedResponses.has(request._id) ? '▼ Hide Responses' : '▶ View Responses'}
+                  </button>
+                )}
+
+                {/* Display responses when expanded */}
+                {expandedResponses.has(request._id) && user && (
+                  <div className="responsesSection">
+                    {getResponsesForRequest(request._id).length > 0 ? (
+                      <>
+                        <h4 className="responsesTitle">Responses ({getResponsesForRequest(request._id).length})</h4>
+                        {getResponsesForRequest(request._id).map((response) => (
+                          <div key={response._id} className="responseItem">
+                            <div className="responseHeader">
+                              <p className="responseMessage">{response.message}</p>
+                              <span
+                                className="badge"
+                                style={{
+                                  backgroundColor: getResponseStatusColor(response.status),
+                                  color: 'white',
+                                }}
+                              >
+                                {response.status}
+                              </span>
+                            </div>
+                            {response.date_created && (
+                              <div className="responseDate">
+                                {new Date(response.date_created).toLocaleString()}
+                              </div>
+                            )}
+                            {/* Accept/Decline buttons */}
+                            {request.user_id && canAcceptResponse(user, request.user_id) && response.status === 'pending' && (
+                              <div className="responseActions">
+                                <button
+                                  onClick={() => handleAcceptResponse(response._id, request._id, 'accepted')}
+                                  disabled={updatingStatusId === response._id}
+                                  className="acceptButton"
+                                >
+                                  {updatingStatusId === response._id ? 'Updating...' : '✅ Accept'}
+                                </button>
+                                <button
+                                  onClick={() => handleAcceptResponse(response._id, request._id, 'declined')}
+                                  disabled={updatingStatusId === response._id}
+                                  className="declineButton"
+                                >
+                                  {updatingStatusId === response._id ? 'Updating...' : '❌ Decline'}
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </>
+                    ) : (
+                      <p className="emptyResponse">No responses yet.</p>
+                    )}
                   </div>
                 )}
 
@@ -383,7 +385,6 @@ export default function RequestsPage() {
             ))}
           </div>
         )}
-      </div>
       </div>
 
       {/* Edit Request Modal */}
@@ -415,12 +416,11 @@ export default function RequestsPage() {
                 />
               </div>
               <div className="formGroup">
-                <label className="label">Trade Needed *</label>
+                <label className="label">Trade Needed</label>
                 <input
                   type="text"
                   value={editForm.trade_needed}
                   onChange={(e) => setEditForm({ ...editForm, trade_needed: e.target.value })}
-                  required
                   className="input"
                 />
               </div>
@@ -429,7 +429,7 @@ export default function RequestsPage() {
                 <input
                   type="number"
                   value={editForm.budget}
-                  onChange={(e) => setEditForm({ ...editForm, budget: Number(e.target.value) || 0 })}
+                  onChange={(e) => setEditForm({ ...editForm, budget: Number(e.target.value) })}
                   min="0"
                   className="input"
                 />

@@ -3,6 +3,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useRoleGuard } from '../hooks/useRoleGuard';
 import { UserRole } from '../types/auth';
 import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import './PedestrianAnalyzer.css';
 
 interface PedestrianAnalytics {
   location_name: string | null;
@@ -118,13 +119,13 @@ export const PedestrianAnalyzer: React.FC = () => {
 
   if (!hasAccess) {
     return (
-      <div style={styles.container}>
-        <div style={styles.card}>
-          <h1 style={styles.title}>🚶 Pedestrian Analyzer</h1>
-          <p style={styles.message}>
+      <div className="container">
+        <div className="card">
+          <h1 className="title">🚶 Pedestrian Analyzer</h1>
+          <p className="message">
             This feature requires a premium subscription or admin role.
           </p>
-          <p style={styles.message}>
+          <p className="message">
             Upgrade to premium to access pedestrian analytics and insights.
           </p>
         </div>
@@ -133,38 +134,38 @@ export const PedestrianAnalyzer: React.FC = () => {
   }
 
   return (
-    <div style={styles.container}>
-      <div style={styles.content}>
-        <div style={styles.header}>
-          <h1 style={styles.title}>🚶 Pedestrian Analyzer</h1>
-          <p style={styles.subtitle}>
+    <div className="container">
+      <div className="content">
+        <div className="header">
+          <h1 className="title">🚶 Pedestrian Analyzer</h1>
+          <p className="subtitle">
             Analyze pedestrian traffic patterns in Bucharest
           </p>
         </div>
 
         {/* Date Range Filter */}
-        <div style={styles.filterCard}>
-          <h3 style={styles.filterTitle}>Date Range</h3>
-          <div style={styles.dateInputs}>
+        <div className="filterCard">
+          <h3 className="filterTitle">Date Range</h3>
+          <div className="dateInputs">
             <div>
-              <label style={styles.label}>Start Date:</label>
+              <label className="label">Start Date:</label>
               <input
                 type="date"
                 value={dateRange.start_date}
                 onChange={(e) => setDateRange({ ...dateRange, start_date: e.target.value })}
-                style={styles.dateInput}
+                className="dateInput"
               />
             </div>
             <div>
-              <label style={styles.label}>End Date:</label>
+              <label className="label">End Date:</label>
               <input
                 type="date"
                 value={dateRange.end_date}
                 onChange={(e) => setDateRange({ ...dateRange, end_date: e.target.value })}
-                style={styles.dateInput}
+                className="dateInput"
               />
             </div>
-            <button onClick={loadAnalytics} style={styles.refreshButton}>
+            <button onClick={loadAnalytics} className="refreshButton">
               🔄 Refresh
             </button>
           </div>
@@ -172,13 +173,13 @@ export const PedestrianAnalyzer: React.FC = () => {
 
         {/* Popular Locations */}
         {popularLocations.length > 0 && (
-          <div style={styles.section}>
-            <h2 style={styles.sectionTitle}>📍 Most Popular Locations</h2>
-            <div style={styles.locationsGrid}>
+          <div className="section">
+            <h2 className="sectionTitle">📍 Most Popular Locations</h2>
+            <div className="locationsGrid">
               {popularLocations.map((loc, index) => (
                 <div
                   key={index}
-                  style={styles.locationCard}
+                  className="locationCard"
                   onClick={() => {
                     const found = analytics.find(a => 
                       Math.abs(a.lat - loc.lat) < 0.001 && Math.abs(a.lng - loc.lng) < 0.001
@@ -186,11 +187,11 @@ export const PedestrianAnalyzer: React.FC = () => {
                     if (found) setSelectedLocation(found);
                   }}
                 >
-                  <h3 style={styles.locationName}>
+                  <h3 className="locationName">
                     {loc.location_name || `Location ${index + 1}`}
                   </h3>
-                  <p style={styles.locationCount}>{loc.count.toLocaleString()} visits</p>
-                  <p style={styles.locationCoords}>
+                  <p className="locationCount">{loc.count.toLocaleString()} visits</p>
+                  <p className="locationCoords">
                     {loc.lat.toFixed(4)}, {loc.lng.toFixed(4)}
                   </p>
                 </div>
@@ -201,39 +202,39 @@ export const PedestrianAnalyzer: React.FC = () => {
 
         {/* Analytics Charts */}
         {loading ? (
-          <div style={styles.loading}>Loading analytics...</div>
+          <div className="loading">Loading analytics...</div>
         ) : analytics.length > 0 ? (
-          <div style={styles.section}>
-            <h2 style={styles.sectionTitle}>📊 Analytics Overview</h2>
+          <div className="section">
+            <h2 className="sectionTitle">📊 Analytics Overview</h2>
             
             {selectedLocation ? (
-              <div style={styles.detailCard}>
-                <div style={styles.detailHeader}>
+              <div className="detailCard">
+                <div className="detailHeader">
                   <h3>{selectedLocation.location_name || 'Selected Location'}</h3>
-                  <button onClick={() => setSelectedLocation(null)} style={styles.closeButton}>
+                  <button onClick={() => setSelectedLocation(null)} className="closeButton">
                     ✕
                   </button>
                 </div>
                 
-                <div style={styles.statsGrid}>
-                  <div style={styles.statCard}>
-                    <div style={styles.statValue}>{selectedLocation.total_count.toLocaleString()}</div>
-                    <div style={styles.statLabel}>Total Visits</div>
+                <div className="statsGrid">
+                  <div className="statCard">
+                    <div className="statValue">{selectedLocation.total_count.toLocaleString()}</div>
+                    <div className="statLabel">Total Visits</div>
                   </div>
-                  <div style={styles.statCard}>
-                    <div style={styles.statValue}>{selectedLocation.average_per_hour}</div>
-                    <div style={styles.statLabel}>Avg per Hour</div>
+                  <div className="statCard">
+                    <div className="statValue">{selectedLocation.average_per_hour}</div>
+                    <div className="statLabel">Avg per Hour</div>
                   </div>
-                  <div style={styles.statCard}>
-                    <div style={styles.statValue}>
+                  <div className="statCard">
+                    <div className="statValue">
                       {selectedLocation.peak_hours.map(h => `${h}:00`).join(', ')}
                     </div>
-                    <div style={styles.statLabel}>Peak Hours</div>
+                    <div className="statLabel">Peak Hours</div>
                   </div>
                 </div>
 
-                <div style={styles.chartContainer}>
-                  <h4 style={styles.chartTitle}>Hourly Traffic Pattern</h4>
+                <div className="chartContainer">
+                  <h4 className="chartTitle">Hourly Traffic Pattern</h4>
                   <ResponsiveContainer width="100%" height={300}>
                     <BarChart data={formatHourlyData(selectedLocation.hourly_stats)}>
                       <CartesianGrid strokeDasharray="3 3" />
@@ -246,8 +247,8 @@ export const PedestrianAnalyzer: React.FC = () => {
                   </ResponsiveContainer>
                 </div>
 
-                <div style={styles.chartContainer}>
-                  <h4 style={styles.chartTitle}>Daily Traffic Pattern</h4>
+                <div className="chartContainer">
+                  <h4 className="chartTitle">Daily Traffic Pattern</h4>
                   <ResponsiveContainer width="100%" height={300}>
                     <BarChart data={formatDailyData(selectedLocation.daily_stats)}>
                       <CartesianGrid strokeDasharray="3 3" />
@@ -261,25 +262,25 @@ export const PedestrianAnalyzer: React.FC = () => {
                 </div>
               </div>
             ) : (
-              <div style={styles.analyticsGrid}>
+              <div className="analyticsGrid">
                 {analytics.slice(0, 6).map((item, index) => (
-                  <div key={index} style={styles.analyticsCard}>
-                    <h3 style={styles.analyticsLocation}>
+                  <div key={index} className="analyticsCard">
+                    <h3 className="analyticsLocation">
                       {item.location_name || `Location ${index + 1}`}
                     </h3>
-                    <div style={styles.analyticsStats}>
-                      <div style={styles.analyticsStat}>
-                        <strong style={styles.analyticsStatValue}>{item.total_count.toLocaleString()}</strong>
-                        <span style={styles.analyticsStatLabel}>Total</span>
+                    <div className="analyticsStats">
+                      <div className="analyticsStat">
+                        <strong className="analyticsStatValue">{item.total_count.toLocaleString()}</strong>
+                        <span className="analyticsStatLabel">Total</span>
                       </div>
-                      <div style={styles.analyticsStat}>
-                        <strong style={styles.analyticsStatValue}>{item.average_per_hour}</strong>
-                        <span style={styles.analyticsStatLabel}>Avg/Hour</span>
+                      <div className="analyticsStat">
+                        <strong className="analyticsStatValue">{item.average_per_hour}</strong>
+                        <span className="analyticsStatLabel">Avg/Hour</span>
                       </div>
                     </div>
                     <button
                       onClick={() => setSelectedLocation(item)}
-                      style={styles.viewDetailsButton}
+                      className="viewDetailsButton"
                     >
                       View Details
                     </button>
@@ -289,9 +290,9 @@ export const PedestrianAnalyzer: React.FC = () => {
             )}
           </div>
         ) : (
-          <div style={styles.emptyState}>
+          <div className="emptyState">
             <p>No analytics data available for the selected date range.</p>
-            <p style={styles.emptyHint}>
+            <p className="emptyHint">
               Make sure test data has been created. Run the test data script to populate the database.
             </p>
           </div>
@@ -301,233 +302,4 @@ export const PedestrianAnalyzer: React.FC = () => {
   );
 };
 
-const styles: { [key: string]: React.CSSProperties } = {
-  container: {
-    minHeight: '100vh',
-    backgroundColor: '#f5f5f5',
-    padding: '2rem 1rem',
-  },
-  content: {
-    maxWidth: '1400px',
-    margin: '0 auto',
-  },
-  header: {
-    textAlign: 'center',
-    marginBottom: '2rem',
-  },
-  title: {
-    fontSize: '2.5rem',
-    marginBottom: '0.5rem',
-    color: '#333',
-  },
-  subtitle: {
-    fontSize: '1.1rem',
-    color: '#666',
-  },
-  card: {
-    backgroundColor: 'white',
-    padding: '2rem',
-    borderRadius: '12px',
-    boxShadow: '0 2px 10px rgba(0, 0, 0, 0.1)',
-    textAlign: 'center',
-  },
-  message: {
-    fontSize: '1rem',
-    color: '#666',
-    marginBottom: '1rem',
-  },
-  filterCard: {
-    backgroundColor: 'white',
-    padding: '1.5rem',
-    borderRadius: '8px',
-    boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
-    marginBottom: '2rem',
-  },
-  filterTitle: {
-    marginBottom: '1rem',
-    color: '#333',
-  },
-  dateInputs: {
-    display: 'flex',
-    gap: '1rem',
-    alignItems: 'flex-end',
-    flexWrap: 'wrap',
-  },
-  label: {
-    display: 'block',
-    marginBottom: '0.5rem',
-    fontSize: '0.9rem',
-    color: '#666',
-  },
-  dateInput: {
-    padding: '0.5rem',
-    border: '1px solid #ddd',
-    borderRadius: '4px',
-    fontSize: '1rem',
-  },
-  refreshButton: {
-    padding: '0.5rem 1.5rem',
-    backgroundColor: '#007bff',
-    color: 'white',
-    border: 'none',
-    borderRadius: '4px',
-    cursor: 'pointer',
-    fontSize: '1rem',
-  },
-  section: {
-    backgroundColor: 'white',
-    padding: '2rem',
-    borderRadius: '12px',
-    boxShadow: '0 2px 10px rgba(0, 0, 0, 0.1)',
-    marginBottom: '2rem',
-  },
-  sectionTitle: {
-    fontSize: '1.5rem',
-    marginBottom: '1.5rem',
-    color: '#333',
-  },
-  locationsGrid: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))',
-    gap: '1rem',
-  },
-  locationCard: {
-    padding: '1.5rem',
-    backgroundColor: '#f8f9fa',
-    borderRadius: '8px',
-    border: '2px solid #e9ecef',
-    cursor: 'pointer',
-    transition: 'all 0.3s',
-  },
-  locationName: {
-    margin: '0 0 0.5rem 0',
-    color: '#333',
-  },
-  locationCount: {
-    fontSize: '1.5rem',
-    fontWeight: 'bold',
-    color: '#007bff',
-    margin: '0.5rem 0',
-  },
-  locationCoords: {
-    fontSize: '0.85rem',
-    color: '#666',
-    margin: 0,
-  },
-  analyticsGrid: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
-    gap: '1.5rem',
-  },
-  analyticsCard: {
-    padding: '1.5rem',
-    backgroundColor: '#f8f9fa',
-    borderRadius: '8px',
-    border: '1px solid #e9ecef',
-  },
-  analyticsLocation: {
-    margin: '0 0 1rem 0',
-    color: '#333',
-  },
-  analyticsStats: {
-    display: 'flex',
-    gap: '1rem',
-    marginBottom: '1rem',
-  },
-  analyticsStat: {
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-  },
-  analyticsStatValue: {
-    fontSize: '1.5rem',
-    color: '#007bff',
-    fontWeight: 'bold',
-  },
-  analyticsStatLabel: {
-    fontSize: '0.85rem',
-    color: '#666',
-  },
-  viewDetailsButton: {
-    width: '100%',
-    padding: '0.75rem',
-    backgroundColor: '#007bff',
-    color: 'white',
-    border: 'none',
-    borderRadius: '4px',
-    cursor: 'pointer',
-    fontSize: '1rem',
-  },
-  detailCard: {
-    padding: '2rem',
-    backgroundColor: '#f8f9fa',
-    borderRadius: '8px',
-    border: '1px solid #e9ecef',
-  },
-  detailHeader: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: '1.5rem',
-  },
-  closeButton: {
-    padding: '0.5rem 1rem',
-    backgroundColor: '#dc3545',
-    color: 'white',
-    border: 'none',
-    borderRadius: '4px',
-    cursor: 'pointer',
-  },
-  statsGrid: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-    gap: '1rem',
-    marginBottom: '2rem',
-  },
-  statCard: {
-    padding: '1.5rem',
-    backgroundColor: 'white',
-    borderRadius: '8px',
-    textAlign: 'center',
-    border: '1px solid #e9ecef',
-  },
-  statValue: {
-    fontSize: '2rem',
-    fontWeight: 'bold',
-    color: '#007bff',
-    marginBottom: '0.5rem',
-  },
-  statLabel: {
-    fontSize: '0.9rem',
-    color: '#666',
-  },
-  chartContainer: {
-    marginTop: '2rem',
-    padding: '1rem',
-    backgroundColor: 'white',
-    borderRadius: '8px',
-  },
-  chartTitle: {
-    marginBottom: '1rem',
-    color: '#333',
-  },
-  loading: {
-    textAlign: 'center',
-    padding: '3rem',
-    fontSize: '1.2rem',
-    color: '#666',
-  },
-  emptyState: {
-    textAlign: 'center',
-    padding: '3rem',
-    backgroundColor: 'white',
-    borderRadius: '8px',
-    color: '#666',
-  },
-  emptyHint: {
-    marginTop: '1rem',
-    fontSize: '0.9rem',
-    color: '#999',
-  },
-};
 

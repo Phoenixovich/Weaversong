@@ -1,6 +1,7 @@
 import React from 'react';
 import { useAuthGuard } from '../hooks/useAuthGuard';
 import { AuthActionButton } from './AuthActionButton';
+import './PremiumFeatureExample.css';
 
 /**
  * Example component demonstrating how to use auth guards for premium features
@@ -37,25 +38,25 @@ export const PremiumFeatureExample: React.FC = () => {
   };
 
   return (
-    <div style={styles.container}>
+    <div className="container">
       <h2>Premium Features Example</h2>
       
-      <div style={styles.section}>
+      <div className="section">
         <h3>Standard Features (Requires Login)</h3>
         <p>These features are available to all logged-in users:</p>
-        <button onClick={handleCreateEvent} style={styles.button}>
+        <button onClick={handleCreateEvent} className="button">
           Create Event
         </button>
       </div>
 
-      <div style={styles.section}>
+      <div className="section">
         <h3>Premium Features (Requires Premium Subscription)</h3>
         <p>These features are only available to premium users:</p>
-        <div style={styles.buttonGroup}>
+        <div className="buttonGroup">
           <AuthActionButton
             onClick={handlePromoteEvent}
             requiresPremium={true}
-            style={styles.button}
+            className="button"
           >
             Promote Event
           </AuthActionButton>
@@ -63,14 +64,14 @@ export const PremiumFeatureExample: React.FC = () => {
           <AuthActionButton
             onClick={handleBoostVisibility}
             requiresPremium={true}
-            style={styles.button}
+            className="button"
           >
             Boost Visibility
           </AuthActionButton>
         </div>
       </div>
 
-      <div style={styles.status}>
+      <div className="status">
         <p>Status: {isAuthenticated ? 'Logged in' : 'Not logged in'}</p>
         {isAuthenticated && (
           <p>Premium: {isPremium ? 'Yes' : 'No'}</p>
@@ -80,40 +81,4 @@ export const PremiumFeatureExample: React.FC = () => {
   );
 };
 
-const styles: { [key: string]: React.CSSProperties } = {
-  container: {
-    maxWidth: '800px',
-    margin: '2rem auto',
-    padding: '2rem',
-    backgroundColor: 'white',
-    borderRadius: '8px',
-    boxShadow: '0 2px 10px rgba(0, 0, 0, 0.1)',
-  },
-  section: {
-    marginBottom: '2rem',
-    padding: '1rem',
-    backgroundColor: '#f9f9f9',
-    borderRadius: '4px',
-  },
-  buttonGroup: {
-    display: 'flex',
-    gap: '1rem',
-    flexWrap: 'wrap',
-  },
-  button: {
-    padding: '0.75rem 1.5rem',
-    backgroundColor: '#007bff',
-    color: 'white',
-    border: 'none',
-    borderRadius: '4px',
-    cursor: 'pointer',
-    fontSize: '1rem',
-  },
-  status: {
-    marginTop: '2rem',
-    padding: '1rem',
-    backgroundColor: '#e9ecef',
-    borderRadius: '4px',
-  },
-};
 

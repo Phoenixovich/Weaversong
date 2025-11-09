@@ -2,7 +2,6 @@ import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { UserBadge } from './UserBadge';
-import { UserRole } from '../types/auth';
 import './Navbar.css';
 
 export const Navbar: React.FC = () => {
@@ -21,7 +20,7 @@ export const Navbar: React.FC = () => {
     <nav className="navbar">
       <div className="navbar-container">
         <div className="navbar-brand">
-          <Link to="/citypulse"> Community Service Hub</Link>
+          <Link to="/"> Community Service Hub</Link>
         </div>
         
         <div className="navbar-links">
@@ -38,6 +37,9 @@ export const Navbar: React.FC = () => {
           <Link to="/helpboard" className={isActive('/helpboard')}>
             Helpboard
           </Link>
+          <Link to="/pedestrian-analyzer" className={isActive('/pedestrian-analyzer')}>
+            Pedestrian Analyzer
+          </Link>
           {/* Protected pages - only visible when authenticated */}
           {isAuthenticated && (
             <>
@@ -47,12 +49,6 @@ export const Navbar: React.FC = () => {
               <Link to="/profile" className={isActive('/profile')}>
                 Profile
               </Link>
-              {/* Premium/Admin features */}
-              {(user?.is_premium || user?.role === UserRole.ADMIN) && (
-                <Link to="/pedestrian-analyzer" className={isActive('/pedestrian-analyzer')}>
-                  🚶 Pedestrian Analyzer
-                </Link>
-              )}
             </>
           )}
         </div>

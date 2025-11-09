@@ -1,0 +1,138 @@
+.container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 2rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.medicalContainer {
+  background-color: #e3f2fd;
+  border: 2px solid #2196f3;
+}
+
+.legalContainer {
+  background-color: #fff3e0;
+  border: 2px solid #ff9800;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.fileInput {
+  margin-bottom: 1rem;
+}
+
+.fileInputHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.fileLabel {
+  display: block;
+  color: #333;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.pasteButton {
+  padding: 0.5rem 1rem;
+  background-color: #6c757d;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background-color 0.3s;
+}
+
+.fileInputField {
+  width: 100%;
+  padding: 0.5rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.fileInfo {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 0.5rem;
+}
+
+.fileName {
+  color: #666;
+  font-size: 0.9rem;
+  margin: 0;
+  flex: 1;
+}
+
+.clearFileButton {
+  padding: 0.25rem 0.75rem;
+  background-color: #dc3545;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  margin-left: 0.5rem;
+}
+
+.errorMessage {
+  margin-top: 0.5rem;
+  color: #dc3545;
+  font-size: 0.85rem;
+  margin: 0;
+}
+
+.textAreaContainer {
+  margin-bottom: 1rem;
+}
+
+.label {
+  display: block;
+  margin-bottom: 0.5rem;
+  color: #333;
+  font-weight: 500;
+}
+
+.textarea {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 1rem;
+  font-family: inherit;
+  resize: vertical;
+}
+
+.submitButton {
+  padding: 0.75rem 2rem;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  align-self: center;
+}
+
+.medicalButton {
+  background-color: #2196f3;
+}
+
+.legalButton {
+  background-color: #ff9800;
+}
+
+.submitButtonDisabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+

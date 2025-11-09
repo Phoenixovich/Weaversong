@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import api, { helpdeskAPI } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 import { canEditResponse, canDeleteResponse } from '../utils/permissions';
+import './ResponsesPage.css';
 
 interface ResponseItem {
   _id: string;
@@ -120,57 +121,57 @@ export default function ResponsesPage() {
 
   return (
     <div className="helpboard-page">
-      <div style={styles.header}>
-        <h1 style={styles.headerTitle}>💬 Responses</h1>
-        <p style={styles.headerSubtitle}>
+      <div className="header">
+        <h1 className="headerTitle">💬 Responses</h1>
+        <p className="headerSubtitle">
           View all responses to help requests
         </p>
-        <div style={styles.controlsRow}>
+        <div className="controlsRow">
           <button
             onClick={() => navigate('/helpboard')}
-            style={styles.tabButton}
+            className="tabButton"
           >
             ← Back to Helpboard
           </button>
         </div>
       </div>
 
-      <div style={styles.content}>
-        <div style={styles.statsBar}>
-          <div style={styles.statItem}>
+      <div className="content">
+        <div className="statsBar">
+          <div className="statItem">
             <strong>Total Responses:</strong> {getFilteredResponses().length}
           </div>
-          <div style={styles.statItem}>
+          <div className="statItem">
             <strong>Pending:</strong>{' '}
             {getFilteredResponses().filter((r) => r.status === 'pending').length}
           </div>
-          <div style={styles.statItem}>
+          <div className="statItem">
             <strong>Accepted:</strong>{' '}
             {getFilteredResponses().filter((r) => r.status === 'accepted').length}
           </div>
         </div>
 
         {loading ? (
-          <p style={styles.loading}>Loading responses...</p>
+          <p className="loading">Loading responses...</p>
         ) : !user ? (
-          <div style={styles.emptyState}>
+          <div className="emptyState">
             <p>Please log in to see responses to your requests.</p>
           </div>
         ) : getFilteredResponses().length === 0 ? (
-          <div style={styles.emptyState}>
+          <div className="emptyState">
             <p>No responses to your requests yet.</p>
           </div>
         ) : (
-          <div style={styles.responsesList}>
+          <div className="responsesList">
             {getFilteredResponses().map((response) => (
-              <div key={response._id} style={styles.responseCard}>
-                <div style={styles.responseHeader}>
-                  <div style={styles.responseInfo}>
+              <div key={response._id} className="responseCard">
+                <div className="responseHeader">
+                  <div className="responseInfo">
                     <strong>Request ID:</strong> {response.request_id}
                   </div>
                   <span
+                    className="badge"
                     style={{
-                      ...styles.badge,
                       backgroundColor: getStatusColor(response.status),
                       color: 'white',
                     }}
@@ -178,14 +179,14 @@ export default function ResponsesPage() {
                     {response.status}
                   </span>
                 </div>
-                <div style={styles.responseBody}>
-                  <p style={styles.responseMessage}>{response.message}</p>
-                  <div style={styles.responseMeta}>
-                    <div style={styles.metaItem}>
+                <div className="responseBody">
+                  <p className="responseMessage">{response.message}</p>
+                  <div className="responseMeta">
+                    <div className="metaItem">
                       <strong>Responder:</strong> {response.responder_id}
                     </div>
                     {response.date_created && (
-                      <div style={styles.metaItem}>
+                      <div className="metaItem">
                         <strong>Date:</strong>{' '}
                         {new Date(response.date_created).toLocaleString()}
                       </div>
@@ -194,11 +195,11 @@ export default function ResponsesPage() {
 
                   {/* Edit/Delete Buttons */}
                   {response.responder_id && (canEditResponse(user, response.responder_id) || canDeleteResponse(user, response.responder_id)) && (
-                    <div style={styles.actionButtons}>
+                    <div className="actionButtons">
                       {canEditResponse(user, response.responder_id) && (
                         <button
                           onClick={() => handleEdit(response)}
-                          style={styles.editButton}
+                          className="editButton"
                         >
                           ✏️ Edit
                         </button>
@@ -207,7 +208,7 @@ export default function ResponsesPage() {
                         <button
                           onClick={() => handleDelete(response)}
                           disabled={deletingId === response._id}
-                          style={styles.deleteButton}
+                          className="deleteButton"
                         >
                           {deletingId === response._id ? 'Deleting...' : '🗑️ Delete'}
                         </button>
@@ -223,30 +224,30 @@ export default function ResponsesPage() {
 
       {/* Edit Response Modal */}
       {editingResponse && (
-        <div style={styles.modalOverlay} onClick={() => setEditingResponse(null)}>
-          <div style={styles.modalContent} onClick={(e) => e.stopPropagation()}>
-            <div style={styles.modalHeader}>
-              <h2 style={styles.modalTitle}>Edit Response</h2>
-              <button onClick={() => setEditingResponse(null)} style={styles.modalClose}>✕</button>
+        <div className="modalOverlay" onClick={() => setEditingResponse(null)}>
+          <div className="modalContent" onClick={(e) => e.stopPropagation()}>
+            <div className="modalHeader">
+              <h2 className="modalTitle">Edit Response</h2>
+              <button onClick={() => setEditingResponse(null)} className="modalClose">✕</button>
             </div>
-            <div style={styles.modalBody}>
-              <div style={styles.formGroup}>
-                <label style={styles.label}>Message *</label>
+            <div className="modalBody">
+              <div className="formGroup">
+                <label className="label">Message *</label>
                 <textarea
                   value={editForm.message}
                   onChange={(e) => setEditForm({ ...editForm, message: e.target.value })}
                   rows={6}
                   required
-                  style={styles.textarea}
+                  className="textarea"
                   placeholder="Enter your response message..."
                 />
               </div>
             </div>
-            <div style={styles.modalFooter}>
-              <button onClick={() => setEditingResponse(null)} style={styles.cancelButton}>
+            <div className="modalFooter">
+              <button onClick={() => setEditingResponse(null)} className="cancelButton">
                 Cancel
               </button>
-              <button onClick={handleSaveEdit} style={styles.saveButton}>
+              <button onClick={handleSaveEdit} className="saveButton">
                 Save Changes
               </button>
             </div>
@@ -256,249 +257,3 @@ export default function ResponsesPage() {
     </div>
   );
 }
-
-const styles: { [key: string]: React.CSSProperties } = {
-  header: {
-    color: 'white',
-    padding: '2rem',
-    textAlign: 'center',
-    backgroundColor: '#20c997',
-  },
-  headerTitle: {
-    margin: 0,
-    fontSize: '2.5rem',
-    fontWeight: 'bold',
-  },
-  headerSubtitle: {
-    margin: '0.5rem 0 1rem 0',
-    fontSize: '1.1rem',
-    opacity: 0.9,
-  },
-  controlsRow: {
-    display: 'flex',
-    gap: '1rem',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginTop: '1rem',
-    flexWrap: 'wrap',
-  },
-  tabButton: {
-    padding: '0.75rem 1.5rem',
-    border: '2px solid white',
-    backgroundColor: 'transparent',
-    color: 'white',
-    borderRadius: '4px',
-    cursor: 'pointer',
-    fontSize: '1rem',
-    fontWeight: '600',
-    transition: 'all 0.3s',
-    textDecoration: 'none',
-    display: 'inline-block',
-  },
-  content: {
-    minHeight: 'calc(100vh - 200px)',
-    padding: '2rem 1rem',
-    maxWidth: '1200px',
-    margin: '0 auto',
-    backgroundColor: '#f0fdfa',
-  },
-  statsBar: {
-    display: 'flex',
-    gap: '2rem',
-    padding: '1rem',
-    backgroundColor: '#f8f9fa',
-    borderRadius: '8px',
-    marginBottom: '2rem',
-    flexWrap: 'wrap',
-  },
-  statItem: {
-    color: '#666',
-  },
-  loading: {
-    textAlign: 'center',
-    padding: '2rem',
-    color: '#666',
-  },
-  emptyState: {
-    textAlign: 'center',
-    padding: '3rem',
-    backgroundColor: '#f8f9fa',
-    borderRadius: '8px',
-    color: '#666',
-  },
-  responsesList: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '1.5rem',
-  },
-  responseCard: {
-    backgroundColor: 'white',
-    padding: '1.5rem',
-    borderRadius: '8px',
-    boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
-    border: '1px solid #e9ecef',
-    transition: 'transform 0.3s, box-shadow 0.3s',
-  },
-  responseHeader: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: '1rem',
-    paddingBottom: '1rem',
-    borderBottom: '1px solid #e9ecef',
-  },
-  responseInfo: {
-    color: '#666',
-    fontSize: '0.9rem',
-  },
-  badge: {
-    padding: '0.25rem 0.75rem',
-    borderRadius: '12px',
-    fontSize: '0.75rem',
-    fontWeight: '500',
-  },
-  responseBody: {
-    marginTop: '1rem',
-  },
-  responseMessage: {
-    color: '#333',
-    lineHeight: '1.6',
-    marginBottom: '1rem',
-    fontSize: '1rem',
-  },
-  responseMeta: {
-    display: 'flex',
-    gap: '2rem',
-    paddingTop: '1rem',
-    borderTop: '1px solid #f0f0f0',
-    flexWrap: 'wrap',
-  },
-  metaItem: {
-    fontSize: '0.9rem',
-    color: '#666',
-  },
-  actionButtons: {
-    display: 'flex',
-    gap: '0.5rem',
-    marginTop: '1rem',
-    paddingTop: '1rem',
-    borderTop: '1px solid #e9ecef',
-  },
-  editButton: {
-    padding: '0.5rem 1rem',
-    backgroundColor: '#007bff',
-    color: 'white',
-    border: 'none',
-    borderRadius: '4px',
-    cursor: 'pointer',
-    fontSize: '0.9rem',
-    fontWeight: '500',
-    transition: 'background-color 0.3s',
-  },
-  deleteButton: {
-    padding: '0.5rem 1rem',
-    backgroundColor: '#dc3545',
-    color: 'white',
-    border: 'none',
-    borderRadius: '4px',
-    cursor: 'pointer',
-    fontSize: '0.9rem',
-    fontWeight: '500',
-    transition: 'background-color 0.3s',
-  },
-  modalOverlay: {
-    position: 'fixed',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center',
-    zIndex: 1000,
-  },
-  modalContent: {
-    backgroundColor: 'white',
-    borderRadius: '8px',
-    padding: '2rem',
-    maxWidth: '500px',
-    width: '90%',
-    maxHeight: '90vh',
-    overflow: 'auto',
-    boxShadow: '0 4px 20px rgba(0, 0, 0, 0.3)',
-  },
-  modalHeader: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: '1.5rem',
-  },
-  modalTitle: {
-    margin: 0,
-    fontSize: '1.5rem',
-    color: '#333',
-  },
-  modalClose: {
-    background: 'none',
-    border: 'none',
-    fontSize: '1.5rem',
-    cursor: 'pointer',
-    color: '#666',
-    padding: 0,
-    width: '30px',
-    height: '30px',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  modalBody: {
-    marginBottom: '1.5rem',
-  },
-  formGroup: {
-    marginBottom: '1rem',
-  },
-  label: {
-    display: 'block',
-    marginBottom: '0.5rem',
-    fontSize: '0.9rem',
-    fontWeight: '500',
-    color: '#333',
-  },
-  textarea: {
-    width: '100%',
-    padding: '0.75rem',
-    border: '1px solid #ddd',
-    borderRadius: '6px',
-    fontSize: '1rem',
-    fontFamily: 'inherit',
-    resize: 'vertical',
-    minHeight: '120px',
-    boxSizing: 'border-box',
-  },
-  modalFooter: {
-    display: 'flex',
-    justifyContent: 'flex-end',
-    gap: '0.75rem',
-  },
-  cancelButton: {
-    padding: '0.75rem 1.5rem',
-    backgroundColor: '#f8f9fa',
-    color: '#333',
-    border: '1px solid #ddd',
-    borderRadius: '6px',
-    cursor: 'pointer',
-    fontSize: '1rem',
-    fontWeight: '500',
-  },
-  saveButton: {
-    padding: '0.75rem 1.5rem',
-    backgroundColor: '#20c997',
-    color: 'white',
-    border: 'none',
-    borderRadius: '6px',
-    cursor: 'pointer',
-    fontSize: '1rem',
-    fontWeight: '500',
-  },
-};
