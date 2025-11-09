@@ -198,9 +198,10 @@ export const PedestrianAnalyzer: React.FC = () => {
                 className="dateInput"
               >
                 <option value="">All Time</option>
-                <option value="week">Last Week</option>
-                <option value="month">Last Month</option>
-                <option value="year">Last Year</option>
+                <option value="morning">Morning (6-12)</option>
+                <option value="daytime">Daytime (12-18)</option>
+                <option value="evening">Evening (18-22)</option>
+                <option value="night">Night (22-6)</option>
               </select>
             </div>
             <button onClick={loadAnalyticsProgressive} className="refreshButton">

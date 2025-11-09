@@ -52,7 +52,7 @@ export const Dashboard: React.FC = () => {
 
   const quickLinks = [
     { to: '/citypulse', icon: '🚨', title: 'CityPulse', desc: 'Report and view community alerts' },
-    { to: '/helpboard/users', icon: '👷', title: 'Helpboard', desc: 'Find local professionals' },
+    { to: '/helpboard', icon: '👷', title: 'Helpboard', desc: 'Find local professionals' },
     { to: '/clarifai', icon: '📄', title: 'ClarifAI', desc: 'Simplify documents' },
     { to: '/public-data', icon: '📊', title: 'Public Data Hub', desc: 'Explore government data' },
     { to: '/profile', icon: '👤', title: 'Your Profile', desc: 'Manage your account' },

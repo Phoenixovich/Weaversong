@@ -193,283 +193,285 @@ export default function RequestsPage() {
   };
 
   return (
-    <div className="helpboard-page">
-      <div className="header">
-        <h1 className="headerTitle">📣 Help Requests</h1>
-        <p className="headerSubtitle">
-          Post your requests and get help from the community
-        </p>
-        <div className="controlsRow">
-          <button
-            onClick={() => navigate('/helpboard')}
-            className="tabButton"
-          >
-            ← Back to Helpboard
-          </button>
-        </div>
-      </div>
-
-      <div className="content">
-        <div className="createSection">
-        <h2 className="sectionTitle">Create a Request</h2>
-        <RequestForm onCreated={handleCreateRequest} />
-      </div>
-
-      <div className="listSection">
-        <h2 className="sectionTitle">All Requests ({requests.length})</h2>
-        {loading ? (
-          <p className="loading">Loading requests...</p>
-        ) : requests.length === 0 ? (
-          <div className="emptyState">
-            <p>No requests yet. Be the first to create one!</p>
+    <div className="requests-page-wrapper">
+      <div className="requests-page-container">
+        <div className="requests-page-header">
+          <h1 className="requests-page-title">📣 Help Requests</h1>
+          <p className="requests-page-subtitle">
+            Post your requests and get help from the community
+          </p>
+          <div className="requests-page-controls">
+            <button
+              onClick={() => navigate('/helpboard')}
+              className="requests-page-button"
+            >
+              ← Back to Helpboard
+            </button>
           </div>
-        ) : (
-          <div className="requestsGrid">
-            {requests.map((request) => (
-              <div key={request._id} className="requestCard">
-                <div className="requestHeader">
-                  <h3 className="requestTitle">{request.title}</h3>
-                  <div className="badges">
-                    {request.status && (
-                      <span
-                        className="badge"
-                        style={{
-                          backgroundColor: getStatusColor(request.status),
-                          color: 'white',
-                        }}
-                      >
-                        {request.status}
-                      </span>
-                    )}
-                    {request.urgency && (
-                      <span
-                        className="badge"
-                        style={{
-                          backgroundColor: getUrgencyColor(request.urgency),
-                          color: 'white',
-                        }}
-                      >
-                        {request.urgency}
-                      </span>
-                    )}
-                  </div>
-                </div>
-                {request.description && (
-                  <p className="requestDescription">{request.description}</p>
-                )}
-                <div className="requestDetails">
-                  {request.trade_needed && (
-                    <div className="detailItem">
-                      <strong>Trade:</strong> {request.trade_needed}
-                    </div>
-                  )}
-                  {request.budget && (
-                    <div className="detailItem">
-                      <strong>Budget:</strong> ${request.budget}
-                    </div>
-                  )}
-                  {request.date_created && (
-                    <div className="detailItem">
-                      <strong>Created:</strong>{' '}
-                      {new Date(request.date_created).toLocaleDateString()}
-                    </div>
-                  )}
-                </div>
-                {/* Responses Section */}
-                {getResponsesForRequest(request._id).length > 0 && (
-                  <div className="responsesSection">
-                    <h4 className="responsesTitle">Responses ({getResponsesForRequest(request._id).length})</h4>
-                    {getResponsesForRequest(request._id).map((response) => (
-                      <div key={response._id} className="responseItem">
-                        <div className="responseHeader">
-                          <p className="responseMessage">{response.message}</p>
+        </div>
+
+        <div className="requests-page-content">
+          <div className="requests-page-create-section">
+            <h2 className="requests-page-section-title">Create a Request</h2>
+            <RequestForm onCreated={handleCreateRequest} />
+          </div>
+
+          <div className="requests-page-list-section">
+            <h2 className="requests-page-section-title">All Requests ({requests.length})</h2>
+            {loading ? (
+              <p className="requests-page-loading">Loading requests...</p>
+            ) : requests.length === 0 ? (
+              <div className="requests-page-empty">
+                <p>No requests yet. Be the first to create one!</p>
+              </div>
+            ) : (
+              <div className="requests-page-grid">
+                {requests.map((request) => (
+                  <div key={request._id} className="requests-page-card">
+                    <div className="requests-page-card-header">
+                      <h3 className="requests-page-card-title">{request.title}</h3>
+                      <div className="requests-page-badges">
+                        {request.status && (
                           <span
-                            className="badge"
+                            className="requests-page-badge"
                             style={{
-                              backgroundColor: getResponseStatusColor(response.status),
+                              backgroundColor: getStatusColor(request.status),
                               color: 'white',
                             }}
                           >
-                            {response.status}
+                            {request.status}
                           </span>
-                        </div>
-                        {response.date_created && (
-                          <div className="responseDate">
-                            {new Date(response.date_created).toLocaleString()}
-                          </div>
                         )}
-                        {/* Accept/Decline buttons - only for request owner */}
-                        {request.user_id && canAcceptResponse(user, request.user_id) && response.status === 'pending' && (
-                          <div className="responseActions">
-                            <button
-                              onClick={() => handleAcceptResponse(response._id, request._id, 'accepted')}
-                              disabled={updatingStatusId === response._id}
-                              className="acceptButton"
-                            >
-                              {updatingStatusId === response._id ? 'Updating...' : '✅ Accept'}
-                            </button>
-                            <button
-                              onClick={() => handleAcceptResponse(response._id, request._id, 'declined')}
-                              disabled={updatingStatusId === response._id}
-                              className="declineButton"
-                            >
-                              {updatingStatusId === response._id ? 'Updating...' : '❌ Decline'}
-                            </button>
-                          </div>
+                        {request.urgency && (
+                          <span
+                            className="requests-page-badge"
+                            style={{
+                              backgroundColor: getUrgencyColor(request.urgency),
+                              color: 'white',
+                            }}
+                          >
+                            {request.urgency}
+                          </span>
                         )}
                       </div>
-                    ))}
-                  </div>
-                )}
-
-                {/* Only show response form for requests NOT owned by the user */}
-                {user && request.user_id !== user.id && (
-                  <div className="responseSection">
-                    <ResponseForm
-                      request_id={request._id}
-                      onCreated={() => {
-                        fetchRequests();
-                        fetchResponses();
-                      }}
-                    />
-                  </div>
-                )}
-
-                {/* Quick Status Update - only for request owner */}
-                {request.user_id && canEditRequest(user, request.user_id) && (
-                  <div className="statusUpdateSection">
-                    <label className="statusLabel">Status:</label>
-                    <select
-                      value={request.status || 'open'}
-                      onChange={async (e) => {
-                        try {
-                          await helpdeskAPI.updateRequest(request._id, { status: e.target.value });
-                          fetchRequests();
-                        } catch (error: any) {
-                          alert(`Failed to update status: ${error.message}`);
-                        }
-                      }}
-                      className="statusSelect"
-                    >
-                      <option value="open">Open</option>
-                      <option value="closed">Closed</option>
-                    </select>
-                  </div>
-                )}
-
-                {/* Edit/Delete Buttons */}
-                {request.user_id && (canEditRequest(user, request.user_id) || canDeleteRequest(user, request.user_id)) && (
-                  <div className="actionButtons">
-                    {canEditRequest(user, request.user_id) && (
-                      <button
-                        onClick={() => handleEdit(request)}
-                        className="editButton"
-                      >
-                        ✏️ Edit
-                      </button>
+                    </div>
+                    {request.description && (
+                      <p className="requests-page-card-description">{request.description}</p>
                     )}
-                    {canDeleteRequest(user, request.user_id) && (
-                      <button
-                        onClick={() => handleDelete(request)}
-                        disabled={deletingId === request._id}
-                        className="deleteButton"
-                      >
-                        {deletingId === request._id ? 'Deleting...' : '🗑️ Delete'}
-                      </button>
+                    <div className="requests-page-card-details">
+                      {request.trade_needed && (
+                        <div className="requests-page-detail-item">
+                          <strong>Trade:</strong> {request.trade_needed}
+                        </div>
+                      )}
+                      {request.budget && (
+                        <div className="requests-page-detail-item">
+                          <strong>Budget:</strong> ${request.budget}
+                        </div>
+                      )}
+                      {request.date_created && (
+                        <div className="requests-page-detail-item">
+                          <strong>Created:</strong>{' '}
+                          {new Date(request.date_created).toLocaleDateString()}
+                        </div>
+                      )}
+                    </div>
+                    {/* Responses Section */}
+                    {getResponsesForRequest(request._id).length > 0 && (
+                      <div className="requests-page-responses-section">
+                        <h4 className="requests-page-responses-title">Responses ({getResponsesForRequest(request._id).length})</h4>
+                        {getResponsesForRequest(request._id).map((response) => (
+                          <div key={response._id} className="requests-page-response-item">
+                            <div className="requests-page-response-header">
+                              <p className="requests-page-response-message">{response.message}</p>
+                              <span
+                                className="requests-page-badge"
+                                style={{
+                                  backgroundColor: getResponseStatusColor(response.status),
+                                  color: 'white',
+                                }}
+                              >
+                                {response.status}
+                              </span>
+                            </div>
+                            {response.date_created && (
+                              <div className="requests-page-response-date">
+                                {new Date(response.date_created).toLocaleString()}
+                              </div>
+                            )}
+                            {/* Accept/Decline buttons - only for request owner */}
+                            {request.user_id && canAcceptResponse(user, request.user_id) && response.status === 'pending' && (
+                              <div className="requests-page-response-actions">
+                                <button
+                                  onClick={() => handleAcceptResponse(response._id, request._id, 'accepted')}
+                                  disabled={updatingStatusId === response._id}
+                                  className="requests-page-accept-button"
+                                >
+                                  {updatingStatusId === response._id ? 'Updating...' : '✅ Accept'}
+                                </button>
+                                <button
+                                  onClick={() => handleAcceptResponse(response._id, request._id, 'declined')}
+                                  disabled={updatingStatusId === response._id}
+                                  className="requests-page-decline-button"
+                                >
+                                  {updatingStatusId === response._id ? 'Updating...' : '❌ Decline'}
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Only show response form for requests NOT owned by the user */}
+                    {user && request.user_id !== user.id && (
+                      <div className="requests-page-response-section">
+                        <ResponseForm
+                          request_id={request._id}
+                          onCreated={() => {
+                            fetchRequests();
+                            fetchResponses();
+                          }}
+                        />
+                      </div>
+                    )}
+
+                    {/* Quick Status Update - only for request owner */}
+                    {request.user_id && canEditRequest(user, request.user_id) && (
+                      <div className="requests-page-status-section">
+                        <label className="requests-page-status-label">Status:</label>
+                        <select
+                          value={request.status || 'open'}
+                          onChange={async (e) => {
+                            try {
+                              await helpdeskAPI.updateRequest(request._id, { status: e.target.value });
+                              fetchRequests();
+                            } catch (error: any) {
+                              alert(`Failed to update status: ${error.message}`);
+                            }
+                          }}
+                          className="requests-page-status-select"
+                        >
+                          <option value="open">Open</option>
+                          <option value="closed">Closed</option>
+                        </select>
+                      </div>
+                    )}
+
+                    {/* Edit/Delete Buttons */}
+                    {request.user_id && (canEditRequest(user, request.user_id) || canDeleteRequest(user, request.user_id)) && (
+                      <div className="requests-page-action-buttons">
+                        {canEditRequest(user, request.user_id) && (
+                          <button
+                            onClick={() => handleEdit(request)}
+                            className="requests-page-edit-button"
+                          >
+                            ✏️ Edit
+                          </button>
+                        )}
+                        {canDeleteRequest(user, request.user_id) && (
+                          <button
+                            onClick={() => handleDelete(request)}
+                            disabled={deletingId === request._id}
+                            className="requests-page-delete-button"
+                          >
+                            {deletingId === request._id ? 'Deleting...' : '🗑️ Delete'}
+                          </button>
+                        )}
+                      </div>
                     )}
                   </div>
-                )}
+                ))}
               </div>
-            ))}
+            )}
+          </div>
+        </div>
+
+        {/* Edit Request Modal */}
+        {editingRequest && (
+          <div className="requests-page-modal-overlay" onClick={() => setEditingRequest(null)}>
+            <div className="requests-page-modal-content" onClick={(e) => e.stopPropagation()}>
+              <div className="requests-page-modal-header">
+                <h2 className="requests-page-modal-title">Edit Request</h2>
+                <button onClick={() => setEditingRequest(null)} className="requests-page-modal-close">✕</button>
+              </div>
+              <div className="requests-page-modal-body">
+                <div className="requests-page-form-group">
+                  <label className="requests-page-label">Title *</label>
+                  <input
+                    type="text"
+                    value={editForm.title}
+                    onChange={(e) => setEditForm({ ...editForm, title: e.target.value })}
+                    required
+                    className="requests-page-input"
+                  />
+                </div>
+                <div className="requests-page-form-group">
+                  <label className="requests-page-label">Description</label>
+                  <textarea
+                    value={editForm.description}
+                    onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
+                    rows={4}
+                    className="requests-page-textarea"
+                  />
+                </div>
+                <div className="requests-page-form-group">
+                  <label className="requests-page-label">Trade Needed *</label>
+                  <input
+                    type="text"
+                    value={editForm.trade_needed}
+                    onChange={(e) => setEditForm({ ...editForm, trade_needed: e.target.value })}
+                    required
+                    className="requests-page-input"
+                  />
+                </div>
+                <div className="requests-page-form-group">
+                  <label className="requests-page-label">Budget</label>
+                  <input
+                    type="number"
+                    value={editForm.budget}
+                    onChange={(e) => setEditForm({ ...editForm, budget: Number(e.target.value) || 0 })}
+                    min="0"
+                    className="requests-page-input"
+                  />
+                </div>
+                <div className="requests-page-form-group">
+                  <label className="requests-page-label">Urgency</label>
+                  <select
+                    value={editForm.urgency}
+                    onChange={(e) => setEditForm({ ...editForm, urgency: e.target.value })}
+                    className="requests-page-select"
+                  >
+                    <option value="low">Low</option>
+                    <option value="normal">Normal</option>
+                    <option value="medium">Medium</option>
+                    <option value="high">High</option>
+                  </select>
+                </div>
+                <div className="requests-page-form-group">
+                  <label className="requests-page-label">Status</label>
+                  <select
+                    value={editForm.status}
+                    onChange={(e) => setEditForm({ ...editForm, status: e.target.value })}
+                    className="requests-page-select"
+                  >
+                    <option value="open">Open</option>
+                    <option value="closed">Closed</option>
+                  </select>
+                </div>
+              </div>
+              <div className="requests-page-modal-footer">
+                <button onClick={() => setEditingRequest(null)} className="requests-page-cancel-button">
+                  Cancel
+                </button>
+                <button onClick={handleSaveEdit} className="requests-page-save-button">
+                  Save Changes
+                </button>
+              </div>
+            </div>
           </div>
         )}
       </div>
-      </div>
-
-      {/* Edit Request Modal */}
-      {editingRequest && (
-        <div className="modalOverlay" onClick={() => setEditingRequest(null)}>
-          <div className="modalContent" onClick={(e) => e.stopPropagation()}>
-            <div className="modalHeader">
-              <h2 className="modalTitle">Edit Request</h2>
-              <button onClick={() => setEditingRequest(null)} className="modalClose">✕</button>
-            </div>
-            <div className="modalBody">
-              <div className="formGroup">
-                <label className="label">Title *</label>
-                <input
-                  type="text"
-                  value={editForm.title}
-                  onChange={(e) => setEditForm({ ...editForm, title: e.target.value })}
-                  required
-                  className="input"
-                />
-              </div>
-              <div className="formGroup">
-                <label className="label">Description</label>
-                <textarea
-                  value={editForm.description}
-                  onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
-                  rows={4}
-                  className="textarea"
-                />
-              </div>
-              <div className="formGroup">
-                <label className="label">Trade Needed *</label>
-                <input
-                  type="text"
-                  value={editForm.trade_needed}
-                  onChange={(e) => setEditForm({ ...editForm, trade_needed: e.target.value })}
-                  required
-                  className="input"
-                />
-              </div>
-              <div className="formGroup">
-                <label className="label">Budget</label>
-                <input
-                  type="number"
-                  value={editForm.budget}
-                  onChange={(e) => setEditForm({ ...editForm, budget: Number(e.target.value) || 0 })}
-                  min="0"
-                  className="input"
-                />
-              </div>
-              <div className="formGroup">
-                <label className="label">Urgency</label>
-                <select
-                  value={editForm.urgency}
-                  onChange={(e) => setEditForm({ ...editForm, urgency: e.target.value })}
-                  className="select"
-                >
-                  <option value="low">Low</option>
-                  <option value="normal">Normal</option>
-                  <option value="medium">Medium</option>
-                  <option value="high">High</option>
-                </select>
-              </div>
-              <div className="formGroup">
-                <label className="label">Status</label>
-                <select
-                  value={editForm.status}
-                  onChange={(e) => setEditForm({ ...editForm, status: e.target.value })}
-                  className="select"
-                >
-                  <option value="open">Open</option>
-                  <option value="closed">Closed</option>
-                </select>
-              </div>
-            </div>
-            <div className="modalFooter">
-              <button onClick={() => setEditingRequest(null)} className="cancelButton">
-                Cancel
-              </button>
-              <button onClick={handleSaveEdit} className="saveButton">
-                Save Changes
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

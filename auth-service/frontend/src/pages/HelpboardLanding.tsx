@@ -103,77 +103,77 @@ const HelpboardLanding: React.FC = () => {
 
 
   return (
-    <div className="min-h-screen bg-background-light">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <header className="mb-8">
-          <h1 className="text-4xl md:text-5xl font-bold mb-3 gradient-text">
+    <div className="helpboard-landing-page">
+      <div className="helpboard-landing-container">
+        <header className="helpboard-landing-header">
+          <h1 className="helpboard-landing-title">
             💼 Helpboard
           </h1>
-          <p className="text-xl text-gray-600">
+          <p className="helpboard-landing-subtitle">
             Find local help, post requests, and connect with skilled neighbours.
           </p>
-          <div className="controlsRow mt-4">
+          <div className="helpboard-landing-controls">
             <button
               onClick={() => setShowRequestForm((s) => !s)}
-              className={`tabButton ${showRequestForm ? 'tabButtonActive' : ''}`}
+              className={`helpboard-landing-button ${showRequestForm ? 'helpboard-landing-button-active' : ''}`}
             >
               {showRequestForm ? '✕ Close Form' : '+ Submit Request'}
             </button>
             {user && (
               <>
-                <Link to="/helpboard/my-trades" className="tabButton">
+                <Link to="/helpboard/my-trades" className="helpboard-landing-button">
                   👷 My Trades
                 </Link>
-                <Link to="/helpboard/my-requests" className="tabButton">
+                <Link to="/helpboard/my-requests" className="helpboard-landing-button">
                   📋 My Requests
                 </Link>
-                <Link to="/helpboard/my-responses" className="tabButton">
+                <Link to="/helpboard/my-responses" className="helpboard-landing-button">
                   💬 My Responses
                 </Link>
               </>
             )}
-            <Link to="/helpboard/requests" className="tabButton">
+            <Link to="/helpboard/requests" className="helpboard-landing-button">
               📣 All Requests
             </Link>
           </div>
         </header>
 
-        <div className="content">
+        <div className="helpboard-landing-content">
           {error && (
-            <div className="errorBanner">
+            <div className="helpboard-landing-error">
               ⚠️ {error}
             </div>
           )}
 
           {showRequestForm && (
-            <div className="formSection">
+            <div className="helpboard-landing-form-section">
               <RequestForm onCreated={() => { setShowRequestForm(false); fetchAll(); }} />
             </div>
           )}
 
-          <div className="requestsSection">
-            <h2 className="sectionTitle">📋 Active Requests</h2>
+          <div className="helpboard-landing-requests-section">
+            <h2 className="helpboard-landing-section-title">📋 Active Requests</h2>
             {loading ? (
-              <div className="loading">
+              <div className="helpboard-landing-loading">
                 <p>Loading requests…</p>
               </div>
             ) : getActiveRequests().length === 0 ? (
-              <div className="emptyState">
+              <div className="helpboard-landing-empty">
                 <p>No active requests at the moment.</p>
                 {user && (
-                  <p className="emptyHint">Create one using the form above!</p>
+                  <p className="helpboard-landing-empty-hint">Create one using the form above!</p>
                 )}
               </div>
             ) : (
-              <div className="requestsList">
+              <div className="helpboard-landing-requests-list">
                 {getActiveRequests().map((r) => (
-                  <div key={r._id} className="requestCard">
-                    <div className="requestHeader">
-                      <h3 className="requestTitle">{r.title}</h3>
-                      <div className="badges">
+                  <div key={r._id} className="helpboard-landing-request-card">
+                    <div className="helpboard-landing-request-header">
+                      <h3 className="helpboard-landing-request-title">{r.title}</h3>
+                      <div className="helpboard-landing-badges">
                         {r.status && (
                           <span
-                            className="badge"
+                            className="helpboard-landing-badge"
                             style={{
                               backgroundColor: getStatusColor(r.status),
                               color: 'white',
@@ -184,7 +184,7 @@ const HelpboardLanding: React.FC = () => {
                         )}
                         {r.urgency && (
                           <span
-                            className="badge"
+                            className="helpboard-landing-badge"
                             style={{
                               backgroundColor: getUrgencyColor(r.urgency),
                               color: 'white',
@@ -196,21 +196,21 @@ const HelpboardLanding: React.FC = () => {
                       </div>
                     </div>
                     {r.description && (
-                      <p className="requestDescription">{r.description}</p>
+                      <p className="helpboard-landing-request-description">{r.description}</p>
                     )}
-                    <div className="requestDetails">
+                    <div className="helpboard-landing-request-details">
                       {r.trade_needed && (
-                        <div className="detailItem">
+                        <div className="helpboard-landing-detail-item">
                           <strong>Trade:</strong> {r.trade_needed}
                         </div>
                       )}
                       {r.budget !== undefined && r.budget > 0 && (
-                        <div className="detailItem">
+                        <div className="helpboard-landing-detail-item">
                           <strong>Budget:</strong> ${r.budget}
                         </div>
                       )}
                       {r.date_created && (
-                        <div className="detailItem">
+                        <div className="helpboard-landing-detail-item">
                           <strong>Created:</strong> {new Date(r.date_created).toLocaleDateString()}
                         </div>
                       )}
@@ -219,13 +219,13 @@ const HelpboardLanding: React.FC = () => {
                     {user && r.user_id !== user.id && (
                       <button
                         onClick={() => toggleRequest(r._id)}
-                        className="expandButton"
+                        className="helpboard-landing-expand-button"
                       >
                         {expandedRequests.has(r._id) ? '▼ Hide Response Form' : '▶ Add Response'}
                       </button>
                     )}
                     {expandedRequests.has(r._id) && user && r.user_id !== user.id && (
-                      <div className="responseSection">
+                      <div className="helpboard-landing-response-section">
                         <ResponseForm
                           request_id={r._id}
                           onCreated={() => handleResponseCreated(r._id)}
