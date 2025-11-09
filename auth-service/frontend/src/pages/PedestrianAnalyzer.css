@@ -389,3 +389,166 @@
   background-color: #c82333;
 }
 
+/* Mobile Styling */
+@media (max-width: 768px) {
+  .container {
+    padding: 1rem 0.75rem;
+  }
+
+  .header {
+    padding: 1.5rem 1rem;
+  }
+
+  .title {
+    font-size: 2rem;
+  }
+
+  .subtitle {
+    font-size: 1rem;
+  }
+
+  .card {
+    padding: 1.5rem;
+  }
+
+  .filterCard {
+    padding: 1rem;
+  }
+
+  .dateInputs {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .dateInputs > div {
+    width: 100%;
+  }
+
+  .dateInput {
+    width: 100%;
+  }
+
+  .refreshButton {
+    width: 100%;
+    padding: 0.75rem;
+  }
+
+  .section {
+    padding: 1.5rem;
+  }
+
+  .sectionTitle {
+    font-size: 1.25rem;
+  }
+
+  .locationsGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .locationCard {
+    padding: 1rem;
+  }
+
+  .analyticsGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .analyticsCard {
+    padding: 1rem;
+  }
+
+  .analyticsStats {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .statsGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .statCard {
+    padding: 1rem;
+  }
+
+  .detailCard {
+    padding: 1.5rem;
+  }
+
+  .detailHeader {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .closeButton {
+    width: 100%;
+  }
+
+  .suggestionsCard {
+    padding: 1rem;
+  }
+
+  .suggestionItem {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+@media (max-width: 480px) {
+  .container {
+    padding: 0.75rem 0.5rem;
+  }
+
+  .header {
+    padding: 1rem 0.75rem;
+  }
+
+  .title {
+    font-size: 1.75rem;
+  }
+
+  .subtitle {
+    font-size: 0.9rem;
+  }
+
+  .card {
+    padding: 1rem;
+  }
+
+  .filterCard {
+    padding: 0.75rem;
+  }
+
+  .section {
+    padding: 1rem;
+  }
+
+  .sectionTitle {
+    font-size: 1.1rem;
+  }
+
+  .locationCard {
+    padding: 0.75rem;
+  }
+
+  .analyticsCard {
+    padding: 0.75rem;
+  }
+
+  .detailCard {
+    padding: 1rem;
+  }
+
+  .statCard {
+    padding: 0.75rem;
+  }
+
+  .statValue {
+    font-size: 1.5rem;
+  }
+
+  .suggestionsCard {
+    padding: 0.75rem;
+  }
+}
+

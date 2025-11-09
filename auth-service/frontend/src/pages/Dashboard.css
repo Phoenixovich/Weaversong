@@ -252,8 +252,23 @@
   text-decoration: underline;
 }
 
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 /* Responsive design */
 @media (max-width: 768px) {
+  .dashboard-container {
+    padding: 1rem 0.75rem;
+  }
+
   .dashboard-title {
     font-size: 2rem;
   }
@@ -264,6 +279,7 @@
 
   .quick-links-grid {
     grid-template-columns: 1fr;
+    gap: 1rem;
   }
 
   .permissions-table {
@@ -273,5 +289,135 @@
   .permissions-table th,
   .permissions-table td {
     padding: 0.5rem;
+  }
+
+  .dashboard-card {
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .action-links {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .action-links a {
+    width: 100%;
+    text-align: center;
+    padding: 0.75rem 1rem;
+  }
+
+  /* Enhanced expandable sections for mobile */
+  .section-header {
+    padding: 1rem;
+    margin: -1rem -1rem 1rem -1rem;
+    background-color: #f9fafb;
+    border-radius: 8px 8px 0 0;
+    border-bottom: 2px solid #e5e7eb;
+    cursor: pointer;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .section-header:active {
+    background-color: #f3f4f6;
+  }
+
+  .expand-icon {
+    font-size: 1.2rem;
+    font-weight: bold;
+    min-width: 24px;
+    text-align: center;
+  }
+
+  .section-content {
+    animation: slideDown 0.3s ease-out;
+    padding-top: 0.5rem;
+  }
+
+  .tip-card,
+  .tutorial-card {
+    padding: 1rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .tip-title,
+  .tutorial-title {
+    font-size: 1.1rem;
+  }
+
+  .quick-link-icon {
+    font-size: 2.5rem;
+  }
+
+  .quick-link-title {
+    font-size: 1.1rem;
+  }
+
+  .quick-link-desc {
+    font-size: 0.9rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .dashboard-container {
+    padding: 0.75rem 0.5rem;
+  }
+
+  .dashboard-title {
+    font-size: 1.75rem;
+  }
+
+  .section-title {
+    font-size: 1.25rem;
+  }
+
+  .dashboard-card {
+    padding: 1rem;
+    margin-bottom: 1rem;
+    border-radius: 8px;
+  }
+
+  .section-header {
+    padding: 0.875rem;
+    margin: -1rem -1rem 0.75rem -1rem;
+    font-size: 1.1rem;
+  }
+
+  .permissions-table {
+    font-size: 0.75rem;
+  }
+
+  .permissions-table th,
+  .permissions-table td {
+    padding: 0.4rem;
+  }
+
+  .tip-card,
+  .tutorial-card {
+    padding: 0.75rem;
+  }
+
+  .tip-title,
+  .tutorial-title {
+    font-size: 1rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .quick-link-icon {
+    font-size: 2rem;
+  }
+
+  .quick-link-title {
+    font-size: 1rem;
+  }
+
+  .quick-link-desc {
+    font-size: 0.85rem;
+  }
+
+  .action-links a {
+    padding: 0.625rem 0.875rem;
+    font-size: 0.9rem;
   }
 }

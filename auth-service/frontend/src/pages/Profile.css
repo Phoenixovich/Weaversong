@@ -325,6 +325,10 @@
 
 /* Responsive design */
 @media (max-width: 768px) {
+  .profile-container {
+    padding: 1rem 0.75rem;
+  }
+
   .profile-title {
     font-size: 2rem;
   }
@@ -347,6 +351,10 @@
     text-align: center;
   }
 
+  .profile-card {
+    padding: 1.5rem;
+  }
+
   .profile-detail-row {
     flex-direction: column;
     align-items: flex-start;
@@ -367,5 +375,27 @@
 
   .profile-form-actions button {
     width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .profile-container {
+    padding: 0.75rem 0.5rem;
+  }
+
+  .profile-title {
+    font-size: 1.75rem;
+  }
+
+  .profile-section-title {
+    font-size: 1.25rem;
+  }
+
+  .profile-card {
+    padding: 1rem;
+  }
+
+  .profile-stats-grid {
+    grid-template-columns: 1fr;
   }
 }

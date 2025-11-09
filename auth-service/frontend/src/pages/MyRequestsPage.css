@@ -224,3 +224,105 @@
   box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
   transform: translateY(-1px);
 }
+
+/* Mobile Styling */
+@media (max-width: 768px) {
+  .my-requests-page-container {
+    padding: 1rem 0.75rem;
+  }
+
+  .my-requests-page-header {
+    padding: 1rem;
+  }
+
+  .my-requests-page-title {
+    font-size: 1.75rem;
+  }
+
+  .my-requests-page-subtitle {
+    font-size: 1rem;
+  }
+
+  .my-requests-page-controls {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .my-requests-page-button {
+    width: 100%;
+    text-align: center;
+    padding: 0.75rem 1rem;
+  }
+
+  .my-requests-page-content {
+    padding: 1rem 0.5rem;
+  }
+
+  .my-requests-page-card {
+    padding: 1rem;
+  }
+
+  .my-requests-page-card-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .my-requests-page-card-title {
+    font-size: 1.1rem;
+  }
+
+  .my-requests-page-status-section {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.5rem;
+  }
+
+  .my-requests-page-status-select {
+    width: 100%;
+  }
+
+  .my-requests-page-action-buttons {
+    flex-direction: column;
+  }
+
+  .my-requests-page-edit-button,
+  .my-requests-page-delete-button {
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .my-requests-page-container {
+    padding: 0.75rem 0.5rem;
+  }
+
+  .my-requests-page-header {
+    padding: 0.75rem;
+  }
+
+  .my-requests-page-title {
+    font-size: 1.5rem;
+  }
+
+  .my-requests-page-subtitle {
+    font-size: 0.9rem;
+  }
+
+  .my-requests-page-content {
+    padding: 0.75rem 0.25rem;
+  }
+
+  .my-requests-page-card {
+    padding: 0.75rem;
+  }
+
+  .my-requests-page-card-title {
+    font-size: 1rem;
+  }
+
+  .my-requests-page-badge {
+    font-size: 0.7rem;
+    padding: 0.2rem 0.5rem;
+  }
+}
