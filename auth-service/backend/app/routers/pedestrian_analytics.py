@@ -7,7 +7,9 @@ from app.models.pedestrian import (
     PedestrianDataCreate,
     PedestrianDataResponse,
     PedestrianAnalyticsRequest,
-    PedestrianAnalyticsResponse
+    PedestrianAnalyticsResponse,
+    PedestrianLocationAnalysisRequest,
+    PedestrianLocationAnalysisResponse
 )
 from app.middleware.auth import get_current_user, get_current_user_optional
 from app.models.user import UserInDB, UserRole
@@ -294,4 +296,136 @@ async def get_popular_locations(
         })
 
     return results
+
+
+@router.post("/analyze-locations", response_model=PedestrianLocationAnalysisResponse)
+async def analyze_pedestrian_locations(
+    request: PedestrianLocationAnalysisRequest,
+    current_user: UserInDB = Depends(get_current_user)
+):
+    """
+    Analyze pedestrian data, group by location, and get AI-powered suggestions
+    for optimal business/vending machine locations.
+    
+    Requires premium subscription or admin role.
+    """
+    if not can_access_pedestrian_analytics(current_user):
+        raise HTTPException(
+            status_code=403,
+            detail="This feature requires premium subscription or admin role"
+        )
+
+    try:
+        db = get_database()
+    except Exception:
+        raise HTTPException(status_code=503, detail="Database not connected")
+
+    # Parse dates
+    start_date = None
+    end_date = None
+    
+    if request.start_date:
+        try:
+            # Try ISO format first
+            if "T" in request.start_date:
+                start_date = datetime.fromisoformat(request.start_date.replace("Z", "+00:00"))
+            else:
+                # Try YYYY-MM-DD format
+                start_date = datetime.strptime(request.start_date, "%Y-%m-%d")
+        except ValueError:
+            raise HTTPException(status_code=400, detail="Invalid start_date format. Use ISO format or YYYY-MM-DD")
+    
+    if request.end_date:
+        try:
+            # Try ISO format first
+            if "T" in request.end_date:
+                end_date = datetime.fromisoformat(request.end_date.replace("Z", "+00:00"))
+            else:
+                # Try YYYY-MM-DD format
+                end_date = datetime.strptime(request.end_date, "%Y-%m-%d")
+                end_date = end_date.replace(hour=23, minute=59, second=59)
+        except ValueError:
+            raise HTTPException(status_code=400, detail="Invalid end_date format. Use ISO format or YYYY-MM-DD")
+    
+    # Import and call analysis service
+    from app.services.pedestrian_location_analysis import analyze_pedestrian_locations as analyze_locations
+    
+    try:
+        result = await analyze_locations(
+            start_date=start_date,
+            end_date=end_date,
+            business_type=request.business_type,
+            max_suggestions=request.max_suggestions,
+            use_cache=request.use_cache,
+            force_refresh=request.force_refresh
+        )
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error analyzing locations: {str(e)}")
+
+
+@router.get("/location-groups", response_model=List[dict])
+async def get_location_groups(
+    start_date: Optional[str] = Query(None, description="Start date (YYYY-MM-DD or ISO format)"),
+    end_date: Optional[str] = Query(None, description="End date (YYYY-MM-DD or ISO format)"),
+    min_count: int = Query(10, ge=1, description="Minimum pedestrian count per location"),
+    current_user: UserInDB = Depends(get_current_user)
+):
+    """
+    Get location groups from pedestrian data analysis.
+    Groups pedestrian data by location using grid-based clustering.
+    
+    Requires premium subscription or admin role.
+    """
+    if not can_access_pedestrian_analytics(current_user):
+        raise HTTPException(
+            status_code=403,
+            detail="This feature requires premium subscription or admin role"
+        )
+
+    try:
+        db = get_database()
+    except Exception:
+        raise HTTPException(status_code=503, detail="Database not connected")
+
+    # Parse dates
+    start_dt = None
+    end_dt = None
+    
+    if start_date:
+        try:
+            if "T" in start_date:
+                start_dt = datetime.fromisoformat(start_date.replace("Z", "+00:00"))
+            else:
+                start_dt = datetime.strptime(start_date, "%Y-%m-%d")
+        except ValueError:
+            raise HTTPException(status_code=400, detail="Invalid start_date format")
+    
+    if end_date:
+        try:
+            if "T" in end_date:
+                end_dt = datetime.fromisoformat(end_date.replace("Z", "+00:00"))
+            else:
+                end_dt = datetime.strptime(end_date, "%Y-%m-%d")
+                end_dt = end_dt.replace(hour=23, minute=59, second=59)
+        except ValueError:
+            raise HTTPException(status_code=400, detail="Invalid end_date format")
+    
+    from app.services.pedestrian_location_analysis import group_pedestrian_data_by_location
+    
+    try:
+        location_groups = await group_pedestrian_data_by_location(
+            start_date=start_dt,
+            end_date=end_dt,
+            min_count=min_count
+        )
+        
+        # Convert to list format
+        results = []
+        for grid_key, group_data in location_groups.items():
+            results.append(group_data)
+        
+        return sorted(results, key=lambda x: x["traffic_score"], reverse=True)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error getting location groups: {str(e)}")
 

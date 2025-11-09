@@ -14,6 +14,7 @@ __all__ = [
     "location_hierarchy",
     "location_library",
     "neighborhoods",
+    "pedestrian_location_analysis",
     "reminder_service",
     "title_extractor",
     "user_service",
