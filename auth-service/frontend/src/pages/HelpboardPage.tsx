@@ -83,9 +83,13 @@ export default function HelpboardPage() {
     });
   };
 
-  const handleAcceptResponse = async (responseId: string, status: 'accepted' | 'declined') => {
+  const handleAcceptResponse = async (responseId: string, requestId: string, status: 'accepted' | 'declined') => {
     try {
       await helpdeskAPI.updateResponseStatus(responseId, status);
+      // If accepting a response, automatically set the request status to "accepted"
+      if (status === 'accepted') {
+        await helpdeskAPI.updateRequest(requestId, { status: 'accepted' });
+      }
       fetchResponses();
       fetchRequests(); // Refresh to update request status if needed
     } catch (error: any) {
@@ -269,13 +273,13 @@ export default function HelpboardPage() {
                             {request.user_id && canAcceptResponse(user, request.user_id) && response.status === 'pending' && (
                               <div style={styles.responseActions}>
                                 <button
-                                  onClick={() => handleAcceptResponse(response._id, 'accepted')}
+                                  onClick={() => handleAcceptResponse(response._id, request._id, 'accepted')}
                                   style={styles.acceptButton}
                                 >
                                   ✅ Accept
                                 </button>
                                 <button
-                                  onClick={() => handleAcceptResponse(response._id, 'declined')}
+                                  onClick={() => handleAcceptResponse(response._id, request._id, 'declined')}
                                   style={styles.declineButton}
                                 >
                                   ❌ Decline

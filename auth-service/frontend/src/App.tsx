@@ -18,6 +18,7 @@ import CityPulse from './pages/CityPulse';
 import { PedestrianAnalyzer } from './pages/PedestrianAnalyzer';
 import HelpboardLanding from './pages/HelpboardLanding';
 import MyTrades from './pages/MyTrades';
+import MyResponsesPage from './pages/MyResponsesPage';
 
 const AppRoutes: React.FC = () => {
   return (
@@ -36,6 +37,14 @@ const AppRoutes: React.FC = () => {
           element={
             <ProtectedRoute>
               <MyTrades />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/helpboard/my-responses"
+          element={
+            <ProtectedRoute>
+              <MyResponsesPage />
             </ProtectedRoute>
           }
         />

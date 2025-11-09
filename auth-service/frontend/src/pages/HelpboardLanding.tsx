@@ -187,9 +187,13 @@ const HelpboardLanding: React.FC = () => {
     }
   };
 
-  const handleAcceptResponse = async (responseId: string, status: 'accepted' | 'declined') => {
+  const handleAcceptResponse = async (responseId: string, requestId: string, status: 'accepted' | 'declined') => {
     try {
       await helpdeskAPI.updateResponseStatus(responseId, status);
+      // If accepting a response, automatically set the request status to "accepted"
+      if (status === 'accepted') {
+        await helpdeskAPI.updateRequest(requestId, { status: 'accepted' });
+      }
       fetchResponses();
       fetchAll();
     } catch (error: any) {
@@ -215,9 +219,14 @@ const HelpboardLanding: React.FC = () => {
             {showRequestForm ? '✕ Close Form' : '+ Submit Request'}
           </button>
           {user && (
-            <Link to="/helpboard/my-trades" style={styles.tabButton}>
-              👷 My Trades
-            </Link>
+            <>
+              <Link to="/helpboard/my-trades" style={styles.tabButton}>
+                👷 My Trades
+              </Link>
+              <Link to="/helpboard/my-responses" style={styles.tabButton}>
+                💬 My Responses
+              </Link>
+            </>
           )}
           <Link to="/helpboard/requests" style={styles.tabButton}>
             📣 All Requests
@@ -305,6 +314,27 @@ const HelpboardLanding: React.FC = () => {
                       </div>
                     )}
                   </div>
+                  {/* Quick Status Update - only for request owner */}
+                  {user && r.user_id === user.id && (
+                    <div style={styles.statusUpdateSection}>
+                      <label style={styles.statusLabel}>Status:</label>
+                      <select
+                        value={r.status || 'open'}
+                        onChange={async (e) => {
+                          try {
+                            await helpdeskAPI.updateRequest(r._id, { status: e.target.value });
+                            fetchAll();
+                          } catch (error: any) {
+                            alert(`Failed to update status: ${error.message}`);
+                          }
+                        }}
+                        style={styles.statusSelect}
+                      >
+                        <option value="open">Open</option>
+                        <option value="closed">Closed</option>
+                      </select>
+                    </div>
+                  )}
                   {/* Show responses button for my requests */}
                   {user && (
                     <button
@@ -343,13 +373,13 @@ const HelpboardLanding: React.FC = () => {
                               {r.user_id && canAcceptResponse(user, r.user_id) && response.status === 'pending' && (
                                 <div style={styles.responseActions}>
                                   <button
-                                    onClick={() => handleAcceptResponse(response._id, 'accepted')}
+                                    onClick={() => handleAcceptResponse(response._id, r._id, 'accepted')}
                                     style={styles.acceptButton}
                                   >
                                     ✅ Accept
                                   </button>
                                   <button
-                                    onClick={() => handleAcceptResponse(response._id, 'declined')}
+                                    onClick={() => handleAcceptResponse(response._id, r._id, 'declined')}
                                     style={styles.declineButton}
                                   >
                                     ❌ Decline
@@ -711,6 +741,29 @@ const styles: { [key: string]: React.CSSProperties } = {
     color: '#666',
     fontSize: '0.9rem',
     fontStyle: 'italic',
+  },
+  statusUpdateSection: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '0.75rem',
+    marginTop: '0.75rem',
+    paddingTop: '0.75rem',
+    borderTop: '1px solid #e9ecef',
+  },
+  statusLabel: {
+    fontSize: '0.9rem',
+    fontWeight: '500',
+    color: '#333',
+  },
+  statusSelect: {
+    padding: '0.5rem 0.75rem',
+    border: '1px solid #ddd',
+    borderRadius: '6px',
+    fontSize: '0.9rem',
+    fontFamily: 'inherit',
+    backgroundColor: 'white',
+    cursor: 'pointer',
+    minWidth: '120px',
   },
 };
 

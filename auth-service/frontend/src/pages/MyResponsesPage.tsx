@@ -15,10 +15,11 @@ interface ResponseItem {
 
 interface RequestItem {
   _id: string;
+  title?: string;
   user_id?: string;
 }
 
-export default function ResponsesPage() {
+export default function MyResponsesPage() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [responses, setResponses] = useState<ResponseItem[]>([]);
@@ -54,20 +55,22 @@ export default function ResponsesPage() {
     fetchResponses();
   }, []);
 
-  // Filter responses to only show those for requests owned by the current user
-  const getFilteredResponses = () => {
+  // Filter responses to only show those created by the current user
+  const getMyResponses = () => {
     if (!user) return [];
-    const userRequestIds = new Set(
-      requests.filter(r => r.user_id === user.id).map(r => r._id)
-    );
-    return responses.filter(r => userRequestIds.has(r.request_id));
+    return responses.filter(r => r.responder_id === user.id);
+  };
+
+  const getRequestTitle = (requestId: string) => {
+    const request = requests.find(r => r._id === requestId);
+    return request?.title || `Request ${requestId.substring(0, 8)}...`;
   };
 
   const getStatusColor = (status?: string) => {
     switch (status?.toLowerCase()) {
       case 'accepted':
         return '#28a745';
-      case 'rejected':
+      case 'declined':
         return '#dc3545';
       case 'pending':
         return '#ffc107';
@@ -118,12 +121,14 @@ export default function ResponsesPage() {
     }
   };
 
+  const myResponses = getMyResponses();
+
   return (
     <div className="helpboard-page">
       <div style={styles.header}>
-        <h1 style={styles.headerTitle}>💬 Responses</h1>
+        <h1 style={styles.headerTitle}>💬 My Responses</h1>
         <p style={styles.headerSubtitle}>
-          View all responses to help requests
+          View and manage all responses you've created
         </p>
         <div style={styles.controlsRow}>
           <button
@@ -138,15 +143,19 @@ export default function ResponsesPage() {
       <div style={styles.content}>
         <div style={styles.statsBar}>
           <div style={styles.statItem}>
-            <strong>Total Responses:</strong> {getFilteredResponses().length}
+            <strong>Total Responses:</strong> {myResponses.length}
           </div>
           <div style={styles.statItem}>
             <strong>Pending:</strong>{' '}
-            {getFilteredResponses().filter((r) => r.status === 'pending').length}
+            {myResponses.filter((r) => r.status === 'pending').length}
           </div>
           <div style={styles.statItem}>
             <strong>Accepted:</strong>{' '}
-            {getFilteredResponses().filter((r) => r.status === 'accepted').length}
+            {myResponses.filter((r) => r.status === 'accepted').length}
+          </div>
+          <div style={styles.statItem}>
+            <strong>Declined:</strong>{' '}
+            {myResponses.filter((r) => r.status === 'declined').length}
           </div>
         </div>
 
@@ -154,19 +163,19 @@ export default function ResponsesPage() {
           <p style={styles.loading}>Loading responses...</p>
         ) : !user ? (
           <div style={styles.emptyState}>
-            <p>Please log in to see responses to your requests.</p>
+            <p>Please log in to see your responses.</p>
           </div>
-        ) : getFilteredResponses().length === 0 ? (
+        ) : myResponses.length === 0 ? (
           <div style={styles.emptyState}>
-            <p>No responses to your requests yet.</p>
+            <p>You haven't created any responses yet.</p>
           </div>
         ) : (
           <div style={styles.responsesList}>
-            {getFilteredResponses().map((response) => (
+            {myResponses.map((response) => (
               <div key={response._id} style={styles.responseCard}>
                 <div style={styles.responseHeader}>
                   <div style={styles.responseInfo}>
-                    <strong>Request ID:</strong> {response.request_id}
+                    <strong>Request:</strong> {getRequestTitle(response.request_id)}
                   </div>
                   <span
                     style={{
@@ -181,9 +190,6 @@ export default function ResponsesPage() {
                 <div style={styles.responseBody}>
                   <p style={styles.responseMessage}>{response.message}</p>
                   <div style={styles.responseMeta}>
-                    <div style={styles.metaItem}>
-                      <strong>Responder:</strong> {response.responder_id}
-                    </div>
                     {response.date_created && (
                       <div style={styles.metaItem}>
                         <strong>Date:</strong>{' '}
@@ -502,3 +508,4 @@ const styles: { [key: string]: React.CSSProperties } = {
     fontWeight: '500',
   },
 };
+

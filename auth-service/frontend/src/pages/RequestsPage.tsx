@@ -37,7 +37,7 @@ export default function RequestsPage() {
   const [loading, setLoading] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [editingRequest, setEditingRequest] = useState<RequestItem | null>(null);
-  const [editForm, setEditForm] = useState({ title: '', description: '', trade_needed: '', budget: 0 });
+  const [editForm, setEditForm] = useState({ title: '', description: '', trade_needed: '', budget: 0, urgency: 'normal', status: 'open' });
   const [updatingStatusId, setUpdatingStatusId] = useState<string | null>(null);
 
   const fetchRequests = async () => {
@@ -97,6 +97,8 @@ export default function RequestsPage() {
       description: request.description || '',
       trade_needed: request.trade_needed || '',
       budget: request.budget || 0,
+      urgency: request.urgency || 'normal',
+      status: request.status || 'open',
     });
   };
 
@@ -109,6 +111,8 @@ export default function RequestsPage() {
         description: editForm.description,
         trade_needed: editForm.trade_needed,
         budget: editForm.budget,
+        urgency: editForm.urgency,
+        status: editForm.status,
       });
       setEditingRequest(null);
       fetchRequests();
@@ -118,10 +122,14 @@ export default function RequestsPage() {
     }
   };
 
-  const handleAcceptResponse = async (responseId: string, status: 'accepted' | 'declined') => {
+  const handleAcceptResponse = async (responseId: string, requestId: string, status: 'accepted' | 'declined') => {
     setUpdatingStatusId(responseId);
     try {
       await helpdeskAPI.updateResponseStatus(responseId, status);
+      // If accepting a response, automatically set the request status to "accepted"
+      if (status === 'accepted') {
+        await helpdeskAPI.updateRequest(requestId, { status: 'accepted' });
+      }
       fetchResponses();
       fetchRequests(); // Refresh to update request status if needed
     } catch (error: any) {
@@ -293,14 +301,14 @@ export default function RequestsPage() {
                         {request.user_id && canAcceptResponse(user, request.user_id) && response.status === 'pending' && (
                           <div style={styles.responseActions}>
                             <button
-                              onClick={() => handleAcceptResponse(response._id, 'accepted')}
+                              onClick={() => handleAcceptResponse(response._id, request._id, 'accepted')}
                               disabled={updatingStatusId === response._id}
                               style={styles.acceptButton}
                             >
                               {updatingStatusId === response._id ? 'Updating...' : '✅ Accept'}
                             </button>
                             <button
-                              onClick={() => handleAcceptResponse(response._id, 'declined')}
+                              onClick={() => handleAcceptResponse(response._id, request._id, 'declined')}
                               disabled={updatingStatusId === response._id}
                               style={styles.declineButton}
                             >
@@ -323,6 +331,28 @@ export default function RequestsPage() {
                         fetchResponses();
                       }}
                     />
+                  </div>
+                )}
+
+                {/* Quick Status Update - only for request owner */}
+                {request.user_id && canEditRequest(user, request.user_id) && (
+                  <div style={styles.statusUpdateSection}>
+                    <label style={styles.statusLabel}>Status:</label>
+                    <select
+                      value={request.status || 'open'}
+                      onChange={async (e) => {
+                        try {
+                          await helpdeskAPI.updateRequest(request._id, { status: e.target.value });
+                          fetchRequests();
+                        } catch (error: any) {
+                          alert(`Failed to update status: ${error.message}`);
+                        }
+                      }}
+                      style={styles.statusSelect}
+                    >
+                      <option value="open">Open</option>
+                      <option value="closed">Closed</option>
+                    </select>
                   </div>
                 )}
 
@@ -402,6 +432,30 @@ export default function RequestsPage() {
                   min="0"
                   style={styles.input}
                 />
+              </div>
+              <div style={styles.formGroup}>
+                <label style={styles.label}>Urgency</label>
+                <select
+                  value={editForm.urgency}
+                  onChange={(e) => setEditForm({ ...editForm, urgency: e.target.value })}
+                  style={styles.select}
+                >
+                  <option value="low">Low</option>
+                  <option value="normal">Normal</option>
+                  <option value="medium">Medium</option>
+                  <option value="high">High</option>
+                </select>
+              </div>
+              <div style={styles.formGroup}>
+                <label style={styles.label}>Status</label>
+                <select
+                  value={editForm.status}
+                  onChange={(e) => setEditForm({ ...editForm, status: e.target.value })}
+                  style={styles.select}
+                >
+                  <option value="open">Open</option>
+                  <option value="closed">Closed</option>
+                </select>
               </div>
             </div>
             <div style={styles.modalFooter}>
@@ -724,6 +778,17 @@ const styles: { [key: string]: React.CSSProperties } = {
     minHeight: '100px',
     boxSizing: 'border-box',
   },
+  select: {
+    width: '100%',
+    padding: '0.75rem',
+    border: '1px solid #ddd',
+    borderRadius: '6px',
+    fontSize: '1rem',
+    fontFamily: 'inherit',
+    backgroundColor: 'white',
+    cursor: 'pointer',
+    boxSizing: 'border-box',
+  },
   modalFooter: {
     display: 'flex',
     justifyContent: 'flex-end',
@@ -748,5 +813,28 @@ const styles: { [key: string]: React.CSSProperties } = {
     cursor: 'pointer',
     fontSize: '1rem',
     fontWeight: '500',
+  },
+  statusUpdateSection: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '0.75rem',
+    marginTop: '1rem',
+    paddingTop: '1rem',
+    borderTop: '1px solid #e9ecef',
+  },
+  statusLabel: {
+    fontSize: '0.9rem',
+    fontWeight: '500',
+    color: '#333',
+  },
+  statusSelect: {
+    padding: '0.5rem 0.75rem',
+    border: '1px solid #ddd',
+    borderRadius: '6px',
+    fontSize: '0.9rem',
+    fontFamily: 'inherit',
+    backgroundColor: 'white',
+    cursor: 'pointer',
+    minWidth: '120px',
   },
 };
