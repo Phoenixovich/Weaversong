@@ -1,0 +1,163 @@
+[
+  {
+    "name": "fire_magheru",
+    "text": "URGENT: Fire reported in apartment building on Bulevardul Magheru. Fire department on scene. Evacuate immediately if in the area.",
+    "payload": {
+      "text": "URGENT: Fire reported in apartment building on Bulevardul Magheru. Fire department on scene. Evacuate immediately if in the area.",
+      "user_lat": 44.4247,
+      "user_lng": 26.0907,
+      "is_speech": false
+    },
+    "timestamp": "2025-11-08T23:59:35.615920+00:00",
+    "status_code": 200,
+    "response": {
+      "is_valid_alert": true,
+      "reason": null,
+      "title": "URGENT: Cismigiu - URGENT: Fire reported in apartment bui...",
+      "description": "URGENT: Fire reported in apartment building on Bulevardul Magheru. Fire department on scene. Evacuate immediately if in the area.",
+      "category": "Emergency",
+      "priority": "Critical",
+      "location": {
+        "lat": 44.445,
+        "lng": 26.1,
+        "address": null
+      },
+      "location_hierarchy": {
+        "area": "Cismigiu",
+        "sector": "Sector 1",
+        "point": "44.445,26.1",
+        "city": "Bucharest"
+      },
+      "location_mentions": [
+        "Bulevardul Magheru"
+      ],
+      "contacts": {
+        "phone": null,
+        "email": null,
+        "other": null
+      },
+      "phone": null,
+      "email": null,
+      "other_contact": null,
+      "suggestions": [
+        "Contact emergency services: 112",
+        "Evacuate if necessary and stay safe"
+      ],
+      "neighborhood": "Cismigiu",
+      "area_type": "area"
+    }
+  },
+  {
+    "name": "lost_dog_herastrau",
+    "text": "Lost golden retriever near Herastrau Park. Wearing a blue collar. Please call 0700-123-456 if found.",
+    "payload": {
+      "text": "Lost golden retriever near Herastrau Park. Wearing a blue collar. Please call 0700-123-456 if found.",
+      "user_lat": null,
+      "user_lng": null,
+      "is_speech": false
+    },
+    "timestamp": "2025-11-08T23:59:36.619605+00:00",
+    "status_code": 200,
+    "response": {
+      "is_valid_alert": true,
+      "reason": null,
+      "title": "Lost Golden Retriever at Herastrau",
+      "description": "Lost golden retriever near Herastrau Park. Wearing a blue collar. Please call 0700-123-456 if found.",
+      "category": "Lost",
+      "priority": "Medium",
+      "location": {
+        "lat": 44.475,
+        "lng": 26.08,
+        "address": "Herastrau, Sector 1"
+      },
+      "location_hierarchy": {
+        "area": "Herastrau",
+        "sector": "Sector 1",
+        "point": "44.475,26.08",
+        "city": "Bucharest"
+      },
+      "location_mentions": [
+        "Herastrau"
+      ],
+      "contacts": {
+        "phone": "0700-123-456",
+        "email": null,
+        "other": "WhatsApp: 0700-123-456"
+      },
+      "phone": "0700-123-456",
+      "email": null,
+      "other_contact": "WhatsApp: 0700-123-456",
+      "suggestions": [
+        "Check with local authorities and community centers",
+        "Share on social media for wider reach"
+      ],
+      "neighborhood": "Herastrau",
+      "area_type": "area"
+    }
+  },
+  {
+    "name": "road_closure_cvictoriei",
+    "text": "Heads up: Road closure on Calea Victoriei between Universitate and Piata Romana due to overnight construction. Expect delays.",
+    "payload": {
+      "text": "Heads up: Road closure on Calea Victoriei between Universitate and Piata Romana due to overnight construction. Expect delays.",
+      "user_lat": 44.4398,
+      "user_lng": 26.0976,
+      "is_speech": false
+    },
+    "timestamp": "2025-11-08T23:59:48.874211+00:00",
+    "status_code": 200,
+    "response": {
+      "is_valid_alert": true,
+      "reason": null,
+      "title": "Sector 1 - Heads up: Road closure on Calea Victoriei betw...",
+      "description": "Heads up: Road closure on Calea Victoriei between Universitate and Piata Romana due to overnight construction. Expect delays.",
+      "category": "General",
+      "priority": "Medium",
+      "location": {
+        "lat": 44.45,
+        "lng": 26.09,
+        "address": "Piata Victoriei, Sector 1"
+      },
+      "location_hierarchy": {
+        "area": "Sector 1",
+        "sector": "Sector 1",
+        "point": "44.45,26.09",
+        "city": "Bucharest"
+      },
+      "location_mentions": [
+        "Piata Victoriei",
+        "Romană"
+      ],
+      "contacts": {
+        "phone": null,
+        "email": null,
+        "other": null
+      },
+      "phone": null,
+      "email": null,
+      "other_contact": null,
+      "suggestions": [
+        "Check transport authority updates",
+        "Consider alternative routes or transport"
+      ],
+      "neighborhood": "Sector 1",
+      "area_type": "sector"
+    }
+  },
+  {
+    "name": "not_an_alert",
+    "text": "Anyone know a good pizza place in Bucharest?",
+    "payload": {
+      "text": "Anyone know a good pizza place in Bucharest?",
+      "user_lat": null,
+      "user_lng": null,
+      "is_speech": false
+    },
+    "timestamp": "2025-11-08T23:59:49.552156+00:00",
+    "status_code": 200,
+    "response": {
+      "is_valid_alert": false,
+      "reason": "Location could not be determined. Please provide or select a location."
+    }
+  }
+]

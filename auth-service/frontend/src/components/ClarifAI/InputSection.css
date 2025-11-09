@@ -1,0 +1,207 @@
+.container {
+  padding: 1rem 2rem;
+  border-radius: 10px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  flex-shrink: 0;
+}
+
+@media (min-width: 1400px) {
+  .container {
+    padding: 1rem 2.5rem;
+  }
+}
+
+@media (min-width: 1920px) {
+  .container {
+    padding: 1rem 3rem;
+  }
+}
+
+.medicalContainer {
+  background-color: #e3f2fd;
+  border: 2px solid #2196f3;
+}
+
+.legalContainer {
+  background-color: #fff3e0;
+  border: 2px solid #ff9800;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.fileInput {
+  margin-bottom: 1rem;
+}
+
+.fileInputRow {
+  display: flex;
+  flex-direction: row;
+  gap: 0.5rem;
+  align-items: center;
+  margin-top: 0.5rem;
+}
+
+.fileLabel {
+  display: block;
+  color: #333;
+  font-weight: 500;
+  cursor: pointer;
+  margin-bottom: 0;
+}
+
+.pasteButton {
+  padding: 0.75rem 1.5rem;
+  background-color: #6c757d;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+  box-sizing: border-box;
+}
+
+.pasteButton:hover {
+  background-color: #5a6268;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.fileInputField {
+  flex: 1;
+  padding: 0.75rem;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  box-sizing: border-box;
+  background-color: white;
+  cursor: pointer;
+}
+
+.fileInfo {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 0.5rem;
+}
+
+.fileName {
+  color: #666;
+  font-size: 0.9rem;
+  margin: 0;
+  flex: 1;
+}
+
+.clearFileButton {
+  padding: 0.25rem 0.75rem;
+  background-color: #dc3545;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  margin-left: 0.5rem;
+}
+
+.errorMessage {
+  margin-top: 0.5rem;
+  color: #dc3545;
+  font-size: 0.85rem;
+  margin: 0;
+}
+
+.textAreaContainer {
+  margin-bottom: 1rem;
+}
+
+.label {
+  display: block;
+  margin-bottom: 0.5rem;
+  color: #333;
+  font-weight: 500;
+}
+
+.textarea {
+  width: 100%;
+  padding: 1rem;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 1rem;
+  font-family: inherit;
+  resize: vertical;
+  box-sizing: border-box;
+  background-color: white;
+  min-height: 200px;
+}
+
+@media (min-width: 1400px) {
+  .textarea {
+    padding: 1.25rem;
+    font-size: 1.05rem;
+  }
+}
+
+@media (min-width: 1920px) {
+  .textarea {
+    padding: 1.5rem;
+    font-size: 1.1rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .fileInputRow {
+    flex-direction: column;
+  }
+  
+  .pasteButton {
+    width: 100%;
+  }
+  
+  .container {
+    padding: 1rem 1.5rem;
+  }
+}
+
+.submitButton {
+  padding: 0.75rem 2rem;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  width: auto;
+  margin: 1rem auto 0;
+  display: block;
+  box-sizing: border-box;
+  transition: all 0.3s ease;
+}
+
+.medicalButton {
+  background-color: #2196f3;
+}
+
+.legalButton {
+  background-color: #ff9800;
+}
+
+.submitButtonDisabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.submitButton:hover:not(.submitButtonDisabled) {
+  opacity: 0.9;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+

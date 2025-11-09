@@ -1,0 +1,674 @@
+[
+  {
+    "title": "Traffic Accident on Calea Victoriei",
+    "description": "Two-car collision near the intersection with Bulevardul Magheru. Traffic is slow. Please avoid the area if possible.",
+    "category": "Road",
+    "priority": "High",
+    "location": {
+      "lat": 44.4475,
+      "lng": 26.0975,
+      "address": "Calea Victoriei, Sector 1, Bucharest"
+    },
+    "location_hierarchy": {
+      "point": "44.4475,26.0975",
+      "area": "Victoriei",
+      "sector": "Sector 1",
+      "city": "Bucharest"
+    },
+    "neighborhood": "Victoriei",
+    "area_type": "area",
+    "timestamp": 1735689600,
+    "user_id": "user_johndoe",
+    "phone": null,
+    "email": null,
+    "other_contact": null
+  },
+  {
+    "title": "Lost Dog - Golden Retriever",
+    "description": "Lost golden retriever named Max, last seen near Herastrau Park. Wearing a red collar with contact info. Please contact if found.",
+    "category": "Lost",
+    "priority": "Medium",
+    "location": {
+      "lat": 44.4750,
+      "lng": 26.0800,
+      "address": "Herastrau Park, Sector 1, Bucharest"
+    },
+    "location_hierarchy": {
+      "point": "44.4750,26.0800",
+      "area": "Herăstrău",
+      "sector": "Sector 1",
+      "city": "Bucharest"
+    },
+    "neighborhood": "Herăstrău",
+    "area_type": "area",
+    "timestamp": 1735678800,
+    "user_id": "user_janedoe",
+    "phone": "+40723456789",
+    "email": "jane.doe@example.com",
+    "other_contact": null
+  },
+  {
+    "title": "Heavy Rain Warning",
+    "description": "Severe weather alert: Heavy rain expected in the next 2 hours. Avoid flooded areas and drive carefully.",
+    "category": "Weather",
+    "priority": "High",
+    "location": {
+      "lat": null,
+      "lng": null,
+      "address": "Bucharest, Romania"
+    },
+    "location_hierarchy": {
+      "point": null,
+      "area": null,
+      "sector": null,
+      "city": "Bucharest"
+    },
+    "neighborhood": null,
+    "area_type": "city",
+    "timestamp": 1735691400,
+    "user_id": "user_anonymous",
+    "phone": null,
+    "email": null,
+    "other_contact": null
+  },
+  {
+    "title": "Suspicious Activity Near Politehnica",
+    "description": "Unusual behavior reported near Politehnica University. Please be cautious and report any suspicious activity to authorities.",
+    "category": "Safety",
+    "priority": "High",
+    "location": {
+      "lat": 44.4390,
+      "lng": 26.0530,
+      "address": "Politehnica University, Sector 1, Bucharest"
+    },
+    "location_hierarchy": {
+      "point": "44.4390,26.0530",
+      "area": "Politehnica",
+      "sector": "Sector 1",
+      "city": "Bucharest"
+    },
+    "neighborhood": "Politehnica",
+    "area_type": "area",
+    "timestamp": 1735686000,
+    "user_id": "user_anonymous",
+    "phone": null,
+    "email": null,
+    "other_contact": null
+  },
+  {
+    "title": "Community Cleanup Event at Carol Park",
+    "description": "Organizing a neighborhood cleanup this Saturday at 10 AM. All welcome! Meet at Carol Park entrance.",
+    "category": "Event",
+    "priority": "Low",
+    "location": {
+      "lat": 44.4200,
+      "lng": 26.1000,
+      "address": "Carol Park, Sector 3, Bucharest"
+    },
+    "location_hierarchy": {
+      "point": "44.4200,26.1000",
+      "area": "Carol Park",
+      "sector": "Sector 3",
+      "city": "Bucharest"
+    },
+    "neighborhood": "Carol Park",
+    "area_type": "area",
+    "timestamp": 1735603200,
+    "user_id": "user_johndoe",
+    "phone": "+40712345678",
+    "email": "john.doe@example.com",
+    "other_contact": "WhatsApp: +40712345678"
+  },
+  {
+    "title": "Road Closure - Construction on Lipscani",
+    "description": "Strada Lipscani closed for construction until next week. Use alternate routes. Detour signs are posted.",
+    "category": "Construction",
+    "priority": "Medium",
+    "location": {
+      "lat": 44.4319,
+      "lng": 26.1028,
+      "address": "Strada Lipscani, Sector 3, Bucharest"
+    },
+    "location_hierarchy": {
+      "point": "44.4319,26.1028",
+      "area": "Lipscani",
+      "sector": "Sector 3",
+      "city": "Bucharest"
+    },
+    "neighborhood": "Lipscani",
+    "area_type": "area",
+    "timestamp": 1735675200,
+    "user_id": "user_anonymous",
+    "phone": null,
+    "email": null,
+    "other_contact": null
+  },
+  {
+    "title": "Found Cat - Black and White at Piata Unirii",
+    "description": "Found a friendly black and white cat near the metro station at Piata Unirii. Looking for owner. Cat appears healthy and well-fed.",
+    "category": "Lost",
+    "priority": "Medium",
+    "location": {
+      "lat": 44.4250,
+      "lng": 26.1050,
+      "address": "Piata Unirii, Sector 3, Bucharest"
+    },
+    "location_hierarchy": {
+      "point": "44.4250,26.1050",
+      "area": "Unirii",
+      "sector": "Sector 3",
+      "city": "Bucharest"
+    },
+    "neighborhood": "Unirii",
+    "area_type": "area",
+    "timestamp": 1735682400,
+    "user_id": "user_janedoe",
+    "phone": "+40723456789",
+    "email": null,
+    "other_contact": "WhatsApp: +40723456789"
+  },
+  {
+    "title": "Ice on Sidewalks at Cismigiu",
+    "description": "Icy conditions on sidewalks near Cismigiu Park. Walk carefully and watch your step. Use handrails if available.",
+    "category": "Safety",
+    "priority": "Medium",
+    "location": {
+      "lat": 44.4400,
+      "lng": 26.0950,
+      "address": "Cismigiu Park, Sector 1, Bucharest"
+    },
+    "location_hierarchy": {
+      "point": "44.4400,26.0950",
+      "area": "Cismigiu",
+      "sector": "Sector 1",
+      "city": "Bucharest"
+    },
+    "neighborhood": "Cismigiu",
+    "area_type": "area",
+    "timestamp": 1735691100,
+    "user_id": "user_anonymous",
+    "phone": null,
+    "email": null,
+    "other_contact": null
+  },
+  {
+    "title": "Power Outage in Pantelimon",
+    "description": "Power outage reported in Pantelimon, Sector 2, affecting several blocks. Utility company has been notified. Expected restoration in 2-3 hours.",
+    "category": "Infrastructure",
+    "priority": "High",
+    "location": {
+      "lat": 44.4000,
+      "lng": 26.1300,
+      "address": "Pantelimon, Sector 2, Bucharest"
+    },
+    "location_hierarchy": {
+      "point": "44.4000,26.1300",
+      "area": "Pantelimon",
+      "sector": "Sector 2",
+      "city": "Bucharest"
+    },
+    "neighborhood": "Pantelimon",
+    "area_type": "area",
+    "timestamp": 1735687800,
+    "user_id": "user_anonymous",
+    "phone": null,
+    "email": null,
+    "other_contact": null
+  },
+  {
+    "title": "Metro Line 2 Delay",
+    "description": "Metro Line 2 experiencing delays due to technical issues. Expect 10-15 minute delays. Alternative transport recommended.",
+    "category": "PublicTransport",
+    "priority": "Medium",
+    "location": {
+      "lat": null,
+      "lng": null,
+      "address": "Metro Line 2, Bucharest"
+    },
+    "location_hierarchy": {
+      "point": null,
+      "area": null,
+      "sector": null,
+      "city": "Bucharest"
+    },
+    "neighborhood": null,
+    "area_type": "city",
+    "timestamp": 1735689000,
+    "user_id": "user_anonymous",
+    "phone": null,
+    "email": null,
+    "other_contact": null
+  },
+  {
+    "title": "Fire Emergency - Apartment Building on Bulevardul Magheru",
+    "description": "URGENT: Fire reported in apartment building on Bulevardul Magheru. Fire department on scene. Evacuate immediately if in the area.",
+    "category": "Emergency",
+    "priority": "Critical",
+    "location": {
+      "lat": 44.4450,
+      "lng": 26.1000,
+      "address": "Bulevardul Magheru, Sector 1, Bucharest"
+    },
+    "location_hierarchy": {
+      "point": "44.4450,26.1000",
+      "area": "Victoriei",
+      "sector": "Sector 1",
+      "city": "Bucharest"
+    },
+    "neighborhood": "Victoriei",
+    "area_type": "area",
+    "timestamp": 1735692000,
+    "user_id": "user_anonymous",
+    "phone": null,
+    "email": null,
+    "other_contact": null
+  },
+  {
+    "title": "Air Quality Alert - Smoke in Berceni",
+    "description": "Heavy smoke detected in Berceni area. Air quality may be affected. Close windows and avoid outdoor activities if possible.",
+    "category": "Environment",
+    "priority": "High",
+    "location": {
+      "lat": 44.3800,
+      "lng": 26.1200,
+      "address": "Berceni, Sector 4, Bucharest"
+    },
+    "location_hierarchy": {
+      "point": "44.3800,26.1200",
+      "area": "Berceni",
+      "sector": "Sector 4",
+      "city": "Bucharest"
+    },
+    "neighborhood": "Berceni",
+    "area_type": "area",
+    "timestamp": 1735688400,
+    "user_id": "user_anonymous",
+    "phone": null,
+    "email": null,
+    "other_contact": null
+  },
+  {
+    "title": "Traffic Jam on Drumul Taberei",
+    "description": "Heavy traffic jam on Drumul Taberei. Expect significant delays. Consider alternative routes.",
+    "category": "Traffic",
+    "priority": "Medium",
+    "location": {
+      "lat": 44.4100,
+      "lng": 26.0300,
+      "address": "Drumul Taberei, Sector 6, Bucharest"
+    },
+    "location_hierarchy": {
+      "point": "44.4100,26.0300",
+      "area": "Drumul Taberei",
+      "sector": "Sector 6",
+      "city": "Bucharest"
+    },
+    "neighborhood": "Drumul Taberei",
+    "area_type": "area",
+    "timestamp": 1735687200,
+    "user_id": "user_anonymous",
+    "phone": null,
+    "email": null,
+    "other_contact": null
+  },
+  {
+    "title": "Theft Reported - Gara de Nord",
+    "description": "Theft reported near Gara de Nord train station. Be vigilant with your belongings. Report suspicious activity to police.",
+    "category": "Crime",
+    "priority": "High",
+    "location": {
+      "lat": 44.4475,
+      "lng": 26.0750,
+      "address": "Gara de Nord, Sector 1, Bucharest"
+    },
+    "location_hierarchy": {
+      "point": "44.4475,26.0750",
+      "area": "Gara de Nord",
+      "sector": "Sector 1",
+      "city": "Bucharest"
+    },
+    "neighborhood": "Gara de Nord",
+    "area_type": "area",
+    "timestamp": 1735686600,
+    "user_id": "user_anonymous",
+    "phone": null,
+    "email": null,
+    "other_contact": null
+  },
+  {
+    "title": "Lost Wallet Found at AFI Cotroceni",
+    "description": "Found a wallet near AFI Cotroceni shopping center. Contains ID and cards. Please contact to identify and claim.",
+    "category": "Lost",
+    "priority": "Low",
+    "location": {
+      "lat": 44.4280,
+      "lng": 26.0600,
+      "address": "AFI Cotroceni, Sector 5, Bucharest"
+    },
+    "location_hierarchy": {
+      "point": "44.4280,26.0600",
+      "area": "Cotroceni",
+      "sector": "Sector 5",
+      "city": "Bucharest"
+    },
+    "neighborhood": "Cotroceni",
+    "area_type": "area",
+    "timestamp": 1735683000,
+    "user_id": "user_johndoe",
+    "phone": "+40712345678",
+    "email": "john.doe@example.com",
+    "other_contact": null
+  },
+  {
+    "title": "Road Work on Colentina Street",
+    "description": "Road work in progress on Colentina Street, Sector 2. Expect delays and use alternate routes if possible.",
+    "category": "Construction",
+    "priority": "Medium",
+    "location": {
+      "lat": 44.4050,
+      "lng": 26.1250,
+      "address": "Colentina Street, Sector 2, Bucharest"
+    },
+    "location_hierarchy": {
+      "point": "44.4050,26.1250",
+      "area": "Colentina",
+      "sector": "Sector 2",
+      "city": "Bucharest"
+    },
+    "neighborhood": "Colentina",
+    "area_type": "area",
+    "timestamp": 1735684200,
+    "user_id": "user_anonymous",
+    "phone": null,
+    "email": null,
+    "other_contact": null
+  },
+  {
+    "title": "Community Event at Obor Market",
+    "description": "Local farmers market event this Sunday at Obor Market. Fresh produce and local products available.",
+    "category": "Event",
+    "priority": "Low",
+    "location": {
+      "lat": 44.4100,
+      "lng": 26.1200,
+      "address": "Obor Market, Sector 2, Bucharest"
+    },
+    "location_hierarchy": {
+      "point": "44.4100,26.1200",
+      "area": "Obor",
+      "sector": "Sector 2",
+      "city": "Bucharest"
+    },
+    "neighborhood": "Obor",
+    "area_type": "area",
+    "timestamp": 1735605000,
+    "user_id": "user_janedoe",
+    "phone": "+40723456789",
+    "email": "jane.doe@example.com",
+    "other_contact": null
+  },
+  {
+    "title": "Water Leak on Titan Street",
+    "description": "Water leak reported on Titan Street. Water utility has been notified. Please avoid the area.",
+    "category": "Infrastructure",
+    "priority": "High",
+    "location": {
+      "lat": 44.4200,
+      "lng": 26.1400,
+      "address": "Titan, Sector 3, Bucharest"
+    },
+    "location_hierarchy": {
+      "point": "44.4200,26.1400",
+      "area": "Titan",
+      "sector": "Sector 3",
+      "city": "Bucharest"
+    },
+    "neighborhood": "Titan",
+    "area_type": "area",
+    "timestamp": 1735685400,
+    "user_id": "user_anonymous",
+    "phone": null,
+    "email": null,
+    "other_contact": null
+  },
+  {
+    "title": "Suspicious Activity in Vitan",
+    "description": "Unusual activity reported in Vitan neighborhood. Please be cautious and report any suspicious behavior.",
+    "category": "Safety",
+    "priority": "Medium",
+    "location": {
+      "lat": 44.4100,
+      "lng": 26.1300,
+      "address": "Vitan, Sector 3, Bucharest"
+    },
+    "location_hierarchy": {
+      "point": "44.4100,26.1300",
+      "area": "Vitan",
+      "sector": "Sector 3",
+      "city": "Bucharest"
+    },
+    "neighborhood": "Vitan",
+    "area_type": "area",
+    "timestamp": 1735684800,
+    "user_id": "user_anonymous",
+    "phone": null,
+    "email": null,
+    "other_contact": null
+  },
+  {
+    "title": "Traffic Accident in Rahova",
+    "description": "Two-vehicle accident reported in Rahova. Emergency services on scene. Expect traffic delays.",
+    "category": "Road",
+    "priority": "High",
+    "location": {
+      "lat": 44.4300,
+      "lng": 26.0500,
+      "address": "Rahova, Sector 5, Bucharest"
+    },
+    "location_hierarchy": {
+      "point": "44.4300,26.0500",
+      "area": "Rahova",
+      "sector": "Sector 5",
+      "city": "Bucharest"
+    },
+    "neighborhood": "Rahova",
+    "area_type": "area",
+    "timestamp": 1735683600,
+    "user_id": "user_anonymous",
+    "phone": null,
+    "email": null,
+    "other_contact": null
+  },
+  {
+    "title": "Lost Pet - Cat in Militari",
+    "description": "Lost orange tabby cat in Militari area. Last seen near Mega Mall. Please contact if found.",
+    "category": "Lost",
+    "priority": "Medium",
+    "location": {
+      "lat": 44.4200,
+      "lng": 26.0200,
+      "address": "Militari, Sector 6, Bucharest"
+    },
+    "location_hierarchy": {
+      "point": "44.4200,26.0200",
+      "area": "Militari",
+      "sector": "Sector 6",
+      "city": "Bucharest"
+    },
+    "neighborhood": "Militari",
+    "area_type": "area",
+    "timestamp": 1735681800,
+    "user_id": "user_janedoe",
+    "phone": "+40723456789",
+    "email": "jane.doe@example.com",
+    "other_contact": "WhatsApp: +40723456789"
+  },
+  {
+    "title": "Gas Leak Reported in Crangasi",
+    "description": "Gas leak reported in Crangasi area. Emergency services on scene. Please evacuate the area immediately.",
+    "category": "Emergency",
+    "priority": "Critical",
+    "location": {
+      "lat": 44.4400,
+      "lng": 26.0400,
+      "address": "Crangasi, Sector 6, Bucharest"
+    },
+    "location_hierarchy": {
+      "point": "44.4400,26.0400",
+      "area": "Crângași",
+      "sector": "Sector 6",
+      "city": "Bucharest"
+    },
+    "neighborhood": "Crângași",
+    "area_type": "area",
+    "timestamp": 1735692600,
+    "user_id": "user_anonymous",
+    "phone": null,
+    "email": null,
+    "other_contact": null
+  },
+  {
+    "title": "Community Garden Opening in Tineretului",
+    "description": "New community garden opening in Tineretului Park this weekend. All welcome to join!",
+    "category": "Event",
+    "priority": "Low",
+    "location": {
+      "lat": 44.3900,
+      "lng": 26.1350,
+      "address": "Tineretului Park, Sector 4, Bucharest"
+    },
+    "location_hierarchy": {
+      "point": "44.3900,26.1350",
+      "area": "Tineretului",
+      "sector": "Sector 4",
+      "city": "Bucharest"
+    },
+    "neighborhood": "Tineretului",
+    "area_type": "area",
+    "timestamp": 1735606800,
+    "user_id": "user_johndoe",
+    "phone": "+40712345678",
+    "email": "john.doe@example.com",
+    "other_contact": null
+  },
+  {
+    "title": "Broken Streetlight on Giurgiului",
+    "description": "Streetlight out on Giurgiului Street. Please be careful when walking at night. Reported to city services.",
+    "category": "Infrastructure",
+    "priority": "Low",
+    "location": {
+      "lat": 44.4250,
+      "lng": 26.0550,
+      "address": "Giurgiului Street, Sector 5, Bucharest"
+    },
+    "location_hierarchy": {
+      "point": "44.4250,26.0550",
+      "area": "Giurgiului",
+      "sector": "Sector 5",
+      "city": "Bucharest"
+    },
+    "neighborhood": "Giurgiului",
+    "area_type": "area",
+    "timestamp": 1735681200,
+    "user_id": "user_anonymous",
+    "phone": null,
+    "email": null,
+    "other_contact": null
+  },
+  {
+    "title": "Found Bicycle at Carturesti Carusel",
+    "description": "Found a blue bicycle locked near Carturesti Carusel bookstore. Appears to have been there for several days. Please contact to claim.",
+    "category": "Lost",
+    "priority": "Low",
+    "location": {
+      "lat": 44.4319,
+      "lng": 26.1028,
+      "address": "Carturesti Carusel, Sector 3, Bucharest"
+    },
+    "location_hierarchy": {
+      "point": "44.4319,26.1028",
+      "area": "Carturesti Carusel",
+      "sector": "Sector 3",
+      "city": "Bucharest"
+    },
+    "neighborhood": "Carturesti Carusel",
+    "area_type": "area",
+    "timestamp": 1735680600,
+    "user_id": "user_johndoe",
+    "phone": "+40712345678",
+    "email": "john.doe@example.com",
+    "other_contact": null
+  },
+  {
+    "title": "Traffic Jam on Baneasa Highway",
+    "description": "Heavy traffic on Baneasa highway exit. Expect delays of 20-30 minutes. Consider using alternative routes.",
+    "category": "Traffic",
+    "priority": "Medium",
+    "location": {
+      "lat": 44.5100,
+      "lng": 26.0800,
+      "address": "Baneasa, Sector 1, Bucharest"
+    },
+    "location_hierarchy": {
+      "point": "44.5100,26.0800",
+      "area": "Băneasa",
+      "sector": "Sector 1",
+      "city": "Bucharest"
+    },
+    "neighborhood": "Băneasa",
+    "area_type": "area",
+    "timestamp": 1735680000,
+    "user_id": "user_anonymous",
+    "phone": null,
+    "email": null,
+    "other_contact": null
+  },
+  {
+    "title": "Vandalism Reported in Ferentari",
+    "description": "Graffiti and vandalism reported in Ferentari area. Please report any suspicious activity to authorities.",
+    "category": "Crime",
+    "priority": "Medium",
+    "location": {
+      "lat": 44.4150,
+      "lng": 26.0600,
+      "address": "Ferentari, Sector 5, Bucharest"
+    },
+    "location_hierarchy": {
+      "point": "44.4150,26.0600",
+      "area": "Ferentari",
+      "sector": "Sector 5",
+      "city": "Bucharest"
+    },
+    "neighborhood": "Ferentari",
+    "area_type": "area",
+    "timestamp": 1735679400,
+    "user_id": "user_anonymous",
+    "phone": null,
+    "email": null,
+    "other_contact": null
+  },
+  {
+    "title": "Ice Warning - Ghencea Stadium Area",
+    "description": "Icy conditions reported near Ghencea Stadium. Walk carefully and watch your step.",
+    "category": "Safety",
+    "priority": "Medium",
+    "location": {
+      "lat": 44.4050,
+      "lng": 26.0450,
+      "address": "Ghencea, Sector 6, Bucharest"
+    },
+    "location_hierarchy": {
+      "point": "44.4050,26.0450",
+      "area": "Ghencea",
+      "sector": "Sector 6",
+      "city": "Bucharest"
+    },
+    "neighborhood": "Ghencea",
+    "area_type": "area",
+    "timestamp": 1735678800,
+    "user_id": "user_anonymous",
+    "phone": null,
+    "email": null,
+    "other_contact": null
+  }
+]

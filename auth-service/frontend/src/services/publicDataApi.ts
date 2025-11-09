@@ -43,28 +43,73 @@ export const publicDataAPI = {
   },
 
   // Datastore Search
-  getPredefinedResources: async (): Promise<{
+  getPredefinedResources: async (
+    category?: string,
+    search?: string,
+    limit: number = 100,
+    offset: number = 0
+  ): Promise<{
     resources: Array<{
       id: string;
       name: string;
       description: string;
       dataset_title: string;
+      dataset_id?: string;
+      resource_name?: string;
+      format?: string;
+      year?: string;
+      organization?: string;
     }>;
+    total: number;
+    limit: number;
+    offset: number;
+    categories: Record<string, number>;
     count: number;
   }> => {
-    const response = await api.get('/public-data/datastore/predefined');
+    const params = new URLSearchParams();
+    if (category) params.append('category', category);
+    if (search) params.append('search', search);
+    params.append('limit', limit.toString());
+    params.append('offset', offset.toString());
+    const response = await api.get(`/public-data/datastore/predefined?${params.toString()}`);
     return response.data;
   },
 
-  getDatastoreResource: async (resourceId: string): Promise<{
-    resource_id: string;
-    fields: Array<{ id: string; type: string }>;
-    total_records: number;
-    sample: any[];
-  }> => {
-    const response = await api.get(`/public-data/datastore/${resourceId}`);
-    return response.data;
-  },
+      getDatastoreResource: async (resourceId: string): Promise<{
+        resource_id: string;
+        fields: Array<{ id: string; type: string }>;
+        total_records: number;
+        sample: any[];
+      }> => {
+        const response = await api.get(`/public-data/datastore/${resourceId}`);
+        return response.data;
+      },
+
+      analyzeDatastoreResource: async (
+        resourceId: string,
+        model: string = 'gemini-2.5-flash',
+        maxFields?: number
+      ): Promise<{
+        visualizable_fields: string[];
+        recommended_limit: number;
+        field_recommendations?: Record<string, {
+          chart_type: string;
+          data_type: string;
+          reason: string;
+        }>;
+      }> => {
+        const formData = new FormData();
+        formData.append('model', model);
+        if (maxFields !== undefined && maxFields !== null) {
+          formData.append('max_fields', maxFields.toString());
+        }
+        const response = await api.post(`/public-data/datastore/${resourceId}/analyze`, formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        });
+        return response.data;
+      },
 
   searchDatastore: async (
     resourceId: string,

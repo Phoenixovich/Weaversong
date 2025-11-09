@@ -1,0 +1,311 @@
+/* Responses Page - Page-specific styling only */
+
+.responses-page-wrapper {
+  min-height: 100vh;
+  background-color: #FAFAFF;
+}
+
+.responses-page-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+}
+
+.responses-page-header {
+  margin-bottom: 2rem;
+  padding: 2rem;
+  background: linear-gradient(135deg, rgba(255, 122, 24, 0.1) 0%, rgba(161, 0, 255, 0.1) 100%);
+  border-radius: 12px;
+}
+
+.responses-page-title {
+  font-size: 2.5rem;
+  font-weight: bold;
+  margin-bottom: 0.75rem;
+  background: linear-gradient(135deg, #FF7A18 0%, #A100FF 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.responses-page-subtitle {
+  font-size: 1.1rem;
+  color: #4a4a4a;
+  margin: 0.5rem 0 1rem 0;
+}
+
+.responses-page-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: center;
+  margin-top: 1rem;
+}
+
+.responses-page-button {
+  padding: 0.75rem 1.5rem;
+  background-color: white;
+  border: 2px solid transparent;
+  background: linear-gradient(white, white) padding-box,
+              linear-gradient(135deg, #FF7A18 0%, #A100FF 100%) border-box;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  text-decoration: none;
+  display: inline-block;
+  color: #333;
+}
+
+.responses-page-button:hover {
+  box-shadow: 0 0 0 2px rgba(255, 122, 24, 0.2);
+  transform: translateY(-1px);
+}
+
+.responses-page-content {
+  min-height: calc(100vh - 200px);
+  padding: 2rem 1rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.responses-page-stats {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-bottom: 2rem;
+  padding: 1.5rem;
+  background-color: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(255, 122, 24, 0.1);
+}
+
+.responses-page-stat-item {
+  padding: 1rem;
+  background: linear-gradient(135deg, rgba(255, 122, 24, 0.1) 0%, rgba(161, 0, 255, 0.1) 100%);
+  border-radius: 8px;
+  flex: 1;
+  min-width: 150px;
+}
+
+.responses-page-loading {
+  text-align: center;
+  padding: 2rem;
+  color: #666;
+}
+
+.responses-page-empty {
+  text-align: center;
+  padding: 3rem;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  color: #666;
+}
+
+.responses-page-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.responses-page-card {
+  background-color: white;
+  padding: 1.5rem;
+  border-radius: 12px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  border: 2px solid transparent;
+  background: linear-gradient(white, white) padding-box,
+              linear-gradient(135deg, #FF7A18 0%, #A100FF 100%) border-box;
+  transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.responses-page-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(161, 0, 255, 0.15);
+}
+
+.responses-page-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1rem;
+}
+
+.responses-page-card-info {
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.responses-page-badge {
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.responses-page-card-body {
+  margin-top: 1rem;
+}
+
+.responses-page-card-message {
+  color: #333;
+  margin-bottom: 1rem;
+  line-height: 1.5;
+}
+
+.responses-page-card-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #e9ecef;
+}
+
+.responses-page-meta-item {
+  font-size: 0.9rem;
+  color: #666;
+}
+
+.responses-page-action-buttons {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #e9ecef;
+}
+
+.responses-page-edit-button {
+  padding: 0.5rem 1rem;
+  background-color: white;
+  border: 2px solid transparent;
+  background: linear-gradient(white, white) padding-box,
+              linear-gradient(135deg, #FF7A18 0%, #A100FF 100%) border-box;
+  color: #333;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.responses-page-edit-button:hover {
+  box-shadow: 0 0 0 2px rgba(255, 122, 24, 0.2);
+  transform: translateY(-1px);
+}
+
+.responses-page-delete-button {
+  padding: 0.5rem 1rem;
+  background-color: #dc3545;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.responses-page-delete-button:hover {
+  background-color: #c82333;
+  box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
+  transform: translateY(-1px);
+}
+
+/* Mobile Styling */
+@media (max-width: 768px) {
+  .responses-page-container {
+    padding: 1rem 0.75rem;
+  }
+
+  .responses-page-header {
+    padding: 1rem;
+  }
+
+  .responses-page-title {
+    font-size: 1.75rem;
+  }
+
+  .responses-page-subtitle {
+    font-size: 1rem;
+  }
+
+  .responses-page-controls {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .responses-page-button {
+    width: 100%;
+    text-align: center;
+    padding: 0.75rem 1rem;
+  }
+
+  .responses-page-content {
+    padding: 1rem 0.5rem;
+  }
+
+  .responses-page-stats {
+    flex-direction: column;
+    padding: 1rem;
+  }
+
+  .responses-page-stat-item {
+    min-width: 100%;
+  }
+
+  .responses-page-card {
+    padding: 1rem;
+  }
+
+  .responses-page-card-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .responses-page-action-buttons {
+    flex-direction: column;
+  }
+
+  .responses-page-edit-button,
+  .responses-page-delete-button {
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .responses-page-container {
+    padding: 0.75rem 0.5rem;
+  }
+
+  .responses-page-header {
+    padding: 0.75rem;
+  }
+
+  .responses-page-title {
+    font-size: 1.5rem;
+  }
+
+  .responses-page-subtitle {
+    font-size: 0.9rem;
+  }
+
+  .responses-page-content {
+    padding: 0.75rem 0.25rem;
+  }
+
+  .responses-page-stats {
+    padding: 0.75rem;
+  }
+
+  .responses-page-card {
+    padding: 0.75rem;
+  }
+
+  .responses-page-badge {
+    font-size: 0.7rem;
+    padding: 0.2rem 0.5rem;
+  }
+}

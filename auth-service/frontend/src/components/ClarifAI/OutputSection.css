@@ -1,3 +1,70 @@
+.container {
+  margin: 0;
+  padding: 1rem 2rem;
+  background-color: white;
+  border-radius: 10px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  flex-shrink: 0;
+}
+
+@media (min-width: 1400px) {
+  .container {
+    padding: 1rem 2.5rem;
+  }
+}
+
+@media (min-width: 1920px) {
+  .container {
+    padding: 1rem 3rem;
+  }
+}
+
+.title {
+  color: #333;
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+
+.section {
+  margin-bottom: 1.5rem;
+}
+
+.markdownBox {
+  padding: 1.5rem;
+  background-color: #f9f9f9;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  line-height: 1.8;
+  min-height: 100px;
+  max-height: 600px;
+  overflow-y: auto;
+}
+
+.copyButton {
+  padding: 0.75rem 2rem;
+  background-color: #28a745;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 1rem auto 0;
+  display: block;
+  width: auto;
+  box-sizing: border-box;
+  transition: all 0.3s ease;
+}
+
+.copyButton:hover {
+  background-color: #218838;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(40, 167, 69, 0.3);
+}
+
 /* Markdown styling for output */
 .markdown-box h1 {
   font-size: 1.5rem;
@@ -71,4 +138,3 @@
   color: #666;
   font-style: italic;
 }
-

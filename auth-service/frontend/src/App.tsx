@@ -8,20 +8,62 @@ import { Signup } from './pages/Signup';
 import { Dashboard } from './pages/Dashboard';
 import { ClarifAI } from './pages/ClarifAI';
 import { PublicDataHub } from './pages/PublicDataHub';
+import { Settings } from './pages/Settings';
+import { Profile } from './pages/Profile';
 import UsersPage from './pages/UsersPage';
 import RequestsPage from './pages/RequestsPage';
 import ResponsesPage from './pages/ResponsesPage';
 import LoginCallback from './pages/LoginCallback';
+import CityPulse from './pages/CityPulse';
+import { PedestrianAnalyzer } from './pages/PedestrianAnalyzer';
+import HelpboardLanding from './pages/HelpboardLanding';
+import MyTrades from './pages/MyTrades';
+import MyResponsesPage from './pages/MyResponsesPage';
+import MyRequestsPage from './pages/MyRequestsPage';
+import { Welcome } from './pages/Welcome';
+import { NotFound } from './pages/NotFound';
+import { Forbidden } from './pages/Forbidden';
 
 const AppRoutes: React.FC = () => {
-  const { isAuthenticated } = useAuth();
-
   return (
     <>
-      {isAuthenticated && <Navbar />}
+      <Navbar />
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
+        {/* Public pages - accessible without login (view-only, create/edit requires auth) */}
+        <Route path="/citypulse" element={<CityPulse />} />
+        <Route path="/public-data" element={<PublicDataHub />} />
+        <Route path="/clarifai" element={<ClarifAI />} />
+        <Route path="/helpboard" element={<HelpboardLanding />} /> {/*need to do the login/not logged in functionality*/}
+        <Route
+          path="/helpboard/my-trades"
+          element={
+            <ProtectedRoute>
+              <MyTrades />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/helpboard/my-responses"
+          element={
+            <ProtectedRoute>
+              <MyResponsesPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/helpboard/my-requests"
+          element={
+            <ProtectedRoute>
+              <MyRequestsPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route path="/helpboard/users" element={<UsersPage />} />
+        <Route path="/helpboard/requests" element={<RequestsPage />} />
+        <Route path="/helpboard/responses" element={<ResponsesPage />} />
+        {/* Protected pages - require login */}
         <Route
           path="/dashboard"
           element={
@@ -31,47 +73,37 @@ const AppRoutes: React.FC = () => {
           }
         />
         <Route
-          path="/clarifai"
+          path="/settings"
           element={
             <ProtectedRoute>
-              <ClarifAI />
+              <Settings />
             </ProtectedRoute>
           }
         />
         <Route
-          path="/public-data"
+          path="/profile"
           element={
             <ProtectedRoute>
-              <PublicDataHub />
-            </ProtectedRoute>
-          }
-        />
-        <Route path="/" element={<Navigate to="/dashboard" replace />} />
-        <Route
-          path="/helpboard/users"
-          element={
-            <ProtectedRoute>
-              <UsersPage />
+              <Profile />
             </ProtectedRoute>
           }
         />
         <Route
-          path="/helpboard/requests"
+          path="/pedestrian-analyzer"
           element={
             <ProtectedRoute>
-              <RequestsPage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/helpboard/responses"
-          element={
-            <ProtectedRoute>
-              <ResponsesPage />
+              <PedestrianAnalyzer />
             </ProtectedRoute>
           }
         />
         <Route path="/helpboard/login" element={<LoginCallback />} />
+        {/* Error pages */}
+        <Route path="/forbidden" element={<Forbidden />} />
+        <Route path="/not-found" element={<NotFound />} />
+        {/* Welcome page - default route */}
+        <Route path="/" element={<Welcome />} />
+        {/* Catch-all route for 404 */}
+        <Route path="*" element={<NotFound />} />
       </Routes>
     </>
   );

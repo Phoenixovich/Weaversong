@@ -1,10 +1,13 @@
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from bson import ObjectId
 from datetime import datetime
 from app.database import get_database
 from app.models.helpboard_response import HelpboardResponse
 from app.utils.serializers import convert_objectids
+from app.middleware.auth import get_current_user
+from app.models.user import UserInDB
+from app.utils.permissions import can_edit_response, can_delete_response, can_accept_response
 
 router = APIRouter()
 
@@ -45,8 +48,12 @@ async def get_response(response_id: str):
 
 
 @router.put("/helpboard/responses/{response_id}/status")
-async def update_response_status(response_id: str, status: str):
-    """Accept or decline a response."""
+async def update_response_status(
+    response_id: str,
+    status: str,
+    current_user: UserInDB = Depends(get_current_user)
+):
+    """Accept or decline a response. Only the request owner can do this."""
     if status not in ["pending", "accepted", "declined"]:
         raise HTTPException(status_code=400, detail="Invalid status value")
 
@@ -56,6 +63,34 @@ async def update_response_status(response_id: str, status: str):
         raise HTTPException(status_code=400, detail="Invalid response ID format")
 
     db = get_database()
+    
+    # Get the response to find the associated request
+    response = await db["Helpboard_Responses"].find_one({"_id": oid})
+    if not response:
+        raise HTTPException(status_code=404, detail="Response not found")
+    
+    # Get the request to check ownership
+    request_id = response.get("request_id")
+    if not request_id:
+        raise HTTPException(status_code=400, detail="Response is not associated with a request")
+    
+    try:
+        request_oid = ObjectId(request_id)
+    except Exception:
+        raise HTTPException(status_code=400, detail="Invalid request ID format")
+    
+    request = await db["Helpboard_Requests"].find_one({"_id": request_oid})
+    if not request:
+        raise HTTPException(status_code=404, detail="Associated request not found")
+    
+    # Check if current user is the request owner
+    request_user_id = request.get("user_id", "")
+    if not can_accept_response(current_user, request_user_id):
+        raise HTTPException(
+            status_code=403,
+            detail="Only the request owner can accept or decline responses"
+        )
+    
     res = await db["Helpboard_Responses"].update_one(
         {"_id": oid}, {"$set": {"status": status, "date_updated": datetime.utcnow()}}
     )
@@ -65,3 +100,78 @@ async def update_response_status(response_id: str, status: str):
 
     updated = await db["Helpboard_Responses"].find_one({"_id": oid})
     return convert_objectids(updated)
+
+
+@router.patch("/helpboard/responses/{response_id}")
+async def update_response(
+    response_id: str,
+    update_data: dict,
+    current_user: UserInDB = Depends(get_current_user)
+):
+    """Update a helpdesk response. Requires permission to edit."""
+    try:
+        oid = ObjectId(response_id)
+    except Exception:
+        raise HTTPException(status_code=400, detail="Invalid response ID format")
+
+    db = get_database()
+    
+    # Get the response
+    response = await db["Helpboard_Responses"].find_one({"_id": oid})
+    if not response:
+        raise HTTPException(status_code=404, detail="Response not found")
+    
+    # Check permissions
+    response_user_id = response.get("responder_id", "")
+    if not can_edit_response(current_user, response_user_id):
+        raise HTTPException(
+            status_code=403,
+            detail="You don't have permission to edit this response"
+        )
+    
+    # Prepare update data
+    update_dict = {k: v for k, v in update_data.items() if k != "_id" and k != "responder_id"}
+    update_dict["date_updated"] = datetime.utcnow()
+    
+    res = await db["Helpboard_Responses"].update_one({"_id": oid}, {"$set": update_dict})
+
+    if res.modified_count == 0:
+        raise HTTPException(status_code=404, detail="Response not found or no changes made")
+
+    updated = await db["Helpboard_Responses"].find_one({"_id": oid})
+    return convert_objectids(updated)
+
+
+@router.delete("/helpboard/responses/{response_id}")
+async def delete_response(
+    response_id: str,
+    current_user: UserInDB = Depends(get_current_user)
+):
+    """Delete a helpdesk response. Requires permission to delete."""
+    try:
+        oid = ObjectId(response_id)
+    except Exception:
+        raise HTTPException(status_code=400, detail="Invalid response ID format")
+
+    db = get_database()
+    
+    # Get the response
+    response = await db["Helpboard_Responses"].find_one({"_id": oid})
+    if not response:
+        raise HTTPException(status_code=404, detail="Response not found")
+    
+    # Check permissions
+    response_user_id = response.get("responder_id", "")
+    if not can_delete_response(current_user, response_user_id):
+        raise HTTPException(
+            status_code=403,
+            detail="You don't have permission to delete this response"
+        )
+    
+    # Delete the response
+    result = await db["Helpboard_Responses"].delete_one({"_id": oid})
+    
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Response not found")
+    
+    return {"message": "Response deleted successfully"}

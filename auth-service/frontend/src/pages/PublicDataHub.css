@@ -1,6 +1,12 @@
 .public-data-hub-page {
   min-height: 100vh;
   background-color: #f5f5f5;
+  width: 100vw;
+  max-width: 100vw;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  overflow-x: hidden;
 }
 
 .public-data-hub-page .markdown-container h1,
@@ -63,5 +69,740 @@
 .public-data-hub-page .markdown-container pre code {
   background-color: transparent;
   padding: 0;
+}
+
+/* Header Styles */
+.header {
+  color: white;
+  text-align: center;
+  padding: 2rem;
+}
+
+.header.datastoreHeader {
+  background-color: #7b1fa2;
+}
+
+.header.socialAidHeader {
+  background-color: #1976d2;
+}
+
+.header.explorerHeader {
+  background-color: #388e3c;
+}
+
+.headerTitle {
+  margin: 0;
+  font-size: 2.5rem;
+  font-weight: bold;
+}
+
+.headerSubtitle {
+  margin: 0.5rem 0 1rem 0;
+  font-size: 1.1rem;
+  opacity: 0.9;
+}
+
+.controlsRow {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.tabSelector {
+  display: flex;
+  gap: 1rem;
+}
+
+.tabButton {
+  padding: 0.75rem 2rem;
+  position: relative;
+  background-color: transparent;
+  border: 2px solid transparent;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  color: transparent;
+  background: linear-gradient(135deg, #FF7A18 0%, #A100FF 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  isolation: isolate;
+}
+
+.tabButton::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 6px;
+  padding: 2px;
+  background: linear-gradient(135deg, #FF7A18 0%, #A100FF 100%);
+  -webkit-mask: 
+    linear-gradient(#fff 0 0) content-box, 
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  z-index: -1;
+}
+
+.tabButtonActiveDatastore,
+.tabButtonActiveSocialAid,
+.tabButtonActiveExplorer {
+  background: linear-gradient(135deg, #FF7A18 0%, #A100FF 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.tabButtonActiveDatastore::before,
+.tabButtonActiveSocialAid::before,
+.tabButtonActiveExplorer::before {
+  -webkit-mask: none;
+  mask: none;
+  background: rgba(255, 122, 24, 0.1);
+  padding: 0;
+}
+
+.modelSelector {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.modelLabel {
+  color: #333;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.modelSelect {
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  border: 2px solid transparent;
+  background: linear-gradient(white, white) padding-box,
+              linear-gradient(135deg, #FF7A18 0%, #A100FF 100%) border-box;
+  color: #333;
+  font-size: 0.9rem;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.modelSelect:hover {
+  box-shadow: 0 0 0 2px rgba(255, 122, 24, 0.2);
+}
+
+.modelSelect:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(161, 0, 255, 0.2);
+}
+
+.content {
+  padding: 2rem;
+  width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
+  box-sizing: border-box;
+  display: block;
+}
+
+.errorBanner {
+  padding: 1rem;
+  background-color: #ffebee;
+  color: #c62828;
+  border-radius: 4px;
+  margin-bottom: 1.5rem;
+  border: 1px solid #ef5350;
+}
+
+.tabContent {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  width: 100%;
+  max-width: 100%;
+}
+
+.inputSection {
+  background-color: white;
+  padding: 2rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  grid-column: unset;
+  margin-bottom: 2rem;
+}
+
+.sectionTitle {
+  margin: 0 0 0.5rem 0;
+  color: #333;
+  font-size: 1.5rem;
+}
+
+.sectionDescription {
+  margin: 0 0 1.5rem 0;
+  color: #666;
+  font-size: 1rem;
+}
+
+.textarea {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 1rem;
+  font-family: inherit;
+  resize: vertical;
+  margin-bottom: 1rem;
+  box-sizing: border-box;
+}
+
+.submitButton {
+  padding: 0.75rem 2rem;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.submitButton.datastoreButton {
+  background-color: #7b1fa2;
+}
+
+.submitButton.socialAidButton {
+  background-color: #1976d2;
+}
+
+.submitButton.explorerButton {
+  background-color: #388e3c;
+}
+
+.submitButtonDisabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+.outputSection {
+  background-color: white;
+  padding: 2rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  grid-column: unset;
+  margin-top: 2rem;
+}
+
+.markdownContainer {
+  line-height: 1.6;
+}
+
+.searchContainer {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.searchInput {
+  flex: 1;
+  padding: 0.75rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 1rem;
+  font-family: inherit;
+}
+
+.datasetsList {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.datasetCard {
+  background-color: white;
+  padding: 1.5rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.datasetTitle {
+  margin: 0 0 0.5rem 0;
+  color: #333;
+  font-size: 1.2rem;
+}
+
+.datasetNotes {
+  margin: 0 0 0.5rem 0;
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.datasetOrg {
+  margin: 0.5rem 0;
+  color: #888;
+  font-size: 0.85rem;
+}
+
+.datasetResources {
+  margin: 0.5rem 0 0 0;
+  color: #888;
+  font-size: 0.85rem;
+}
+
+.label {
+  display: block;
+  margin-bottom: 0.5rem;
+  color: #333;
+  font-weight: 500;
+}
+
+.resourceIdInput {
+  margin-bottom: 1.5rem;
+}
+
+.resourceSelection {
+  margin-bottom: 1rem;
+}
+
+.resourceIdRow {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-end;
+  margin-top: 1rem;
+}
+
+.resourceIdSelect {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 1rem;
+  font-family: inherit;
+  background-color: white;
+  cursor: pointer;
+  margin-bottom: 0.5rem;
+}
+
+.resourceIdInputField {
+  flex: 1;
+  padding: 0.75rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 1rem;
+  font-family: inherit;
+}
+
+.paginationControls {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 0.5rem;
+  padding: 0.5rem;
+}
+
+.paginationButton {
+  padding: 0.5rem 1rem;
+  background-color: #7b1fa2;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+.paginationButtonDisabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+.paginationInfo {
+  font-size: 0.9rem;
+  color: #666;
+}
+
+.loadingText {
+  color: #666;
+  font-style: italic;
+  padding: 1rem;
+  text-align: center;
+}
+
+.resourceInfoBox {
+  margin-top: 1.5rem;
+  padding: 1rem;
+  background-color: #f8f9fa;
+  border-radius: 4px;
+  border: 1px solid #e9ecef;
+}
+
+.resourceInfoTitle {
+  margin: 0 0 0.5rem 0;
+  color: #333;
+  font-size: 1.1rem;
+}
+
+.infoHint {
+  margin: 0.5rem 0 0 0;
+  font-size: 0.85rem;
+  color: #388e3c;
+  font-style: italic;
+}
+
+.queryModeSelector {
+  margin-top: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.radioGroup {
+  display: flex;
+  gap: 1.5rem;
+  margin-top: 0.5rem;
+}
+
+.radioLabel {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+}
+
+.filterSection {
+  margin-top: 1rem;
+}
+
+.filterRow {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.filterField {
+  flex: 1;
+}
+
+.selectField {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 1rem;
+  font-family: inherit;
+}
+
+.inputField {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 1rem;
+  font-family: inherit;
+}
+
+.paginationRow {
+  display: flex;
+  gap: 1rem;
+}
+
+.paginationField {
+  flex: 1;
+}
+
+.numberInput {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 1rem;
+  font-family: inherit;
+}
+
+.textSearchSection {
+  margin-top: 1rem;
+}
+
+.sqlSection {
+  margin-top: 1rem;
+}
+
+.sqlHint {
+  margin-top: 0.5rem;
+  font-size: 0.9rem;
+  color: #666;
+  font-style: italic;
+}
+
+.dashboardControls {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  background-color: #f8f9fa;
+  border-radius: 4px;
+}
+
+.chartTypeSelector {
+  flex: 1;
+}
+
+.chartFieldSelector {
+  flex: 1;
+}
+
+.chartContainer {
+  margin-top: 1.5rem;
+  padding: 1rem;
+  background-color: #f8f9fa;
+  border-radius: 4px;
+}
+
+.chartTitle {
+  margin: 0 0 1rem 0;
+  color: #333;
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+
+.autoChartsContainer {
+  margin-top: 1.5rem;
+  padding: 1.5rem;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  border: 2px solid #7b1fa2;
+}
+
+.autoChartsTitle {
+  margin: 0 0 1.5rem 0;
+  color: #333;
+  font-size: 1.3rem;
+  font-weight: 600;
+}
+
+.chartsGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+}
+
+.chartCard {
+  background-color: white;
+  padding: 1rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e9ecef;
+}
+
+.chartCardTitle {
+  margin: 0 0 0.75rem 0;
+  color: #333;
+  font-size: 1rem;
+  font-weight: 600;
+  text-align: center;
+}
+
+.autoVisualizeToggle {
+  display: flex;
+  align-items: center;
+}
+
+.checkboxLabel {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  font-size: 0.9rem;
+  color: #333;
+}
+
+.analysisSection {
+  margin-top: 1rem;
+  padding: 1rem;
+  background-color: #f8f9fa;
+  border-radius: 4px;
+  border: 1px solid #dee2e6;
+}
+
+.analyzeButton {
+  padding: 0.75rem 1.5rem;
+  background-color: #7b1fa2;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  margin-bottom: 1rem;
+}
+
+.buttonDisabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+.analysisResults {
+  margin-top: 1rem;
+  padding: 1rem;
+  background-color: #e8f5e9;
+  border-radius: 4px;
+  border: 1px solid #4caf50;
+}
+
+.analysisTitle {
+  margin: 0 0 0.75rem 0;
+  color: #2e7d32;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.recommendationsList {
+  margin-top: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.recommendationItem {
+  margin: 0.5rem 0;
+  font-size: 0.85rem;
+  color: #555;
+  padding: 0.5rem;
+  background-color: white;
+  border-radius: 4px;
+}
+
+.visualizeButton {
+  padding: 0.75rem 1.5rem;
+  background-color: #388e3c;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 0.5rem;
+}
+
+.analysisBadge {
+  font-size: 0.85rem;
+  color: #666;
+  font-weight: normal;
+  font-style: italic;
+}
+
+.resultsTable {
+  overflow-x: auto;
+  margin-top: 1rem;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.tableHeader {
+  padding: 0.75rem;
+  background-color: #f8f9fa;
+  border: 1px solid #dee2e6;
+  text-align: left;
+  font-weight: 600;
+  color: #333;
+}
+
+.tableRow {
+  border-bottom: 1px solid #dee2e6;
+}
+
+.tableCell {
+  padding: 0.75rem;
+  border: 1px solid #dee2e6;
+  max-width: 300px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.backButton {
+  padding: 0.5rem 1rem;
+  background-color: #f5f5f5;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-bottom: 1rem;
+  font-size: 0.9rem;
+}
+
+.resourcesSection {
+  margin-top: 1.5rem;
+}
+
+.resourceItem {
+  margin: 0.5rem 0;
+}
+
+.resourceLink {
+  color: #1976d2;
+  text-decoration: none;
+}
+
+.aggregatedSection {
+  margin-bottom: 2rem;
+  padding: 1.5rem;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  border: 2px solid #388e3c;
+}
+
+.aggregatedTitle {
+  margin: 0 0 1rem 0;
+  color: #333;
+  font-size: 1.3rem;
+  font-weight: 600;
+}
+
+.resourceInfo {
+  margin: 0 0 1rem 0;
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.structureSection {
+  margin-top: 1.5rem;
+  padding: 1rem;
+  background-color: white;
+  border-radius: 4px;
+  border: 1px solid #ddd;
+}
+
+.structureTitle {
+  margin: 0 0 0.75rem 0;
+  color: #333;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.structureInfo {
+  margin: 0.5rem 0;
+  color: #555;
+  font-size: 0.9rem;
+}
+
+.descriptionSection {
+  margin-top: 2rem;
+  margin-bottom: 1.5rem;
+}
+
+.sectionSubtitle {
+  margin: 0 0 1rem 0;
+  color: #333;
+  font-size: 1.2rem;
+  font-weight: 600;
 }
 

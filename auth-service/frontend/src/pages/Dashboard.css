@@ -1,0 +1,423 @@
+.dashboard-container {
+  min-height: 100vh;
+  background-color: var(--color-bg-light);
+  padding: 2rem 1rem;
+}
+
+.dashboard-content {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.dashboard-card {
+  background-color: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  padding: 2rem;
+  transition: all 0.3s ease;
+}
+
+.dashboard-card-hover {
+  background-color: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.dashboard-card-hover:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+}
+
+.dashboard-title {
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+
+.welcome-section {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.user-info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.user-status {
+  font-size: 1.1rem;
+  color: var(--color-text-secondary);
+  margin: 0;
+}
+
+.user-description {
+  font-size: 1rem;
+  color: var(--color-text-muted);
+  margin: 0;
+}
+
+.action-links {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-top: 1.5rem;
+}
+
+.section {
+  margin-bottom: 2rem;
+}
+
+.section-title {
+  font-size: 1.75rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  padding-bottom: 1rem;
+  margin-bottom: 1rem;
+  border-bottom: 2px solid var(--color-bg-soft);
+  transition: opacity 0.2s ease;
+}
+
+.section-header:hover {
+  opacity: 0.8;
+}
+
+.expand-icon {
+  font-size: 1rem;
+  color: var(--color-text-muted);
+  transition: transform 0.2s ease;
+}
+
+.section-content {
+  padding-top: 1rem;
+}
+
+.quick-access-section {
+  margin-bottom: 2rem;
+}
+
+.quick-links-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem;
+  margin-top: 1.5rem;
+}
+
+.quick-link-card {
+  text-align: center;
+  text-decoration: none;
+  color: var(--color-text-primary);
+  padding: 1.5rem;
+}
+
+.quick-link-icon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+}
+
+.quick-link-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin: 0 0 0.5rem 0;
+}
+
+.quick-link-desc {
+  font-size: 0.95rem;
+  color: var(--color-text-secondary);
+  margin: 0;
+}
+
+.tip-card {
+  background-color: var(--color-bg-warm);
+  padding: 1.5rem;
+  border-radius: 12px;
+  margin-bottom: 1rem;
+  border: 1px solid var(--color-bg-soft);
+}
+
+.tip-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin: 0 0 1rem 0;
+}
+
+.tip-list {
+  margin: 0;
+  padding-left: 1.5rem;
+  color: var(--color-text-secondary);
+  line-height: 1.8;
+}
+
+.tip-list li {
+  margin-bottom: 0.5rem;
+}
+
+.table-container {
+  overflow-x: auto;
+  margin-top: 1rem;
+}
+
+.permissions-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.95rem;
+  background-color: white;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.permissions-table thead {
+  background: linear-gradient(135deg, var(--color-primary-start) 0%, var(--color-primary-end) 100%);
+}
+
+.permissions-table th {
+  padding: 1rem;
+  text-align: left;
+  font-weight: 600;
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.permissions-table td {
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--color-bg-soft);
+  color: var(--color-text-secondary);
+}
+
+.permissions-table tbody tr {
+  transition: background-color 0.2s ease;
+}
+
+.permissions-table tbody tr:hover {
+  background-color: var(--color-bg-warm);
+}
+
+.permissions-table tbody tr:nth-child(even) {
+  background-color: var(--color-bg-soft);
+}
+
+.permissions-table tbody tr:nth-child(even):hover {
+  background-color: var(--color-bg-warm);
+}
+
+.tutorial-card {
+  background-color: var(--color-bg-warm);
+  padding: 1.5rem;
+  border-radius: 12px;
+  margin-bottom: 1rem;
+  border: 1px solid var(--color-bg-soft);
+}
+
+.tutorial-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin: 0 0 1rem 0;
+}
+
+.tutorial-list {
+  margin: 0;
+  padding-left: 1.5rem;
+  color: var(--color-text-secondary);
+  line-height: 1.8;
+}
+
+.tutorial-list li {
+  margin-bottom: 0.5rem;
+}
+
+.tutorial-link {
+  color: var(--color-primary-start);
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.2s ease;
+}
+
+.tutorial-link:hover {
+  color: var(--color-primary-end);
+  text-decoration: underline;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .dashboard-container {
+    padding: 1rem 0.75rem;
+  }
+
+  .dashboard-title {
+    font-size: 2rem;
+  }
+
+  .section-title {
+    font-size: 1.5rem;
+  }
+
+  .quick-links-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .permissions-table {
+    font-size: 0.85rem;
+  }
+
+  .permissions-table th,
+  .permissions-table td {
+    padding: 0.5rem;
+  }
+
+  .dashboard-card {
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .action-links {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .action-links a {
+    width: 100%;
+    text-align: center;
+    padding: 0.75rem 1rem;
+  }
+
+  /* Enhanced expandable sections for mobile */
+  .section-header {
+    padding: 1rem;
+    margin: -1rem -1rem 1rem -1rem;
+    background-color: #f9fafb;
+    border-radius: 8px 8px 0 0;
+    border-bottom: 2px solid #e5e7eb;
+    cursor: pointer;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .section-header:active {
+    background-color: #f3f4f6;
+  }
+
+  .expand-icon {
+    font-size: 1.2rem;
+    font-weight: bold;
+    min-width: 24px;
+    text-align: center;
+  }
+
+  .section-content {
+    animation: slideDown 0.3s ease-out;
+    padding-top: 0.5rem;
+  }
+
+  .tip-card,
+  .tutorial-card {
+    padding: 1rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .tip-title,
+  .tutorial-title {
+    font-size: 1.1rem;
+  }
+
+  .quick-link-icon {
+    font-size: 2.5rem;
+  }
+
+  .quick-link-title {
+    font-size: 1.1rem;
+  }
+
+  .quick-link-desc {
+    font-size: 0.9rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .dashboard-container {
+    padding: 0.75rem 0.5rem;
+  }
+
+  .dashboard-title {
+    font-size: 1.75rem;
+  }
+
+  .section-title {
+    font-size: 1.25rem;
+  }
+
+  .dashboard-card {
+    padding: 1rem;
+    margin-bottom: 1rem;
+    border-radius: 8px;
+  }
+
+  .section-header {
+    padding: 0.875rem;
+    margin: -1rem -1rem 0.75rem -1rem;
+    font-size: 1.1rem;
+  }
+
+  .permissions-table {
+    font-size: 0.75rem;
+  }
+
+  .permissions-table th,
+  .permissions-table td {
+    padding: 0.4rem;
+  }
+
+  .tip-card,
+  .tutorial-card {
+    padding: 0.75rem;
+  }
+
+  .tip-title,
+  .tutorial-title {
+    font-size: 1rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .quick-link-icon {
+    font-size: 2rem;
+  }
+
+  .quick-link-title {
+    font-size: 1rem;
+  }
+
+  .quick-link-desc {
+    font-size: 0.85rem;
+  }
+
+  .action-links a {
+    padding: 0.625rem 0.875rem;
+    font-size: 0.9rem;
+  }
+}

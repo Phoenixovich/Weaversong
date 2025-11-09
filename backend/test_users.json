@@ -1,0 +1,33 @@
+[
+  {
+    "username": "johndoe",
+    "email": "johndoe@mail.com",
+    "name": "John Doe",
+    "password_hash": "aaaaaaaa",
+    "date_created": {
+      "$date": "1999-12-31T22:00:00.000Z"
+    },
+    "is_anonymous": false
+  },
+  {
+    "username": "janedoe",
+    "email": "janedoe@mail.com",
+    "name": "Jane Doe",
+    "password_hash": "bbbbbbbb",
+    "date_created": {
+      "$date": "2000-01-01T00:00:00.000Z"
+    },
+    "is_anonymous": false
+  },
+  {
+    "username": "anonymous",
+    "email": null,
+    "name": "Anonymous User",
+    "password_hash": null,
+    "date_created": {
+      "$date": "2000-01-01T00:00:00.000Z"
+    },
+    "is_anonymous": true
+  }
+]
+

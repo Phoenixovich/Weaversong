@@ -45,30 +45,22 @@ export const ClarifAI: React.FC = () => {
     }
   };
 
-  const headerStyle = mode === 'medical'
-    ? { ...styles.header, ...styles.medicalHeader }
-    : { ...styles.header, ...styles.legalHeader };
-
-  const contentStyle = mode === 'medical'
-    ? { ...styles.content, ...styles.medicalContent }
-    : { ...styles.content, ...styles.legalContent };
-
   return (
-    <div className="clarifai-page">
-      <div style={headerStyle}>
-        <h1 style={styles.headerTitle}>ClarifAI</h1>
-        <p style={styles.headerSubtitle}>
-          {mode === 'medical' 
-            ? 'Turn complex medical instructions into clear, simple steps'
-            : 'Turn complex legal documents into clear, simple steps'}
-        </p>
-        <div style={styles.controlsRow}>
-          <div style={styles.tabSelector}>
+    <div className="min-h-screen bg-background-light">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <header className="mb-8">
+          <h1 className="text-4xl md:text-5xl font-bold mb-3 gradient-text">
+            ClarifAI
+          </h1>
+          <p className="text-xl text-gray-600">
+            {mode === 'medical' 
+              ? 'Turn complex medical instructions into clear, simple steps'
+              : 'Turn complex legal documents into clear, simple steps'}
+          </p>
+          <div className="clarifai-controls mt-4">
+          <div className="tab-selector">
             <button
-              style={{
-                ...styles.tabButton,
-                ...(mode === 'medical' ? styles.tabButtonActiveMedical : {}),
-              }}
+              className={`tab-button ${mode === 'medical' ? 'active-medical' : ''}`}
               onClick={() => {
                 setMode('medical');
                 setResult('');
@@ -78,10 +70,7 @@ export const ClarifAI: React.FC = () => {
               🏥 Medical
             </button>
             <button
-              style={{
-                ...styles.tabButton,
-                ...(mode === 'legal' ? styles.tabButtonActiveLegal : {}),
-              }}
+              className={`tab-button ${mode === 'legal' ? 'active-legal' : ''}`}
               onClick={() => {
                 setMode('legal');
                 setResult('');
@@ -92,15 +81,15 @@ export const ClarifAI: React.FC = () => {
             </button>
           </div>
           
-          <div style={styles.modelSelector}>
-            <label htmlFor="model-select" style={styles.modelLabel}>
+          <div className="model-selector">
+            <label htmlFor="model-select" className="model-label">
               Model:
             </label>
             <select
               id="model-select"
               value={model}
               onChange={(e) => setModel(e.target.value)}
-              style={styles.modelSelect}
+              className="model-select"
             >
               <option value="gemini-2.5-flash">gemini-2.5-flash</option>
               <option value="gemini-2.5-pro">gemini-2.5-pro</option>
@@ -108,15 +97,15 @@ export const ClarifAI: React.FC = () => {
             </select>
           </div>
           
-          <div style={styles.styleSelector}>
-            <label htmlFor="style-select" style={styles.styleLabel}>
+          <div className="style-selector">
+            <label htmlFor="style-select" className="style-label">
               Style:
             </label>
             <select
               id="style-select"
               value={style}
               onChange={(e) => setStyle(e.target.value)}
-              style={styles.styleSelect}
+              className="style-select"
             >
               <option value="default">Default</option>
               <option value="shorter">Shorter</option>
@@ -124,9 +113,9 @@ export const ClarifAI: React.FC = () => {
             </select>
           </div>
         </div>
-      </div>
+        </header>
 
-      <div style={contentStyle}>
+        <div className={`clarifai-content ${mode}`}>
         <InputSection
           onMedical={handleMedical}
           onLegal={handleLegal}
@@ -137,7 +126,7 @@ export const ClarifAI: React.FC = () => {
         />
 
         {error && (
-          <div style={styles.error}>
+          <div className="clarifai-error">
             ⚠️ {error}
           </div>
         )}
@@ -150,122 +139,8 @@ export const ClarifAI: React.FC = () => {
         )}
 
         <ReminderList />
+        </div>
       </div>
     </div>
   );
 };
-
-const styles: { [key: string]: React.CSSProperties } = {
-  header: {
-    color: 'white',
-    padding: '2rem',
-    textAlign: 'center',
-  },
-  medicalHeader: {
-    backgroundColor: '#2196f3',
-  },
-  legalHeader: {
-    backgroundColor: '#ff9800',
-  },
-  headerTitle: {
-    margin: 0,
-    fontSize: '2.5rem',
-    fontWeight: 'bold',
-  },
-  headerSubtitle: {
-    margin: '0.5rem 0 1rem 0',
-    fontSize: '1.1rem',
-    opacity: 0.9,
-  },
-  controlsRow: {
-    display: 'flex',
-    gap: '2rem',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginTop: '1rem',
-    flexWrap: 'wrap',
-  },
-  tabSelector: {
-    display: 'flex',
-    gap: '1rem',
-  },
-  modelSelector: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '0.5rem',
-  },
-  modelLabel: {
-    color: 'white',
-    fontSize: '0.9rem',
-    fontWeight: '500',
-  },
-  modelSelect: {
-    padding: '0.5rem 1rem',
-    borderRadius: '4px',
-    border: '2px solid white',
-    backgroundColor: 'white',
-    color: '#333',
-    fontSize: '0.9rem',
-    cursor: 'pointer',
-    fontWeight: '500',
-  },
-  styleSelector: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '0.5rem',
-  },
-  styleLabel: {
-    color: 'white',
-    fontSize: '0.9rem',
-    fontWeight: '500',
-  },
-  styleSelect: {
-    padding: '0.5rem 1rem',
-    borderRadius: '4px',
-    border: '2px solid white',
-    backgroundColor: 'white',
-    color: '#333',
-    fontSize: '0.9rem',
-    cursor: 'pointer',
-    fontWeight: '500',
-  },
-  tabButton: {
-    padding: '0.75rem 2rem',
-    border: '2px solid white',
-    backgroundColor: 'transparent',
-    color: 'white',
-    borderRadius: '4px',
-    cursor: 'pointer',
-    fontSize: '1rem',
-    fontWeight: '600',
-    transition: 'all 0.3s',
-  },
-  tabButtonActiveMedical: {
-    backgroundColor: 'white',
-    color: '#2196f3',
-  },
-  tabButtonActiveLegal: {
-    backgroundColor: 'white',
-    color: '#ff9800',
-  },
-  content: {
-    minHeight: 'calc(100vh - 200px)',
-    padding: '2rem 1rem',
-  },
-  medicalContent: {
-    backgroundColor: '#f5f9ff',
-  },
-  legalContent: {
-    backgroundColor: '#fffaf5',
-  },
-  error: {
-    maxWidth: '800px',
-    margin: '1rem auto',
-    padding: '1rem',
-    backgroundColor: '#fee',
-    color: '#c33',
-    borderRadius: '4px',
-    border: '1px solid #fcc',
-  },
-};
-
