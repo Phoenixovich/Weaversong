@@ -57,17 +57,95 @@ async def get_dataset(
 
 
 @router.get("/datastore/predefined")
-async def get_predefined_resources(user_id: str = Depends(get_current_user_id)):
+async def get_predefined_resources(
+    category: Optional[str] = Query(None, description="Filter by category"),
+    search: Optional[str] = Query(None, description="Search query"),
+    limit: int = Query(100, ge=1, le=500, description="Number of results per page"),
+    offset: int = Query(0, ge=0, description="Offset for pagination"),
+    user_id: str = Depends(get_current_user_id)
+):
     """
-    Get a list of predefined resource IDs for testing
+    Get resources filtered by category and/or search query
+    Returns paginated results with category counts
     """
     try:
-        resources = await get_predefined_resource_ids()
-        return {"resources": resources, "count": len(resources)}
+        from app.services.data_gov_service import get_resources_by_category
+        result = get_resources_by_category(category=category, search_query=search, limit=limit, offset=offset)
+        return result
     except Exception as e:
         raise HTTPException(
             status_code=500,
-            detail=f"Error fetching predefined resources: {str(e)}"
+            detail=f"Error fetching resources: {str(e)}"
+        )
+
+
+@router.post("/datastore/aggregate-predefined")
+async def aggregate_predefined_resources(
+    user_id: str = Depends(get_current_user_id)
+):
+    """
+    Manually trigger aggregation of the top 50 most important resources from the full cache
+    """
+    try:
+        from app.services.data_gov_service import (
+            load_cached_resources,
+            aggregate_most_important_resources,
+            save_predefined_resources
+        )
+        
+        all_resources = load_cached_resources()
+        if not all_resources:
+            raise HTTPException(
+                status_code=404,
+                detail="No resources found in cache. Please run discovery first."
+            )
+        
+        # Aggregate the 50 most important resources
+        predefined_resources = aggregate_most_important_resources(limit=50)
+        
+        # Save to predefined cache
+        if predefined_resources:
+            save_predefined_resources(predefined_resources)
+        
+        return {
+            "message": f"Successfully aggregated {len(predefined_resources)} most important resources",
+            "count": len(predefined_resources),
+            "resources": predefined_resources
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Error aggregating predefined resources: {str(e)}"
+        )
+
+
+@router.get("/datastore/resource-info/{resource_id}")
+async def get_resource_info_by_id_endpoint(
+    resource_id: str,
+    user_id: str = Depends(get_current_user_id)
+):
+    """
+    Get cached information about a specific resource ID
+    Returns metadata from cache if available
+    """
+    try:
+        from app.services.data_gov_service import get_resource_info_by_id
+        resource_info = await get_resource_info_by_id(resource_id)
+        if resource_info:
+            return resource_info
+        else:
+            raise HTTPException(
+                status_code=404,
+                detail=f"Resource ID '{resource_id}' not found in cache"
+            )
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Error getting resource info: {str(e)}"
         )
 
 
@@ -86,6 +164,26 @@ async def get_datastore_resource(
         raise HTTPException(
             status_code=500,
             detail=f"Error getting resource info: {str(e)}"
+        )
+
+
+@router.post("/datastore/{resource_id}/analyze")
+async def analyze_datastore_resource(
+    resource_id: str,
+    model: Optional[str] = Form('gemini-2.5-flash'),
+    user_id: str = Depends(get_current_user_id)
+):
+    """
+    Analyze a datastore resource with Gemini to get visualization recommendations
+    """
+    try:
+        from app.services.data_gov_service import analyze_resource_for_visualization
+        analysis = await analyze_resource_for_visualization(resource_id, model_name=model)
+        return analysis
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Error analyzing resource: {str(e)}"
         )
 
 

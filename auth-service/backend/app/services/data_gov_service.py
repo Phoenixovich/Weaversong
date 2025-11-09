@@ -9,6 +9,8 @@ import zipfile
 import pandas as pd
 import tempfile
 import os
+import asyncio
+from datetime import datetime
 
 # Configure Gemini API
 genai.configure(api_key=settings.gemini_api_key)
@@ -199,6 +201,138 @@ async def datastore_search_sql(sql_query: str) -> Dict:
         raise Exception(f"Error executing SQL query: {str(e)}")
 
 
+async def analyze_resource_for_visualization(resource_id: str, model_name: str = 'gemini-2.5-flash') -> Dict:
+    """
+    Use Gemini to analyze resource data and recommend visualization fields and limits
+    """
+    try:
+        # First, get sample data from the resource
+        async with httpx.AsyncClient() as client:
+            url = f"{DATA_GOV_BASE_URL}/datastore_search"
+            params = {"resource_id": resource_id, "limit": 50}
+            response = await client.get(url, params=params, timeout=10.0)
+            
+            if response.status_code == 404:
+                raise Exception(
+                    f"Resource '{resource_id}' is not available in the datastore."
+                )
+            
+            response.raise_for_status()
+            data = response.json()
+            result = data.get("result", {})
+            
+            fields = result.get("fields", [])
+            total = result.get("total", 0)
+            sample_records = result.get("records", [])
+            
+            if not fields or not sample_records:
+                raise Exception("No data available for analysis")
+        
+        # Now analyze with Gemini
+        model = genai.GenerativeModel(model_name)
+        
+        # Prepare sample data for analysis
+        sample_data_str = json.dumps(sample_records[:20], ensure_ascii=False, indent=2)
+        fields_str = json.dumps([{"id": f["id"], "type": f.get("type", "text")} for f in fields], ensure_ascii=False)
+        
+        # Format fields list for display
+        fields_list = ", ".join([f["id"] for f in fields])
+        
+        prompt = f"""You are a data visualization expert. Analyze this datastore resource and recommend:
+
+1. **Visualizable Fields**: Which fields should be visualized? Skip:
+   - ID fields (_id, id, uuid, etc.)
+   - Fields with mostly unique values (like IDs)
+   - Fields with only 1-2 distinct values (not informative)
+   - Empty or mostly null fields
+
+2. **Recommended Limits**: What's a good limit for querying this data? Consider:
+   - Total records: {total}
+   - For visualization, we typically need 50-500 records
+   - Don't recommend more than 1000 records
+
+3. **Field Types**: For each visualizable field, suggest:
+   - Chart type (bar/line/pie) based on data characteristics
+   - Whether it's categorical, numeric, temporal, etc.
+
+Return ONLY a valid JSON response with this structure (no markdown, no code blocks):
+{{
+  "visualizable_fields": ["field1", "field2", ...],
+  "recommended_limit": 100,
+  "field_recommendations": {{
+    "field1": {{
+      "chart_type": "bar",
+      "data_type": "categorical",
+      "reason": "Shows distribution of categories"
+    }},
+    ...
+  }}
+}}
+
+Resource Information:
+- Total Records: {total}
+- Fields ({len(fields)}): {fields_list}
+
+Field Details:
+{fields_str}
+
+Sample Records (first 20):
+{sample_data_str}
+
+Analysis:"""
+        
+        response = model.generate_content(prompt)
+        analysis_text = response.text.strip()
+        
+        # Extract JSON from response (might have markdown code blocks)
+        if "```json" in analysis_text:
+            analysis_text = analysis_text.split("```json")[1].split("```")[0].strip()
+        elif "```" in analysis_text:
+            analysis_text = analysis_text.split("```")[1].split("```")[0].strip()
+        
+        # Remove any leading/trailing non-JSON text
+        if "{" in analysis_text:
+            start = analysis_text.index("{")
+            end = analysis_text.rindex("}") + 1
+            analysis_text = analysis_text[start:end]
+        
+        analysis = json.loads(analysis_text)
+        
+        # Validate the response structure
+        if "visualizable_fields" not in analysis:
+            raise Exception("Invalid analysis response: missing visualizable_fields")
+        if "recommended_limit" not in analysis:
+            analysis["recommended_limit"] = min(500, max(100, total))
+        if "field_recommendations" not in analysis:
+            analysis["field_recommendations"] = {}
+        
+        return analysis
+    except json.JSONDecodeError as e:
+        print(f"Error parsing Gemini JSON response: {str(e)}")
+        print(f"Response text: {analysis_text[:500]}")
+        raise Exception(f"Failed to parse analysis response: {str(e)}")
+    except Exception as e:
+        error_msg = str(e)
+        if "not available in the datastore" in error_msg or "No data available" in error_msg:
+            raise
+        # Fallback: return basic recommendations
+        print(f"Error analyzing resource with Gemini: {error_msg}")
+        # Filter out ID fields manually
+        if 'fields' in locals():
+            visualizable_fields = [
+                f["id"] for f in fields 
+                if not f["id"].lower().endswith("_id") 
+                and f["id"].lower() not in ["_id", "id", "uuid"]
+            ]
+        else:
+            visualizable_fields = []
+        return {
+            "visualizable_fields": visualizable_fields[:6] if visualizable_fields else [],
+            "recommended_limit": min(500, max(100, total)) if 'total' in locals() else 100,
+            "field_recommendations": {}
+        }
+
+
 async def get_resource_info(resource_id: str) -> Dict:
     """
     Get information about a datastore resource
@@ -253,87 +387,348 @@ async def get_resource_info(resource_id: str) -> Dict:
         raise Exception(f"Error getting resource info: {error_msg}")
 
 
-async def check_resource_in_datastore(resource_id: str) -> bool:
+# Cache file paths - save in backend directory
+CACHE_FILE_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "datastore_resources_cache.json"))
+PREDEFINED_CACHE_FILE_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "predefined_resources_cache.json"))
+
+
+def load_cached_resources() -> List[Dict]:
     """
-    Check if a resource is available in the datastore
+    Load cached datastore resources from file
     """
     try:
-        async with httpx.AsyncClient() as client:
-            url = f"{DATA_GOV_BASE_URL}/datastore_search"
-            params = {"resource_id": resource_id, "limit": 1}
-            response = await client.get(url, params=params, timeout=5.0)
-            return response.status_code == 200
-    except Exception:
-        return False
+        if os.path.exists(CACHE_FILE_PATH):
+            with open(CACHE_FILE_PATH, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+                return data.get("resources", [])
+    except Exception as e:
+        print(f"Error loading cached resources: {str(e)}")
+    return []
 
 
-async def get_predefined_resource_ids() -> List[Dict]:
+def save_resources_to_cache(resources: List[Dict], append: bool = False):
     """
-    Get a list of predefined resource IDs from popular datasets for testing
-    Only includes resources that are actually available in the datastore
+    Save discovered datastore resources to cache file for future reference
+    If append=True, merges with existing cache (deduplicates by ID)
     """
-    predefined = []
+    try:
+        # If appending, load existing resources and merge
+        if append:
+            existing_resources = load_cached_resources()
+            # Create a dict with resource ID as key for deduplication
+            resource_dict = {r.get("id"): r for r in existing_resources}
+            # Add new resources (will overwrite duplicates)
+            for r in resources:
+                resource_dict[r.get("id")] = r
+            # Convert back to list
+            resources = list(resource_dict.values())
+        
+        cache_data = {
+            "last_updated": datetime.now().isoformat(),
+            "count": len(resources),
+            "resources": resources
+        }
+        
+        # Ensure directory exists
+        cache_dir = os.path.dirname(CACHE_FILE_PATH)
+        if cache_dir:
+            os.makedirs(cache_dir, exist_ok=True)
+        
+        # Write to cache file
+        with open(CACHE_FILE_PATH, 'w', encoding='utf-8') as f:
+            json.dump(cache_data, f, ensure_ascii=False, indent=2)
+        
+        # Always print when saving (for incremental updates)
+        print(f"💾 Saved {len(resources)} resources to cache: {os.path.basename(CACHE_FILE_PATH)}")
+    except Exception as e:
+        print(f"❌ Error saving resources to cache: {str(e)}")
+        import traceback
+        traceback.print_exc()
+
+
+async def get_all_datastore_resources() -> List[Dict]:
+    """
+    Efficiently discover ALL datastore-enabled resources by checking datastore_active flag
+    Processes sequentially to avoid rate limiting
+    Saves results to cache for future reference
+    """
+    datastore_resources = []
     
     try:
-        # Search for popular datasets and extract their resource IDs
-        popular_searches = [
-            ("RO-ALERT", "RO-ALERT Messages"),
-            ("VMI venit minim", "VMI Beneficiaries"),
-            ("budget execution", "Budget Execution"),
-            ("firefighters interventions", "Firefighters Interventions"),
-            ("social assistance", "Social Assistance"),
+        async with httpx.AsyncClient() as client:
+            # 1. Get all package IDs
+            package_list_url = f"{DATA_GOV_BASE_URL}/package_list"
+            package_response = await client.get(package_list_url, timeout=30.0)
+            package_response.raise_for_status()
+            package_data = package_response.json()
+            
+            if not package_data.get("success"):
+                return []
+            
+            package_ids = package_data.get("result", [])
+            total_packages = len(package_ids)
+            
+            print(f"Found {total_packages} packages, scanning ALL for datastore resources (sequential processing)...")
+            
+            # 2. For each package, get details and filter datastore_active resources
+            # Process sequentially (no parallel) to avoid rate limiting
+            for idx, pkg_id in enumerate(package_ids):
+                try:
+                    package_show_url = f"{DATA_GOV_BASE_URL}/package_show"
+                    params = {"id": pkg_id}
+                    pkg_response = await client.get(package_show_url, params=params, timeout=10.0)
+                    
+                    if pkg_response.status_code != 200:
+                        continue
+                    
+                    pkg_data = pkg_response.json()
+                    if not pkg_data.get("success"):
+                        continue
+                    
+                    pkg = pkg_data.get("result", {})
+                    resources = pkg.get("resources", [])
+                    
+                    # Extract year from metadata_created
+                    metadata_created = pkg.get("metadata_created", "")
+                    year = "unknown"
+                    if metadata_created:
+                        try:
+                            year = metadata_created[:4] if len(metadata_created) >= 4 else "unknown"
+                        except Exception:
+                            year = "unknown"
+                    
+                    # Filter resources with datastore_active == true
+                    new_resources_in_package = []
+                    for res in resources:
+                        if res.get("datastore_active"):
+                            resource_data = {
+                                "id": res.get("id"),
+                                "name": f"{pkg.get('title', 'Unknown')} - {res.get('name', 'Resource')}",
+                                "description": pkg.get('notes', '')[:200] if pkg.get('notes') else '',
+                                "dataset_title": pkg.get('title', 'Unknown'),
+                                "dataset_id": pkg.get("id", ""),
+                                "resource_name": res.get("name", ""),
+                                "format": res.get("format", ""),
+                                "year": year,
+                                "metadata_created": metadata_created,
+                                "organization": pkg.get("organization", {}).get("title", "") if pkg.get("organization") else "",
+                            }
+                            datastore_resources.append(resource_data)
+                            new_resources_in_package.append(resource_data)
+                    
+                    # Save to cache incrementally whenever we find new resources
+                    # Save every 5 resources found or every 25 packages processed
+                    if new_resources_in_package:
+                        # Save immediately when we find new resources
+                        save_resources_to_cache(datastore_resources, append=False)
+                        if len(new_resources_in_package) > 0:
+                            print(f"  → Found {len(new_resources_in_package)} new resource(s), total: {len(datastore_resources)} (saved to cache)")
+                    
+                    # Progress indicator every 50 packages
+                    if (idx + 1) % 50 == 0:
+                        print(f"Processed {idx + 1}/{total_packages} packages, found {len(datastore_resources)} datastore resources...")
+                    
+                    # Small delay to avoid rate limiting
+                    await asyncio.sleep(0.1)  # 100ms delay between requests
+                        
+                except Exception as e:
+                    print(f"Error processing package {pkg_id}: {str(e)}")
+                    continue  # Skip if package fetch fails
+        
+        total_found = len(datastore_resources)
+        print(f"Discovery complete: Found {total_found} datastore resources")
+        
+        # Save to cache for future reference
+        if datastore_resources:
+            save_resources_to_cache(datastore_resources)
+        
+        return datastore_resources
+    except Exception as e:
+        print(f"Error discovering datastore resources: {str(e)}")
+        return []
+
+
+def load_predefined_resources() -> List[Dict]:
+    """
+    Load the curated predefined resources (top 50 most important)
+    """
+    try:
+        if os.path.exists(PREDEFINED_CACHE_FILE_PATH):
+            with open(PREDEFINED_CACHE_FILE_PATH, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+                return data.get("resources", [])
+    except Exception as e:
+        print(f"Error loading predefined resources: {str(e)}")
+    return []
+
+
+def save_predefined_resources(resources: List[Dict]):
+    """
+    Save the curated predefined resources (top 50 most important)
+    """
+    try:
+        cache_data = {
+            "last_updated": datetime.now().isoformat(),
+            "count": len(resources),
+            "resources": resources
+        }
+        
+        with open(PREDEFINED_CACHE_FILE_PATH, 'w', encoding='utf-8') as f:
+            json.dump(cache_data, f, ensure_ascii=False, indent=2)
+        
+        print(f"💾 Saved {len(resources)} predefined resources to: {os.path.basename(PREDEFINED_CACHE_FILE_PATH)}")
+    except Exception as e:
+        print(f"❌ Error saving predefined resources: {str(e)}")
+
+
+def categorize_resource(resource: Dict) -> str:
+    """
+    Categorize a resource based on its title, description, and organization
+    Returns a category name
+    """
+    title = resource.get("dataset_title", "").lower()
+    description = resource.get("description", "").lower()
+    org = resource.get("organization", "").lower()
+    combined = f"{title} {description} {org}"
+    
+    # Category keywords mapping
+    categories = {
+        "Emergency & Safety": ["alert", "emergency", "urgent", "firefighters", "pompieri", "salvare", "112"],
+        "Social Services": ["vmi", "venit minim", "social", "ajutor", "beneficiari", "asistenta", "pensie"],
+        "Budget & Finance": ["budget", "buget", "financiar", "execution", "plati", "cheltuieli", "venituri"],
+        "Health": ["health", "sanatate", "spital", "medical", "medic", "pacient", "tratament"],
+        "Education": ["education", "educatie", "scoala", "universitate", "elev", "student", "profesor"],
+        "Transport": ["transport", "traffic", "drumuri", "autostrada", "rutier", "circulatie", "mobilitate"],
+        "Environment": ["environment", "mediu", "poluare", "calitate aer", "clima", "ecologie", "verde"],
+        "Economy & Business": ["economy", "economie", "business", "companii", "firma", "comert", "piata"],
+        "Population & Demographics": ["population", "populatie", "demografie", "census", "recensamant", "statistici"],
+        "Government & Administration": ["guvern", "minister", "administratie", "institutii", "autoritate", "stat"],
+        "Infrastructure": ["infrastructure", "infrastructura", "energie", "electricity", "gaz", "apa", "canalizare"],
+        "Justice & Legal": ["justitie", "legal", "judecatorie", "procuratura", "politie", "penal", "civil"],
+        "Tourism & Culture": ["tourism", "turism", "culture", "cultura", "patrimoniu", "muzeu", "festival"],
+        "Agriculture": ["agriculture", "agricultura", "ferma", "cereale", "animale", "rural", "taran"],
+        "Other": []  # Default category
+    }
+    
+    # Check each category
+    for category, keywords in categories.items():
+        if category == "Other":
+            continue
+        for keyword in keywords:
+            if keyword in combined:
+                return category
+    
+    return "Other"
+
+
+def get_resources_by_category(category: Optional[str] = None, search_query: Optional[str] = None, limit: int = 100, offset: int = 0) -> Dict:
+    """
+    Get resources filtered by category and/or search query
+    Returns resources with pagination
+    """
+    all_resources = load_cached_resources()
+    
+    if not all_resources:
+        return {
+            "resources": [],
+            "total": 0,
+            "categories": {},
+            "count": 0
+        }
+    
+    # Filter by category
+    if category and category != "All":
+        filtered_resources = [r for r in all_resources if categorize_resource(r) == category]
+    else:
+        filtered_resources = all_resources
+    
+    # Filter by search query
+    if search_query:
+        search_lower = search_query.lower()
+        filtered_resources = [
+            r for r in filtered_resources
+            if search_lower in r.get("name", "").lower() or
+               search_lower in r.get("dataset_title", "").lower() or
+               search_lower in r.get("description", "").lower() or
+               search_lower in r.get("organization", "").lower()
         ]
+    
+    # Get category counts
+    category_counts = {}
+    for resource in all_resources:
+        cat = categorize_resource(resource)
+        category_counts[cat] = category_counts.get(cat, 0) + 1
+    
+    # Apply pagination
+    total = len(filtered_resources)
+    paginated_resources = filtered_resources[offset:offset + limit]
+    
+    return {
+        "resources": paginated_resources,
+        "total": total,
+        "limit": limit,
+        "offset": offset,
+        "categories": category_counts,
+        "count": len(paginated_resources)
+    }
+
+
+async def get_resource_info_by_id(resource_id: str) -> Optional[Dict]:
+    """
+    Get information about a resource ID from cache
+    Returns cached metadata if available
+    """
+    cached_resources = load_cached_resources()
+    for resource in cached_resources:
+        if resource.get("id") == resource_id:
+            return resource
+    return None
+
+
+async def get_predefined_resource_ids(use_cache: bool = True, force_refresh: bool = False) -> List[Dict]:
+    """
+    Get all cached resource IDs (for backward compatibility)
+    Now returns all resources from cache, use get_resources_by_category for filtering
+    """
+    try:
+        # Load all resources from full cache
+        all_resources = load_cached_resources()
         
-        for search_term, label in popular_searches:
-            try:
-                datasets = await fetch_datasets(search_query=search_term, limit=5)
-                for dataset in datasets:
-                    resources = dataset.get('resources', [])
-                    for resource in resources:
-                        resource_id = resource.get('id')
-                        if resource_id:
-                            # Check if this resource is actually in the datastore
-                            is_in_datastore = await check_resource_in_datastore(resource_id)
-                            if is_in_datastore:
-                                predefined.append({
-                                    "id": resource_id,
-                                    "name": f"{label} - {dataset.get('title', 'Unknown')}",
-                                    "description": dataset.get('notes', '')[:100] if dataset.get('notes') else '',
-                                    "dataset_title": dataset.get('title', 'Unknown'),
-                                })
-                                break  # Only take first valid resource from each dataset
-            except Exception:
-                continue  # Skip if search fails
+        if not all_resources:
+            print("No resources in full cache. Discovering resources...")
+            # If no cache, discover all resources first
+            all_resources = await get_all_datastore_resources()
         
-        # If we didn't find any, add some known working examples (if available)
-        # These are example resource IDs that users can try
-        if not predefined:
-            # Try to find any working resource from recent datasets
+        if not all_resources:
+            # Fallback: try to get some from recent datasets if the above fails
             try:
-                recent_datasets = await fetch_datasets(limit=20)
+                recent_datasets = await fetch_datasets(limit=100)
                 for dataset in recent_datasets:
                     resources = dataset.get('resources', [])
                     for resource in resources:
-                        resource_id = resource.get('id')
-                        if resource_id and len(predefined) < 5:
-                            is_in_datastore = await check_resource_in_datastore(resource_id)
-                            if is_in_datastore:
-                                predefined.append({
-                                    "id": resource_id,
-                                    "name": f"{dataset.get('title', 'Unknown')}",
-                                    "description": dataset.get('notes', '')[:100] if dataset.get('notes') else '',
-                                    "dataset_title": dataset.get('title', 'Unknown'),
-                                })
-                                if len(predefined) >= 5:
-                                    break
-                    if len(predefined) >= 5:
-                        break
+                        if resource.get('datastore_active'):
+                            all_resources.append({
+                                "id": resource.get('id'),
+                                "name": f"{dataset.get('title', 'Unknown')} - {resource.get('name', 'Resource')}",
+                                "description": dataset.get('notes', '')[:200] if dataset.get('notes') else '',
+                                "dataset_title": dataset.get('title', 'Unknown'),
+                                "dataset_id": dataset.get("id", ""),
+                                "resource_name": resource.get("name", ""),
+                                "format": resource.get("format", ""),
+                            })
             except Exception:
                 pass
         
-        return predefined[:10]  # Limit to 10 resources
+        # Sort by name for better organization
+        all_resources.sort(key=lambda x: x['name'])
+        
+        return all_resources
     except Exception as e:
-        # Return empty list if error
+        print(f"Error getting predefined resources: {str(e)}")
+        # Last resort: try full cache
+        cached_resources = load_cached_resources()
+        if cached_resources:
+            return cached_resources
         return []
 
 
