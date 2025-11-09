@@ -8,10 +8,23 @@ from app.routers import citypulse_alerts, citypulse_sectors, pedestrian_analytic
 
 app = FastAPI(title="Unified Service", version="1.0.0")
 
-# CORS middleware
+# Build allowed origins list
+allowed_origins = [
+    settings.cors_origin,
+    "http://localhost:5173",
+    "http://localhost:5174",
+]
+
+# Add ngrok URL from environment if provided
+ngrok_url = getattr(settings, 'ngrok_url', None)
+if ngrok_url:
+    allowed_origins.append(ngrok_url)
+
+# CORS middleware - allows localhost, configured CORS_ORIGIN, and any ngrok domain
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[settings.cors_origin, "http://localhost:5173", "http://localhost:5174"],
+    allow_origin_regex=r'https?://.*\.(ngrok\.io|ngrok-free\.app).*',  # Allow any ngrok domain
+    allow_origins=allowed_origins,  # Explicit origins (localhost, Netlify, etc.)
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

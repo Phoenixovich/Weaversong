@@ -45,7 +45,8 @@ auth-service/
 
 ## Quick Start
 
-> **📖 For detailed setup instructions, see [SETUP.md](./SETUP.md)**
+> **📖 For detailed setup instructions, see [SETUP.md](./SETUP.md)**  
+> **🚀 For complete deployment tutorial from zero, see [COMPLETE_SETUP_TUTORIAL.md](./COMPLETE_SETUP_TUTORIAL.md)**
 
 ### Backend Setup
 
@@ -149,4 +150,33 @@ The frontend will be available at `http://localhost:5173`
 - Protected routes require valid JWT token
 - Automatic token refresh on expiration
 - CORS protection
+
+## Deployment
+
+> **📖 For detailed deployment instructions, see [DEPLOYMENT.md](./DEPLOYMENT.md)**
+
+### Quick Deployment Steps
+
+1. **Start backend with ngrok:**
+   ```bash
+   # Terminal 1: Start backend
+   cd auth-service/backend
+   python run_server.py
+   
+   # Terminal 2: Start ngrok
+   ngrok http 8000 --request-header-add "ngrok-skip-browser-warning:true"
+   ```
+
+2. **Build frontend:**
+   ```bash
+   cd auth-service/frontend
+   # Create .env with: VITE_API_URL=https://your-ngrok-url.ngrok-free.app
+   npm run build
+   ```
+
+3. **Deploy to Netlify:**
+   - Drag and drop the `auth-service/frontend/dist` folder to Netlify
+   - Or use Netlify CLI: `netlify deploy --prod`
+
+The backend CORS is already configured to allow ngrok domains automatically.
 
