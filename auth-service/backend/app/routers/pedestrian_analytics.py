@@ -88,6 +88,7 @@ async def get_pedestrian_analytics(
     radius: float = Query(0.01, description="Radius in degrees (~1km)"),
     start_date: Optional[str] = Query(None),
     end_date: Optional[str] = Query(None),
+    timeframe: Optional[str] = Query(None, description="Timeframe filter: 'morning' (6-12), 'daytime' (12-18), 'evening' (18-22), 'night' (22-6)"),
     current_user: UserInDB = Depends(get_current_user)
 ):
     """
@@ -143,6 +144,25 @@ async def get_pedestrian_analytics(
                 query["timestamp"] = {"$lte": end_timestamp}
         except ValueError:
             raise HTTPException(status_code=400, detail="Invalid end_date format. Use YYYY-MM-DD")
+
+    # Timeframe filter (hour range)
+    hour_filter = None
+    if timeframe:
+        timeframe_lower = timeframe.lower()
+        if timeframe_lower == "morning":
+            hour_filter = {"$gte": 6, "$lt": 12}
+        elif timeframe_lower == "daytime":
+            hour_filter = {"$gte": 12, "$lt": 18}
+        elif timeframe_lower == "evening":
+            hour_filter = {"$gte": 18, "$lt": 22}
+        elif timeframe_lower == "night":
+            # Night spans from 22 to 6 (next day)
+            hour_filter = {"$or": [{"$gte": 22}, {"$lt": 6}]}
+        else:
+            raise HTTPException(status_code=400, detail="Invalid timeframe. Use 'morning', 'daytime', 'evening', or 'night'")
+    
+    if hour_filter:
+        query["hour"] = hour_filter
 
     # Aggregate data by location and hour
     pipeline = [
@@ -242,6 +262,9 @@ async def get_pedestrian_analytics(
 @router.get("/popular-locations", response_model=List[dict])
 async def get_popular_locations(
     limit: int = Query(10, ge=1, le=50),
+    start_date: Optional[str] = Query(None),
+    end_date: Optional[str] = Query(None),
+    timeframe: Optional[str] = Query(None, description="Timeframe filter: 'morning' (6-12), 'daytime' (12-18), 'evening' (18-22), 'night' (22-6)"),
     current_user: UserInDB = Depends(get_current_user)
 ):
     """
@@ -259,7 +282,50 @@ async def get_popular_locations(
     except Exception:
         raise HTTPException(status_code=503, detail="Database not connected")
 
-    pipeline = [
+    # Build match query for date and timeframe filters
+    match_query = {}
+    
+    # Date filter
+    if start_date:
+        try:
+            start_dt = datetime.strptime(start_date, "%Y-%m-%d")
+            start_timestamp = int(start_dt.timestamp())
+            match_query["timestamp"] = {"$gte": start_timestamp}
+        except ValueError:
+            raise HTTPException(status_code=400, detail="Invalid start_date format. Use YYYY-MM-DD")
+
+    if end_date:
+        try:
+            end_dt = datetime.strptime(end_date, "%Y-%m-%d")
+            end_dt = end_dt.replace(hour=23, minute=59, second=59)
+            end_timestamp = int(end_dt.timestamp())
+            if "timestamp" in match_query:
+                match_query["timestamp"]["$lte"] = end_timestamp
+            else:
+                match_query["timestamp"] = {"$lte": end_timestamp}
+        except ValueError:
+            raise HTTPException(status_code=400, detail="Invalid end_date format. Use YYYY-MM-DD")
+
+    # Timeframe filter (hour range)
+    if timeframe:
+        timeframe_lower = timeframe.lower()
+        if timeframe_lower == "morning":
+            match_query["hour"] = {"$gte": 6, "$lt": 12}
+        elif timeframe_lower == "daytime":
+            match_query["hour"] = {"$gte": 12, "$lt": 18}
+        elif timeframe_lower == "evening":
+            match_query["hour"] = {"$gte": 18, "$lt": 22}
+        elif timeframe_lower == "night":
+            # Night spans from 22 to 6 (next day)
+            match_query["hour"] = {"$or": [{"$gte": 22}, {"$lt": 6}]}
+        else:
+            raise HTTPException(status_code=400, detail="Invalid timeframe. Use 'morning', 'daytime', 'evening', or 'night'")
+
+    pipeline = []
+    if match_query:
+        pipeline.append({"$match": match_query})
+    
+    pipeline.extend([
         {
             "$group": {
                 "_id": {
@@ -271,7 +337,7 @@ async def get_popular_locations(
         },
         {"$sort": {"count": -1}},
         {"$limit": limit}
-    ]
+    ])
 
     results = []
     async for doc in db.pedestrian_data.aggregate(pipeline):

@@ -57,6 +57,7 @@ export async function getPedestrianAnalytics(params?: {
   radius?: number;
   start_date?: string;
   end_date?: string;
+  timeframe?: string;
 }): Promise<PedestrianAnalytics[]> {
   const token = localStorage.getItem('access_token');
   if (!token) {
@@ -91,13 +92,24 @@ export async function getPedestrianAnalytics(params?: {
 /**
  * Get popular locations (requires premium or admin)
  */
-export async function getPopularLocations(limit: number = 10): Promise<PopularLocation[]> {
+export async function getPopularLocations(
+  limit: number = 10,
+  start_date?: string,
+  end_date?: string,
+  timeframe?: string
+): Promise<PopularLocation[]> {
   const token = localStorage.getItem('access_token');
   if (!token) {
     throw new Error('Authentication required');
   }
 
-  const response = await fetch(`${API_BASE_URL}/popular-locations?limit=${limit}`, {
+  const queryParams = new URLSearchParams();
+  queryParams.append('limit', limit.toString());
+  if (start_date) queryParams.append('start_date', start_date);
+  if (end_date) queryParams.append('end_date', end_date);
+  if (timeframe) queryParams.append('timeframe', timeframe);
+
+  const response = await fetch(`${API_BASE_URL}/popular-locations?${queryParams.toString()}`, {
     headers: {
       'Authorization': `Bearer ${token}`,
     },

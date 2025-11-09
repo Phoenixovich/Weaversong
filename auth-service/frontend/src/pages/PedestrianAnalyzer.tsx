@@ -3,6 +3,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useRoleGuard } from '../hooks/useRoleGuard';
 import { UserRole } from '../types/auth';
 import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import { getPedestrianAnalytics, getPopularLocations } from '../services/pedestrianApi';
 
 interface PedestrianAnalytics {
   location_name: string | null;
@@ -30,70 +31,106 @@ export const PedestrianAnalyzer: React.FC = () => {
   const [analytics, setAnalytics] = useState<PedestrianAnalytics[]>([]);
   const [popularLocations, setPopularLocations] = useState<PopularLocation[]>([]);
   const [loading, setLoading] = useState(false);
+  const [loadingLocations, setLoadingLocations] = useState<string[]>([]); // Track which locations are being loaded
   const [selectedLocation, setSelectedLocation] = useState<PedestrianAnalytics | null>(null);
   const [dateRange, setDateRange] = useState({
     start_date: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
     end_date: new Date().toISOString().split('T')[0]
   });
+  const [timeframe, setTimeframe] = useState<string>('');
 
   // Check if user has access
   const hasAccess = user?.is_premium || isAdmin();
 
   useEffect(() => {
     if (hasAccess) {
-      loadPopularLocations();
-      loadAnalytics();
+      loadAnalyticsProgressive();
     }
-  }, [hasAccess, dateRange]);
+  }, [hasAccess, dateRange, timeframe]);
 
-  const loadAnalytics = async () => {
-    setLoading(true);
+  const loadPopularLocations = async () => {
     try {
-      const token = localStorage.getItem('access_token');
-      const params = new URLSearchParams();
-      if (dateRange.start_date) params.append('start_date', dateRange.start_date);
-      if (dateRange.end_date) params.append('end_date', dateRange.end_date);
+      const data = await getPopularLocations(
+        10,
+        dateRange.start_date,
+        dateRange.end_date,
+        timeframe || undefined
+      );
+      setPopularLocations(data);
+    } catch (error: any) {
+      console.error('Failed to load popular locations:', error);
+    }
+  };
 
-      const response = await fetch(`/pedestrian/analytics?${params.toString()}`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      });
+  const loadAnalyticsProgressive = async () => {
+    setLoading(true);
+    setAnalytics([]);
+    
+    try {
+      // First, load popular locations
+      const popularLocs = await getPopularLocations(
+        10,
+        dateRange.start_date,
+        dateRange.end_date,
+        timeframe || undefined
+      );
+      setPopularLocations(popularLocs);
 
-      if (!response.ok) {
-        if (response.status === 403) {
-          throw new Error('This feature requires premium subscription or admin role');
+      // If we have popular locations, load analytics for them progressively
+      if (popularLocs.length > 0) {
+        // Load analytics for each popular location progressively
+        for (const location of popularLocs) {
+          const locationKey = `${location.lat.toFixed(4)}_${location.lng.toFixed(4)}`;
+          setLoadingLocations(prev => [...prev, locationKey]);
+          
+          try {
+            const analyticsData = await getPedestrianAnalytics({
+              lat: location.lat,
+              lng: location.lng,
+              radius: 0.01,
+              start_date: dateRange.start_date,
+              end_date: dateRange.end_date,
+              timeframe: timeframe || undefined
+            });
+
+            // Add new analytics to the existing list
+            setAnalytics(prev => {
+              // Check if this location already exists in analytics
+              const existingIndex = prev.findIndex(a => 
+                Math.abs(a.lat - location.lat) < 0.001 && 
+                Math.abs(a.lng - location.lng) < 0.001
+              );
+              
+              if (existingIndex >= 0) {
+                // Update existing
+                const updated = [...prev];
+                updated[existingIndex] = analyticsData[0] || prev[existingIndex];
+                return updated;
+              } else {
+                // Add new
+                return [...prev, ...analyticsData];
+              }
+            });
+          } catch (error: any) {
+            console.error(`Failed to load analytics for location ${locationKey}:`, error);
+          } finally {
+            setLoadingLocations(prev => prev.filter(key => key !== locationKey));
+          }
         }
-        throw new Error('Failed to load analytics');
+      } else {
+        // Fallback: load all analytics if no popular locations
+        const analyticsData = await getPedestrianAnalytics({
+          start_date: dateRange.start_date,
+          end_date: dateRange.end_date,
+          timeframe: timeframe || undefined
+        });
+        setAnalytics(analyticsData);
       }
-
-      const data = await response.json();
-      setAnalytics(data);
     } catch (error: any) {
       console.error('Failed to load analytics:', error);
       alert(`Failed to load analytics: ${error.message}`);
     } finally {
       setLoading(false);
-    }
-  };
-
-  const loadPopularLocations = async () => {
-    try {
-      const token = localStorage.getItem('access_token');
-      const response = await fetch('/pedestrian/popular-locations?limit=10', {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to load popular locations');
-      }
-
-      const data = await response.json();
-      setPopularLocations(data);
-    } catch (error: any) {
-      console.error('Failed to load popular locations:', error);
     }
   };
 
@@ -142,9 +179,9 @@ export const PedestrianAnalyzer: React.FC = () => {
           </p>
         </div>
 
-        {/* Date Range Filter */}
+        {/* Filters */}
         <div style={styles.filterCard}>
-          <h3 style={styles.filterTitle}>Date Range</h3>
+          <h3 style={styles.filterTitle}>Filters</h3>
           <div style={styles.dateInputs}>
             <div>
               <label style={styles.label}>Start Date:</label>
@@ -164,7 +201,21 @@ export const PedestrianAnalyzer: React.FC = () => {
                 style={styles.dateInput}
               />
             </div>
-            <button onClick={loadAnalytics} style={styles.refreshButton}>
+            <div>
+              <label style={styles.label}>Timeframe:</label>
+              <select
+                value={timeframe}
+                onChange={(e) => setTimeframe(e.target.value)}
+                style={styles.dateInput}
+              >
+                <option value="">All Day</option>
+                <option value="morning">Morning (6 AM - 12 PM)</option>
+                <option value="daytime">Daytime (12 PM - 6 PM)</option>
+                <option value="evening">Evening (6 PM - 10 PM)</option>
+                <option value="night">Night (10 PM - 6 AM)</option>
+              </select>
+            </div>
+            <button onClick={loadAnalyticsProgressive} style={styles.refreshButton}>
               🔄 Refresh
             </button>
           </div>
@@ -200,8 +251,8 @@ export const PedestrianAnalyzer: React.FC = () => {
         )}
 
         {/* Analytics Charts */}
-        {loading ? (
-          <div style={styles.loading}>Loading analytics...</div>
+        {loading && analytics.length === 0 ? (
+          <div style={styles.loading}>Loading analytics for most popular locations...</div>
         ) : analytics.length > 0 ? (
           <div style={styles.section}>
             <h2 style={styles.sectionTitle}>📊 Analytics Overview</h2>
@@ -262,29 +313,40 @@ export const PedestrianAnalyzer: React.FC = () => {
               </div>
             ) : (
               <div style={styles.analyticsGrid}>
-                {analytics.slice(0, 6).map((item, index) => (
-                  <div key={index} style={styles.analyticsCard}>
-                    <h3 style={styles.analyticsLocation}>
-                      {item.location_name || `Location ${index + 1}`}
-                    </h3>
-                    <div style={styles.analyticsStats}>
-                      <div style={styles.analyticsStat}>
-                        <strong style={styles.analyticsStatValue}>{item.total_count.toLocaleString()}</strong>
-                        <span style={styles.analyticsStatLabel}>Total</span>
+                {analytics.slice(0, 6).map((item, index) => {
+                  const locationKey = `${item.lat.toFixed(4)}_${item.lng.toFixed(4)}`;
+                  const isLoading = loadingLocations.includes(locationKey);
+                  
+                  return (
+                    <div key={index} style={styles.analyticsCard}>
+                      {isLoading && (
+                        <div style={styles.loadingOverlay}>
+                          <div style={styles.loadingText}>Loading...</div>
+                        </div>
+                      )}
+                      <h3 style={styles.analyticsLocation}>
+                        {item.location_name || `Location ${index + 1}`}
+                      </h3>
+                      <div style={styles.analyticsStats}>
+                        <div style={styles.analyticsStat}>
+                          <strong style={styles.analyticsStatValue}>{item.total_count.toLocaleString()}</strong>
+                          <span style={styles.analyticsStatLabel}>Total</span>
+                        </div>
+                        <div style={styles.analyticsStat}>
+                          <strong style={styles.analyticsStatValue}>{item.average_per_hour}</strong>
+                          <span style={styles.analyticsStatLabel}>Avg/Hour</span>
+                        </div>
                       </div>
-                      <div style={styles.analyticsStat}>
-                        <strong style={styles.analyticsStatValue}>{item.average_per_hour}</strong>
-                        <span style={styles.analyticsStatLabel}>Avg/Hour</span>
-                      </div>
+                      <button
+                        onClick={() => setSelectedLocation(item)}
+                        style={styles.viewDetailsButton}
+                        disabled={isLoading}
+                      >
+                        View Details
+                      </button>
                     </div>
-                    <button
-                      onClick={() => setSelectedLocation(item)}
-                      style={styles.viewDetailsButton}
-                    >
-                      View Details
-                    </button>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </div>
@@ -424,6 +486,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     backgroundColor: '#f8f9fa',
     borderRadius: '8px',
     border: '1px solid #e9ecef',
+    position: 'relative',
   },
   analyticsLocation: {
     margin: '0 0 1rem 0',
@@ -528,6 +591,23 @@ const styles: { [key: string]: React.CSSProperties } = {
     marginTop: '1rem',
     fontSize: '0.9rem',
     color: '#999',
+  },
+  loadingOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: '8px',
+    zIndex: 1,
+  },
+  loadingText: {
+    fontSize: '0.9rem',
+    color: '#666',
   },
 };
 
