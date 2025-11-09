@@ -352,72 +352,76 @@ export default function AlertList({ view, onViewChange }: AlertListProps) {
             </button>
           </div>
           
-          {/* Area Search Input */}
-          <div className="relative">
-            <input
-              type="text"
-              placeholder="🔍 Search area..."
-              value={areaSearchQuery}
-              onChange={(e) => {
-                setAreaSearchQuery(e.target.value)
-                setShowAreaSuggestions(true)
-              }}
-              onFocus={() => setShowAreaSuggestions(true)}
-              onBlur={() => {
-                // Delay to allow click on suggestions
-                setTimeout(() => setShowAreaSuggestions(false), 200)
-              }}
-              className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent w-48"
-            />
-            {showAreaSuggestions && filteredNeighborhoods.length > 0 && (
-              <div className="absolute z-[1000] w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
-                <div
-                  className="px-3 py-2 text-xs text-gray-500 border-b border-gray-200 cursor-pointer hover:bg-gray-50"
-                  onClick={() => {
-                    setAreaSearchQuery('')
-                    setShowAreaSuggestions(false)
+          {view === 'list' && (
+            <>
+              {/* Area Search Input */}
+              <div className="relative">
+                <input
+                  type="text"
+                  placeholder="🔍 Search area..."
+                  value={areaSearchQuery}
+                  onChange={(e) => {
+                    setAreaSearchQuery(e.target.value)
+                    setShowAreaSuggestions(true)
                   }}
-                >
-                  Clear search
-                </div>
-                {filteredNeighborhoods.map((n) => (
-                  <div
-                    key={n.name}
-                    className="px-4 py-2 hover:bg-blue-50 cursor-pointer border-b border-gray-100 last:border-b-0"
-                    onClick={() => handleAreaSelect(n.name)}
-                  >
-                    <div className="font-medium text-gray-900">{n.name}</div>
-                    <div className="text-xs text-gray-500">{n.type}</div>
+                  onFocus={() => setShowAreaSuggestions(true)}
+                  onBlur={() => {
+                    // Delay to allow click on suggestions
+                    setTimeout(() => setShowAreaSuggestions(false), 200)
+                  }}
+                  className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent w-48"
+                />
+                {showAreaSuggestions && filteredNeighborhoods.length > 0 && (
+                  <div className="absolute z-[1000] w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                    <div
+                      className="px-3 py-2 text-xs text-gray-500 border-b border-gray-200 cursor-pointer hover:bg-gray-50"
+                      onClick={() => {
+                        setAreaSearchQuery('')
+                        setShowAreaSuggestions(false)
+                      }}
+                    >
+                      Clear search
+                    </div>
+                    {filteredNeighborhoods.map((n) => (
+                      <div
+                        key={n.name}
+                        className="px-4 py-2 hover:bg-blue-50 cursor-pointer border-b border-gray-100 last:border-b-0"
+                        onClick={() => handleAreaSelect(n.name)}
+                      >
+                        <div className="font-medium text-gray-900">{n.name}</div>
+                        <div className="text-xs text-gray-500">{n.type}</div>
+                      </div>
+                    ))}
                   </div>
-                ))}
+                )}
+                {showAreaSuggestions && areaSearchQuery.trim() !== '' && filteredNeighborhoods.length === 0 && (
+                  <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg">
+                    <div className="px-4 py-2 text-sm text-gray-500">
+                      No areas found matching "{areaSearchQuery}"
+                    </div>
+                  </div>
+                )}
               </div>
-            )}
-            {showAreaSuggestions && areaSearchQuery.trim() !== '' && filteredNeighborhoods.length === 0 && (
-              <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg">
-                <div className="px-4 py-2 text-sm text-gray-500">
-                  No areas found matching "{areaSearchQuery}"
-                </div>
-              </div>
-            )}
-          </div>
 
-          {/* Filter Toggle Button */}
-          <button
-            onClick={() => setShowFilters(!showFilters)}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
-          >
-            🔍 Filters
-            {(selectedNeighborhoods.length > 0 || selectedCategories.length > 0 || selectedPriorities.length > 0 || selectedDateFilter) && (
-              <span className="bg-white text-blue-600 rounded-full px-2 py-0.5 text-xs font-semibold">
-                {selectedNeighborhoods.length + selectedCategories.length + selectedPriorities.length + (selectedDateFilter ? 1 : 0)}
-              </span>
-            )}
-          </button>
+              {/* Filter Toggle Button */}
+              <button
+                onClick={() => setShowFilters(!showFilters)}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
+              >
+                🔍 Filters
+                {(selectedNeighborhoods.length > 0 || selectedCategories.length > 0 || selectedPriorities.length > 0 || selectedDateFilter) && (
+                  <span className="bg-white text-blue-600 rounded-full px-2 py-0.5 text-xs font-semibold">
+                    {selectedNeighborhoods.length + selectedCategories.length + selectedPriorities.length + (selectedDateFilter ? 1 : 0)}
+                  </span>
+                )}
+              </button>
+            </>
+          )}
         </div>
       </div>
 
       {/* Advanced Filters Panel */}
-      {showFilters && (
+      {view === 'list' && showFilters && (
         <div className="bg-white rounded-lg shadow-md p-6 mb-6 border border-gray-200">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-semibold text-gray-900">Filter Alerts</h3>

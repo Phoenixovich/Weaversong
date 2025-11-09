@@ -1,32 +1,44 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import './NotFound.css';
 
 export const NotFound: React.FC = () => {
+  const navigate = useNavigate();
+  const [countdown, setCountdown] = useState(3);
+
+  useEffect(() => {
+    // Countdown timer
+    const timer = setInterval(() => {
+      setCountdown((prev) => {
+        if (prev <= 1) {
+          clearInterval(timer);
+          navigate('/');
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    // Redirect after 3 seconds
+    const redirectTimer = setTimeout(() => {
+      navigate('/');
+    }, 3000);
+
+    return () => {
+      clearInterval(timer);
+      clearTimeout(redirectTimer);
+    };
+  }, [navigate]);
+
   return (
     <div className="not-found-page">
-      <div className="not-found-header">
-        <h1 className="header-title">404</h1>
-        <p className="header-subtitle">
-          Page Not Found
-        </p>
-      </div>
-
       <div className="not-found-content">
         <div className="not-found-container">
-          <div className="error-icon">🔍</div>
-          <h2 className="error-title">Oops! Page Not Found</h2>
+          <div className="error-icon">⚠️</div>
+          <h1 className="error-title gradient-text">Oops! Something went wrong</h1>
           <p className="error-message">
-            The page you're looking for doesn't exist or has been moved.
+            Redirecting to welcome page in {countdown} second{countdown !== 1 ? 's' : ''}...
           </p>
-          <div className="error-actions">
-            <Link to="/" className="home-button">
-              🏠 Go to Home
-            </Link>
-            <Link to="/dashboard" className="dashboard-button">
-              📊 Go to Dashboard
-            </Link>
-          </div>
         </div>
       </div>
     </div>

@@ -99,6 +99,7 @@ const AppRoutes: React.FC = () => {
         <Route path="/helpboard/login" element={<LoginCallback />} />
         {/* Error pages */}
         <Route path="/forbidden" element={<Forbidden />} />
+        <Route path="/not-found" element={<NotFound />} />
         {/* Welcome page - default route */}
         <Route path="/" element={<Welcome />} />
         {/* Catch-all route for 404 */}

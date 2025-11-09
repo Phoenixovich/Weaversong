@@ -1,64 +1,79 @@
-.controlsRow {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  align-items: center;
-  gap: 1rem;
+/* Helpboard Landing - Page-specific styling only */
+
+.helpboard-landing-page {
+  min-height: 100vh;
+  background-color: #FAFAFF;
 }
 
-.tabButton {
-  padding: 0.75rem 2rem;
-  position: relative;
-  background-color: transparent;
+.helpboard-landing-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+}
+
+.helpboard-landing-header {
+  margin-bottom: 2rem;
+}
+
+.helpboard-landing-title {
+  font-size: 2.5rem;
+  font-weight: bold;
+  margin-bottom: 0.75rem;
+  background: linear-gradient(135deg, #FF7A18 0%, #A100FF 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.helpboard-landing-subtitle {
+  font-size: 1.25rem;
+  color: #4a4a4a;
+}
+
+.helpboard-landing-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: center;
+  margin-top: 1rem;
+}
+
+.helpboard-landing-button {
+  padding: 0.75rem 1.5rem;
+  background-color: white;
   border: 2px solid transparent;
+  background: linear-gradient(white, white) padding-box,
+              linear-gradient(135deg, #FF7A18 0%, #A100FF 100%) border-box;
   border-radius: 6px;
   cursor: pointer;
-  font-weight: 600;
+  font-weight: 500;
   transition: all 0.3s ease;
   text-decoration: none;
   display: inline-block;
-  color: transparent;
-  background: linear-gradient(135deg, #FF7A18 0%, #A100FF 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  isolation: isolate;
+  color: #333;
 }
 
-.tabButton::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border-radius: 6px;
-  padding: 2px;
-  background: linear-gradient(135deg, #FF7A18 0%, #A100FF 100%);
-  -webkit-mask: 
-    linear-gradient(#fff 0 0) content-box, 
-    linear-gradient(#fff 0 0);
-  -webkit-mask-composite: xor;
-  mask-composite: exclude;
-  z-index: -1;
+.helpboard-landing-button:hover {
+  box-shadow: 0 0 0 2px rgba(255, 122, 24, 0.2);
+  transform: translateY(-1px);
 }
 
-.tabButtonActive {
+.helpboard-landing-button-active {
   background: linear-gradient(135deg, #FF7A18 0%, #A100FF 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: white;
+  border: 2px solid transparent;
 }
 
-.tabButtonActive::before {
-  -webkit-mask: none;
-  mask: none;
-  background: rgba(255, 122, 24, 0.1);
+.helpboard-landing-button-active:hover {
+  box-shadow: 0 4px 12px rgba(161, 0, 255, 0.3);
+  transform: translateY(-1px);
+}
+
+.helpboard-landing-content {
   padding: 0;
 }
 
-.content {
-  padding: 0;
-}
-
-.errorBanner {
+.helpboard-landing-error {
   padding: 1rem;
   background-color: #ffebee;
   color: #c62828;
@@ -67,41 +82,54 @@
   border: 1px solid #ef5350;
 }
 
-.formSection {
+.helpboard-landing-form-section {
   background-color: white;
   padding: 1.5rem;
-  border-radius: 8px;
+  border-radius: 12px;
   margin-bottom: 2rem;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(255, 122, 24, 0.1);
 }
 
-.requestsSection {
+.helpboard-landing-requests-section {
   margin-top: 2rem;
 }
 
-.sectionTitle {
+.helpboard-landing-section-title {
   font-size: 1.5rem;
   margin-bottom: 1rem;
-  color: #333;
-  border-bottom: 2px solid #e9ecef;
+  background: linear-gradient(135deg, #FF7A18 0%, #A100FF 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  border-bottom: 2px solid;
+  border-image: linear-gradient(135deg, #FF7A18 0%, #A100FF 100%) 1;
   padding-bottom: 0.5rem;
 }
 
-.requestsList {
+.helpboard-landing-requests-list {
   display: flex;
   flex-direction: column;
   gap: 1rem;
 }
 
-.requestCard {
+.helpboard-landing-request-card {
   padding: 1rem;
-  background-color: #f8f9fa;
-  border-radius: 8px;
-  border: 1px solid #e9ecef;
-  transition: transform 0.2s, box-shadow 0.2s;
+  background-color: white;
+  border-radius: 12px;
+  border: 2px solid transparent;
+  background: linear-gradient(white, white) padding-box,
+              linear-gradient(135deg, #FF7A18 0%, #A100FF 100%) border-box;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s, box-shadow 0.3s;
 }
 
-.requestHeader {
+.helpboard-landing-request-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(161, 0, 255, 0.15);
+}
+
+.helpboard-landing-request-header {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
@@ -109,33 +137,33 @@
   gap: 1rem;
 }
 
-.requestTitle {
+.helpboard-landing-request-title {
   margin: 0;
   font-size: 1.1rem;
   color: #333;
   flex: 1;
 }
 
-.badges {
+.helpboard-landing-badges {
   display: flex;
   gap: 0.5rem;
   flex-wrap: wrap;
 }
 
-.badge {
+.helpboard-landing-badge {
   padding: 0.25rem 0.75rem;
   border-radius: 12px;
   font-size: 0.75rem;
   font-weight: 500;
 }
 
-.requestDescription {
+.helpboard-landing-request-description {
   color: #666;
   margin-bottom: 0.75rem;
   line-height: 1.5;
 }
 
-.requestDetails {
+.helpboard-landing-request-details {
   display: flex;
   flex-direction: column;
   gap: 0.4rem;
@@ -143,18 +171,18 @@
   border-top: 1px solid #e9ecef;
 }
 
-.detailItem {
+.helpboard-landing-detail-item {
   font-size: 0.9rem;
   color: #666;
 }
 
-.loading {
+.helpboard-landing-loading {
   text-align: center;
   padding: 2rem;
   color: #666;
 }
 
-.emptyState {
+.helpboard-landing-empty {
   text-align: center;
   padding: 2rem;
   background-color: #f8f9fa;
@@ -162,142 +190,33 @@
   color: #666;
 }
 
-.emptyHint {
+.helpboard-landing-empty-hint {
   margin-top: 0.5rem;
   font-size: 0.9rem;
   color: #999;
 }
 
-.inlineLink {
-  color: #007bff;
-  text-decoration: none;
-  font-weight: 500;
-}
-
-.expandButton {
+.helpboard-landing-expand-button {
   margin-top: 0.75rem;
   padding: 0.5rem 1rem;
-  background-color: #20c997;
+  background: linear-gradient(135deg, #FF7A18 0%, #A100FF 100%);
   color: white;
   border: none;
   border-radius: 6px;
   cursor: pointer;
   font-size: 0.9rem;
   font-weight: 500;
-  transition: background-color 0.3s;
+  transition: all 0.3s ease;
   width: 100%;
 }
 
-.responseSection {
+.helpboard-landing-expand-button:hover {
+  box-shadow: 0 4px 12px rgba(161, 0, 255, 0.3);
+  transform: translateY(-1px);
+}
+
+.helpboard-landing-response-section {
   margin-top: 1rem;
   padding-top: 1rem;
   border-top: 1px solid #e9ecef;
 }
-
-.responsesSection {
-  margin-top: 1rem;
-  padding-top: 1rem;
-  border-top: 1px solid #e9ecef;
-}
-
-.responsesTitle {
-  font-size: 1rem;
-  font-weight: 600;
-  margin-bottom: 0.75rem;
-  color: #333;
-}
-
-.responseItem {
-  padding: 0.75rem;
-  background-color: #f8f9fa;
-  border-radius: 6px;
-  margin-bottom: 0.75rem;
-  border: 1px solid #e9ecef;
-}
-
-.responseHeader {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 1rem;
-  margin-bottom: 0.5rem;
-}
-
-.responseMessage {
-  flex: 1;
-  margin: 0;
-  color: #333;
-  font-size: 0.9rem;
-  line-height: 1.5;
-}
-
-.responseDate {
-  font-size: 0.8rem;
-  color: #999;
-  margin-top: 0.5rem;
-}
-
-.responseActions {
-  display: flex;
-  gap: 0.5rem;
-  margin-top: 0.75rem;
-  padding-top: 0.75rem;
-  border-top: 1px solid #e9ecef;
-}
-
-.acceptButton {
-  padding: 0.5rem 1rem;
-  background-color: #28a745;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 0.85rem;
-  font-weight: 500;
-  transition: background-color 0.3s;
-}
-
-.declineButton {
-  padding: 0.5rem 1rem;
-  background-color: #dc3545;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 0.85rem;
-  font-weight: 500;
-  transition: background-color 0.3s;
-}
-
-.emptyResponse {
-  color: #666;
-  font-size: 0.9rem;
-  font-style: italic;
-}
-
-.statusUpdateSection {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  margin-top: 0.75rem;
-  padding-top: 0.75rem;
-  border-top: 1px solid #e9ecef;
-}
-
-.statusLabel {
-  font-size: 0.9rem;
-  font-weight: 500;
-  color: #333;
-}
-
-.statusSelect {
-  padding: 0.5rem 0.75rem;
-  border: 1px solid #ddd;
-  border-radius: 6px;
-  font-size: 0.9rem;
-  font-family: inherit;
-  background-color: white;
-  cursor: pointer;
-  min-width: 120px;
-}
-

@@ -56,8 +56,8 @@ export const Settings: React.FC = () => {
         <div className="settings-header">
           <h1 className="settings-title gradient-text">Settings</h1>
           <div className="settings-nav-buttons">
-            <Link to="/dashboard" className="btn-secondary">← Dashboard</Link>
-            <Link to="/profile" className="btn-secondary">Profile →</Link>
+            <Link to="/profile" className="btn-secondary">← Profile</Link>
+            <Link to="/dashboard" className="btn-secondary">Dashboard →</Link>
           </div>
         </div>
 

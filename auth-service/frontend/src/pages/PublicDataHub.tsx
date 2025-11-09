@@ -34,11 +34,8 @@ export const PublicDataHub: React.FC = () => {
   const [resourcesLimit, setResourcesLimit] = useState(100);
   const [resourcesOffset, setResourcesOffset] = useState(0);
   const [loadingResources, setLoadingResources] = useState(false);
-  const [queryMode, setQueryMode] = useState<'filter' | 'sql' | 'text'>('filter');
   const [filterField, setFilterField] = useState('');
   const [filterValue, setFilterValue] = useState('');
-  const [textQuery, setTextQuery] = useState('');
-  const [sqlQuery, setSqlQuery] = useState('SELECT * FROM "<resource_id>" LIMIT 100');
   const [datastoreResults, setDatastoreResults] = useState<{
     records: any[];
     total: number;
@@ -121,7 +118,6 @@ export const PublicDataHub: React.FC = () => {
     try {
       const info = await publicDataAPI.getDatastoreResource(resourceId);
       setResourceInfo(info);
-      setSqlQuery(`SELECT * FROM "${resourceId}" LIMIT 100`);
       // Set first field as default chart field
       if (info.fields && info.fields.length > 0) {
         setChartField(info.fields[0].id);
@@ -147,8 +143,7 @@ export const PublicDataHub: React.FC = () => {
     try {
       const analysis = await publicDataAPI.analyzeDatastoreResource(resourceId, model, maxFields);
       setVisualizationAnalysis(analysis);
-      // Update SQL query with recommended limit
-      setSqlQuery(`SELECT * FROM "${resourceId}" LIMIT ${analysis.recommended_limit}`);
+      // Update limit with recommended limit
       setLimit(analysis.recommended_limit);
     } catch (err: any) {
       setError(err.response?.data?.detail || 'Failed to analyze resource');
@@ -188,22 +183,9 @@ export const PublicDataHub: React.FC = () => {
     setDatastoreResults(null);
 
     try {
-      if (queryMode === 'sql') {
-        const finalQuery = sqlQuery.replace('<resource_id>', resourceId).replace('"<resource_id>"', `"${resourceId}"`);
-        const result = await publicDataAPI.searchDatastoreSQL(finalQuery);
-        setDatastoreResults({
-          ...result,
-          total: result.records.length
-        });
-      } else if (queryMode === 'text') {
-        const filters = filterField && filterValue ? { [filterField]: filterValue } : undefined;
-        const result = await publicDataAPI.searchDatastore(resourceId, limit, offset, filters, textQuery);
-        setDatastoreResults(result);
-      } else {
-        const filters = filterField && filterValue ? { [filterField]: filterValue } : undefined;
-        const result = await publicDataAPI.searchDatastore(resourceId, limit, offset, filters);
-        setDatastoreResults(result);
-      }
+      const filters = filterField && filterValue ? { [filterField]: filterValue } : undefined;
+      const result = await publicDataAPI.searchDatastore(resourceId, limit, offset, filters);
+      setDatastoreResults(result);
     } catch (err: any) {
       setError(err.response?.data?.detail || 'Failed to search datastore');
       console.error('Error:', err);
@@ -346,19 +328,6 @@ export const PublicDataHub: React.FC = () => {
     }
   };
 
-  const getHeaderClassName = () => {
-    const baseClass = 'header';
-    switch (activeTab) {
-      case 'datastore':
-        return `${baseClass} datastoreHeader`;
-      case 'social-aid':
-        return `${baseClass} socialAidHeader`;
-      case 'explorer':
-        return `${baseClass} explorerHeader`;
-      default:
-        return baseClass;
-    }
-  };
 
   return (
     <div className="min-h-screen bg-background-light">
@@ -506,37 +475,6 @@ export const PublicDataHub: React.FC = () => {
                           </option>
                         ))}
                       </select>
-                      
-                      {/* Pagination */}
-                      {resourcesTotal > 0 && (
-                        <div className="paginationControls">
-                          <button
-                            onClick={() => {
-                              const newOffset = Math.max(0, resourcesOffset - resourcesLimit);
-                              setResourcesOffset(newOffset);
-                            }}
-                            disabled={resourcesOffset === 0}
-                            className={`paginationButton ${resourcesOffset === 0 ? 'paginationButtonDisabled' : ''}`}
-                          >
-                            ← Previous
-                          </button>
-                          <span className="paginationInfo">
-                            Showing {resourcesOffset + 1}-{Math.min(resourcesOffset + resourcesLimit, resourcesTotal)} of {resourcesTotal.toLocaleString()}
-                          </span>
-                          <button
-                            onClick={() => {
-                              const newOffset = resourcesOffset + resourcesLimit;
-                              if (newOffset < resourcesTotal) {
-                                setResourcesOffset(newOffset);
-                              }
-                            }}
-                            disabled={resourcesOffset + resourcesLimit >= resourcesTotal}
-                            className={`paginationButton ${resourcesOffset + resourcesLimit >= resourcesTotal ? 'paginationButtonDisabled' : ''}`}
-                          >
-                            Next →
-                          </button>
-                        </div>
-                      )}
                     </>
                   )}
                 </div>
@@ -628,7 +566,7 @@ export const PublicDataHub: React.FC = () => {
                           onClick={handleVisualizeRecommended}
                           className="visualizeButton"
                         >
-                          📈 Visualize Recommended Fields
+                          {visualizationAnalysis && visualizationAnalysis.visualizable_fields.length > 0 ? '✅ ' : ''}📈 Visualize Recommended Fields
                         </button>
                       </div>
                     )}
@@ -642,41 +580,7 @@ export const PublicDataHub: React.FC = () => {
 
               {resourceInfo && (
                 <>
-                  <div className="queryModeSelector">
-                    <label className="label">Query Mode:</label>
-                    <div className="radioGroup">
-                      <label className="radioLabel">
-                        <input
-                          type="radio"
-                          value="filter"
-                          checked={queryMode === 'filter'}
-                          onChange={(e) => setQueryMode(e.target.value as 'filter' | 'sql' | 'text')}
-                        />
-                        Filter
-                      </label>
-                      <label className="radioLabel">
-                        <input
-                          type="radio"
-                          value="text"
-                          checked={queryMode === 'text'}
-                          onChange={(e) => setQueryMode(e.target.value as 'filter' | 'sql' | 'text')}
-                        />
-                        Text Search
-                      </label>
-                      <label className="radioLabel">
-                        <input
-                          type="radio"
-                          value="sql"
-                          checked={queryMode === 'sql'}
-                          onChange={(e) => setQueryMode(e.target.value as 'filter' | 'sql' | 'text')}
-                        />
-                        SQL Query
-                      </label>
-                    </div>
-                  </div>
-
-                  {queryMode === 'filter' ? (
-                    <div className="filterSection">
+                  <div className="filterSection">
                       <div className="filterRow">
                         <div className="filterField">
                           <label className="label">Filter Field:</label>
@@ -728,55 +632,6 @@ export const PublicDataHub: React.FC = () => {
                         </div>
                       </div>
                     </div>
-                  ) : queryMode === 'text' ? (
-                    <div className="textSearchSection">
-                      <label className="label">Text Search (searches across all fields):</label>
-                      <input
-                        type="text"
-                        value={textQuery}
-                        onChange={(e) => setTextQuery(e.target.value)}
-                        placeholder="Enter search text..."
-                        className="inputField"
-                      />
-                      <div className="paginationRow">
-                        <div className="paginationField">
-                          <label className="label">Limit:</label>
-                          <input
-                            type="number"
-                            value={limit}
-                            onChange={(e) => setLimit(parseInt(e.target.value) || 100)}
-                            min="1"
-                            max="1000"
-                            className="numberInput"
-                          />
-                        </div>
-                        <div className="paginationField">
-                          <label className="label">Offset:</label>
-                          <input
-                            type="number"
-                            value={offset}
-                            onChange={(e) => setOffset(parseInt(e.target.value) || 0)}
-                            min="0"
-                            className="numberInput"
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="sqlSection">
-                      <label className="label">SQL Query:</label>
-                      <textarea
-                        value={sqlQuery}
-                        onChange={(e) => setSqlQuery(e.target.value)}
-                        placeholder='SELECT * FROM "<resource_id>" WHERE county="Bucuresti" LIMIT 100'
-                        className="textarea"
-                        rows={4}
-                      />
-                      <p className="sqlHint">
-                        💡 Tip: Use <code>"{resourceId}"</code> as the table name. Example: <code>SELECT * FROM "{resourceId}" WHERE county='Bucuresti' LIMIT 100</code>
-                      </p>
-                    </div>
-                  )}
 
                   <button
                     onClick={handleSearchDatastore}

@@ -149,25 +149,25 @@ export default function HelpboardPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background-light">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <header className="mb-8">
-          <h1 className="text-4xl md:text-5xl font-bold mb-3 gradient-text">
+    <div className="helpboard-page-wrapper">
+      <div className="helpboard-page-container">
+        <header className="helpboard-page-header">
+          <h1 className="helpboard-page-title">
             💼 Helpboard
           </h1>
-          <p className="text-xl text-gray-600">
+          <p className="helpboard-page-subtitle">
             Connect with local helpers and offer your services
           </p>
-          <div className="controlsRow mt-4">
-          <div className="tabSelector">
+          <div className="helpboard-page-controls">
+          <div className="helpboard-page-tab-selector">
             <button
-              className={`tabButton ${activeTab === 'requests' ? 'tabButtonActive' : ''}`}
+              className={`helpboard-page-tab-button ${activeTab === 'requests' ? 'helpboard-page-tab-button-active' : ''}`}
               onClick={() => setActiveTab('requests')}
             >
               📣 Requests ({requests.length})
             </button>
             <button
-              className={`tabButton ${activeTab === 'responses' ? 'tabButtonActive' : ''}`}
+              className={`helpboard-page-tab-button ${activeTab === 'responses' ? 'helpboard-page-tab-button-active' : ''}`}
               onClick={() => setActiveTab('responses')}
             >
               💬 Responses ({responses.length})
@@ -176,32 +176,32 @@ export default function HelpboardPage() {
         </div>
         </header>
 
-        <div className="content">
+        <div className="helpboard-page-content">
         {activeTab === 'requests' && (
           <div>
-            <div className="createSection">
-            <h2 className="sectionTitle">Create a Request</h2>
+            <div className="helpboard-page-create-section">
+            <h2 className="helpboard-page-section-title">Create a Request</h2>
             <RequestForm onCreated={handleCreateRequest} />
           </div>
 
-          <div className="listSection">
-            <h2 className="sectionTitle">All Requests</h2>
+          <div className="helpboard-page-list-section">
+            <h2 className="helpboard-page-section-title">All Requests</h2>
             {loading ? (
-              <p className="loading">Loading requests...</p>
+              <p className="helpboard-page-loading">Loading requests...</p>
             ) : requests.length === 0 ? (
-              <div className="emptyState">
+              <div className="helpboard-page-empty">
                 <p>No requests yet. Be the first to create one!</p>
               </div>
             ) : (
-              <div className="requestsGrid">
+              <div className="helpboard-page-requests-grid">
                 {requests.map((request) => (
-                  <div key={request._id} className="requestCard">
-                    <div className="requestHeader">
-                      <h3 className="requestTitle">{request.title}</h3>
-                      <div className="badges">
+                  <div key={request._id} className="helpboard-page-request-card">
+                    <div className="helpboard-page-request-header">
+                      <h3 className="helpboard-page-request-title">{request.title}</h3>
+                      <div className="helpboard-page-badges">
                         {request.status && (
                           <span
-                            className="badge"
+                            className="helpboard-page-badge"
                             style={{
                               backgroundColor: getStatusColor(request.status),
                               color: 'white',
@@ -212,7 +212,7 @@ export default function HelpboardPage() {
                         )}
                         {request.urgency && (
                           <span
-                            className="badge"
+                            className="helpboard-page-badge"
                             style={{
                               backgroundColor: getUrgencyColor(request.urgency),
                               color: 'white',
@@ -224,21 +224,21 @@ export default function HelpboardPage() {
                       </div>
                     </div>
                     {request.description && (
-                      <p className="requestDescription">{request.description}</p>
+                      <p className="helpboard-page-request-description">{request.description}</p>
                     )}
-                    <div className="requestDetails">
+                    <div className="helpboard-page-request-details">
                       {request.trade_needed && (
-                        <div className="detailItem">
+                        <div className="helpboard-page-detail-item">
                           <strong>Trade:</strong> {request.trade_needed}
                         </div>
                       )}
                       {request.budget && (
-                        <div className="detailItem">
+                        <div className="helpboard-page-detail-item">
                           <strong>Budget:</strong> ${request.budget}
                         </div>
                       )}
                       {request.date_created && (
-                        <div className="detailItem">
+                        <div className="helpboard-page-detail-item">
                           <strong>Created:</strong>{' '}
                           {new Date(request.date_created).toLocaleDateString()}
                         </div>
@@ -246,14 +246,14 @@ export default function HelpboardPage() {
                     </div>
                     {/* Responses Section */}
                     {getResponsesForRequest(request._id).length > 0 && (
-                      <div className="responsesSection">
-                        <h4 className="responsesTitle">Responses ({getResponsesForRequest(request._id).length})</h4>
+                      <div className="helpboard-page-responses-section">
+                        <h4 className="helpboard-page-responses-title">Responses ({getResponsesForRequest(request._id).length})</h4>
                         {getResponsesForRequest(request._id).map((response) => (
-                          <div key={response._id} className="responseItem">
-                            <div className="responseHeader">
-                              <p className="responseMessage">{response.message}</p>
+                          <div key={response._id} className="helpboard-page-response-item">
+                            <div className="helpboard-page-response-header">
+                              <p className="helpboard-page-response-message">{response.message}</p>
                               <span
-                                className="badge"
+                                className="helpboard-page-badge"
                                 style={{
                                   backgroundColor: getResponseStatusColor(response.status),
                                   color: 'white',
@@ -263,22 +263,22 @@ export default function HelpboardPage() {
                               </span>
                             </div>
                             {response.date_created && (
-                              <div className="responseDate">
+                              <div className="helpboard-page-response-date">
                                 {new Date(response.date_created).toLocaleString()}
                               </div>
                             )}
                             {/* Accept/Decline buttons - only for request owner */}
                             {request.user_id && canAcceptResponse(user, request.user_id) && response.status === 'pending' && (
-                              <div className="responseActions">
+                              <div className="helpboard-page-response-actions">
                                 <button
                                   onClick={() => handleAcceptResponse(response._id, request._id, 'accepted')}
-                                  className="acceptButton"
+                                  className="helpboard-page-accept-button"
                                 >
                                   ✅ Accept
                                 </button>
                                 <button
                                   onClick={() => handleAcceptResponse(response._id, request._id, 'declined')}
-                                  className="declineButton"
+                                  className="helpboard-page-decline-button"
                                 >
                                   ❌ Decline
                                 </button>
@@ -290,7 +290,7 @@ export default function HelpboardPage() {
                     )}
                     {/* Only show response form for requests NOT owned by the user */}
                     {user && request.user_id !== user.id && (
-                      <div className="responseSection">
+                      <div className="helpboard-page-response-section">
                         <ResponseForm
                           request_id={request._id}
                           onCreated={() => {
@@ -310,11 +310,11 @@ export default function HelpboardPage() {
 
         {activeTab === 'responses' && (
           <div>
-            <h2 className="sectionTitle">All Responses</h2>
+            <h2 className="helpboard-page-section-title">All Responses</h2>
           {loading ? (
-            <p className="loading">Loading responses...</p>
+            <p className="helpboard-page-loading">Loading responses...</p>
           ) : !user ? (
-            <div className="emptyState">
+            <div className="helpboard-page-empty">
               <p>Please log in to see responses to your requests.</p>
             </div>
           ) : (() => {
@@ -323,19 +323,19 @@ export default function HelpboardPage() {
             );
             const filteredResponses = responses.filter(r => userRequestIds.has(r.request_id));
             return filteredResponses.length === 0 ? (
-              <div className="emptyState">
+              <div className="helpboard-page-empty">
                 <p>No responses to your requests yet.</p>
               </div>
             ) : (
-              <div className="responsesList">
+              <div className="helpboard-page-responses-list">
                 {filteredResponses.map((response) => (
-                <div key={response._id} className="responseCard">
-                  <div className="responseHeader">
-                    <div className="responseInfo">
+                <div key={response._id} className="helpboard-page-response-card">
+                  <div className="helpboard-page-response-header">
+                    <div className="helpboard-page-response-info">
                       <strong>Response to Request:</strong> {response.request_id}
                     </div>
                     <span
-                      className="badge"
+                      className="helpboard-page-badge"
                       style={{
                         backgroundColor: getStatusColor(response.status),
                         color: 'white',
@@ -344,9 +344,9 @@ export default function HelpboardPage() {
                       {response.status}
                     </span>
                   </div>
-                  <p className="responseMessage">{response.message}</p>
+                  <p className="helpboard-page-response-message">{response.message}</p>
                   {response.date_created && (
-                    <div className="responseDate">
+                    <div className="helpboard-page-response-date">
                       {new Date(response.date_created).toLocaleString()}
                     </div>
                   )}
