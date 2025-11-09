@@ -286,15 +286,18 @@ export default function HelpboardPage() {
                         ))}
                       </div>
                     )}
-                    <div style={styles.responseSection}>
-                      <ResponseForm
-                        request_id={request._id}
-                        onCreated={() => {
-                          fetchRequests();
-                          fetchResponses();
-                        }}
-                      />
-                    </div>
+                    {/* Only show response form for requests NOT owned by the user */}
+                    {user && request.user_id !== user.id && (
+                      <div style={styles.responseSection}>
+                        <ResponseForm
+                          request_id={request._id}
+                          onCreated={() => {
+                            fetchRequests();
+                            fetchResponses();
+                          }}
+                        />
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>

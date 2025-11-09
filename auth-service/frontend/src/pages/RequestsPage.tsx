@@ -313,15 +313,18 @@ export default function RequestsPage() {
                   </div>
                 )}
 
-                <div style={styles.responseSection}>
-                  <ResponseForm
-                    request_id={request._id}
-                    onCreated={() => {
-                      fetchRequests();
-                      fetchResponses();
-                    }}
-                  />
-                </div>
+                {/* Only show response form for requests NOT owned by the user */}
+                {user && request.user_id !== user.id && (
+                  <div style={styles.responseSection}>
+                    <ResponseForm
+                      request_id={request._id}
+                      onCreated={() => {
+                        fetchRequests();
+                        fetchResponses();
+                      }}
+                    />
+                  </div>
+                )}
 
                 {/* Edit/Delete Buttons */}
                 {request.user_id && (canEditRequest(user, request.user_id) || canDeleteRequest(user, request.user_id)) && (

@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import api from '../services/api';
+import api, { helpdeskAPI } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 import { Link } from 'react-router-dom';
 import RequestForm from '../components/RequestForm';
 import ResponseForm from '../components/ResponseForm';
+import { canAcceptResponse } from '../utils/permissions';
 
 interface RequestItem {
   _id: string;
@@ -17,6 +18,15 @@ interface RequestItem {
   date_created?: string;
 }
 
+interface ResponseItem {
+  _id: string;
+  request_id: string;
+  responder_id: string;
+  message: string;
+  status: string;
+  date_created?: string;
+}
+
 const HelpboardLanding: React.FC = () => {
   const { user } = useAuth();
   const [allRequests, setAllRequests] = useState<RequestItem[]>([]);
@@ -26,6 +36,8 @@ const HelpboardLanding: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [showRequestForm, setShowRequestForm] = useState(false);
   const [expandedRequests, setExpandedRequests] = useState<Set<string>>(new Set());
+  const [expandedResponses, setExpandedResponses] = useState<Set<string>>(new Set());
+  const [responses, setResponses] = useState<ResponseItem[]>([]);
 
   const fetchAll = async () => {
     setLoading(true);
@@ -72,8 +84,18 @@ const HelpboardLanding: React.FC = () => {
     }
   };
 
+  const fetchResponses = async () => {
+    try {
+      const res = await api.get<ResponseItem[]>('/helpboard/responses');
+      setResponses(res.data || []);
+    } catch (err) {
+      console.error('Failed to load responses', err);
+    }
+  };
+
   useEffect(() => {
     fetchAll();
+    fetchResponses();
   }, []);
 
   useEffect(() => {
@@ -123,11 +145,56 @@ const HelpboardLanding: React.FC = () => {
 
   const handleResponseCreated = (requestId: string) => {
     fetchAll();
+    fetchResponses();
     setExpandedRequests((prev) => {
       const next = new Set(prev);
       next.delete(requestId);
       return next;
     });
+  };
+
+  const toggleResponses = (requestId: string) => {
+    setExpandedResponses((prev) => {
+      const next = new Set(prev);
+      if (next.has(requestId)) {
+        next.delete(requestId);
+      } else {
+        next.add(requestId);
+      }
+      return next;
+    });
+  };
+
+  const getResponsesForRequest = (requestId: string) => {
+    if (!user) return [];
+    const request = allRequests.find(r => r._id === requestId);
+    if (!request || request.user_id !== user.id) {
+      return [];
+    }
+    return responses.filter(r => r.request_id === requestId);
+  };
+
+  const getResponseStatusColor = (status?: string) => {
+    switch (status?.toLowerCase()) {
+      case 'accepted':
+        return '#28a745';
+      case 'declined':
+        return '#dc3545';
+      case 'pending':
+        return '#ffc107';
+      default:
+        return '#6c757d';
+    }
+  };
+
+  const handleAcceptResponse = async (responseId: string, status: 'accepted' | 'declined') => {
+    try {
+      await helpdeskAPI.updateResponseStatus(responseId, status);
+      fetchResponses();
+      fetchAll();
+    } catch (error: any) {
+      alert(`Failed to ${status === 'accepted' ? 'accept' : 'decline'} response: ${error.message}`);
+    }
   };
 
   return (
@@ -238,20 +305,63 @@ const HelpboardLanding: React.FC = () => {
                       </div>
                     )}
                   </div>
+                  {/* Show responses button for my requests */}
                   {user && (
                     <button
-                      onClick={() => toggleRequest(r._id)}
+                      onClick={() => toggleResponses(r._id)}
                       style={styles.expandButton}
                     >
-                      {expandedRequests.has(r._id) ? '▼ Hide Response Form' : '▶ Add Response'}
+                      {expandedResponses.has(r._id) ? '▼ Hide Responses' : '▶ View Responses'}
                     </button>
                   )}
-                  {expandedRequests.has(r._id) && user && (
-                    <div style={styles.responseSection}>
-                      <ResponseForm
-                        request_id={r._id}
-                        onCreated={() => handleResponseCreated(r._id)}
-                      />
+                  {/* Display responses when expanded */}
+                  {expandedResponses.has(r._id) && user && (
+                    <div style={styles.responsesSection}>
+                      {getResponsesForRequest(r._id).length > 0 ? (
+                        <>
+                          <h4 style={styles.responsesTitle}>Responses ({getResponsesForRequest(r._id).length})</h4>
+                          {getResponsesForRequest(r._id).map((response) => (
+                            <div key={response._id} style={styles.responseItem}>
+                              <div style={styles.responseHeader}>
+                                <p style={styles.responseMessage}>{response.message}</p>
+                                <span
+                                  style={{
+                                    ...styles.badge,
+                                    backgroundColor: getResponseStatusColor(response.status),
+                                    color: 'white',
+                                  }}
+                                >
+                                  {response.status}
+                                </span>
+                              </div>
+                              {response.date_created && (
+                                <div style={styles.responseDate}>
+                                  {new Date(response.date_created).toLocaleString()}
+                                </div>
+                              )}
+                              {/* Accept/Decline buttons - only for request owner */}
+                              {r.user_id && canAcceptResponse(user, r.user_id) && response.status === 'pending' && (
+                                <div style={styles.responseActions}>
+                                  <button
+                                    onClick={() => handleAcceptResponse(response._id, 'accepted')}
+                                    style={styles.acceptButton}
+                                  >
+                                    ✅ Accept
+                                  </button>
+                                  <button
+                                    onClick={() => handleAcceptResponse(response._id, 'declined')}
+                                    style={styles.declineButton}
+                                  >
+                                    ❌ Decline
+                                  </button>
+                                </div>
+                              )}
+                            </div>
+                          ))}
+                        </>
+                      ) : (
+                        <p style={styles.emptyResponse}>No responses yet.</p>
+                      )}
                     </div>
                   )}
                 </div>
@@ -327,7 +437,8 @@ const HelpboardLanding: React.FC = () => {
                       </div>
                     )}
                   </div>
-                  {user && (
+                  {/* Only show response form for requests NOT owned by the user */}
+                  {user && r.user_id !== user.id && (
                     <button
                       onClick={() => toggleRequest(r._id)}
                       style={styles.expandButton}
@@ -335,7 +446,7 @@ const HelpboardLanding: React.FC = () => {
                       {expandedRequests.has(r._id) ? '▼ Hide Response Form' : '▶ Add Response'}
                     </button>
                   )}
-                  {expandedRequests.has(r._id) && user && (
+                  {expandedRequests.has(r._id) && user && r.user_id !== user.id && (
                     <div style={styles.responseSection}>
                       <ResponseForm
                         request_id={r._id}
@@ -529,6 +640,77 @@ const styles: { [key: string]: React.CSSProperties } = {
     marginTop: '1rem',
     paddingTop: '1rem',
     borderTop: '1px solid #e9ecef',
+  },
+  responsesSection: {
+    marginTop: '1rem',
+    paddingTop: '1rem',
+    borderTop: '1px solid #e9ecef',
+  },
+  responsesTitle: {
+    fontSize: '1rem',
+    fontWeight: '600',
+    marginBottom: '0.75rem',
+    color: '#333',
+  },
+  responseItem: {
+    padding: '0.75rem',
+    backgroundColor: '#f8f9fa',
+    borderRadius: '6px',
+    marginBottom: '0.75rem',
+    border: '1px solid #e9ecef',
+  },
+  responseHeader: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    gap: '1rem',
+    marginBottom: '0.5rem',
+  },
+  responseMessage: {
+    flex: 1,
+    margin: 0,
+    color: '#333',
+    fontSize: '0.9rem',
+    lineHeight: '1.5',
+  },
+  responseDate: {
+    fontSize: '0.8rem',
+    color: '#999',
+    marginTop: '0.5rem',
+  },
+  responseActions: {
+    display: 'flex',
+    gap: '0.5rem',
+    marginTop: '0.75rem',
+    paddingTop: '0.75rem',
+    borderTop: '1px solid #e9ecef',
+  },
+  acceptButton: {
+    padding: '0.5rem 1rem',
+    backgroundColor: '#28a745',
+    color: 'white',
+    border: 'none',
+    borderRadius: '4px',
+    cursor: 'pointer',
+    fontSize: '0.85rem',
+    fontWeight: '500',
+    transition: 'background-color 0.3s',
+  },
+  declineButton: {
+    padding: '0.5rem 1rem',
+    backgroundColor: '#dc3545',
+    color: 'white',
+    border: 'none',
+    borderRadius: '4px',
+    cursor: 'pointer',
+    fontSize: '0.85rem',
+    fontWeight: '500',
+    transition: 'background-color 0.3s',
+  },
+  emptyResponse: {
+    color: '#666',
+    fontSize: '0.9rem',
+    fontStyle: 'italic',
   },
 };
 
